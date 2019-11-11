@@ -328,6 +328,40 @@ class PracticeRepository implements PracticeRepositoryInterface
             'est_bank_details' => $practiceFinanceSetting->est_bank_details,
             'est_show_shipping' => $practiceFinanceSetting->est_show_shipping,
 
+            'cn_prefix' => $practiceFinanceSetting->cn_prefix,
+            'cn_title' => $practiceFinanceSetting->cn_title,
+            'cn_summary' => $practiceFinanceSetting->cn_summary,
+            'cn_terms' => $practiceFinanceSetting->cn_terms,
+            'cn_notes' => $practiceFinanceSetting->cn_notes,
+            'cn_mail_subject' => $practiceFinanceSetting->cn_mail_subject,
+            'cn_text_below_phone' => $practiceFinanceSetting->cn_text_below_phone,
+            'cn_due_term' => $practiceFinanceSetting->cn_due_term,
+            'cn_bank_details' => $practiceFinanceSetting->cn_bank_details,
+            'cn_show_shipping' => $practiceFinanceSetting->cn_show_shipping,
+
+            'dn_prefix' => $practiceFinanceSetting->dn_prefix,
+            'dn_title' => $practiceFinanceSetting->dn_title,
+            'dn_summary' => $practiceFinanceSetting->dn_summary,
+            'dn_terms' => $practiceFinanceSetting->dn_terms,
+            'dn_notes' => $practiceFinanceSetting->dn_notes,
+            'dn_mail_subject' => $practiceFinanceSetting->dn_mail_subject,
+            'dn_text_below_phone' => $practiceFinanceSetting->dn_text_below_phone,
+            'dn_due_term' => $practiceFinanceSetting->dn_due_term,
+            'dn_bank_details' => $practiceFinanceSetting->dn_bank_details,
+            'dn_show_shipping' => $practiceFinanceSetting->dn_show_shipping,
+
+            'return_prefix' => $practiceFinanceSetting->return_prefix,
+            'return_title' => $practiceFinanceSetting->return_title,
+            'return_summary' => $practiceFinanceSetting->return_summary,
+            'return_terms' => $practiceFinanceSetting->return_terms,
+            'return_notes' => $practiceFinanceSetting->return_notes,
+            'return_mail_subject' => $practiceFinanceSetting->return_mail_subject,
+            'return_text_below_phone' => $practiceFinanceSetting->return_text_below_phone,
+            'return_due_term' => $practiceFinanceSetting->return_due_term,
+            'return_bank_details' => $practiceFinanceSetting->return_bank_details,
+            'return_show_shipping' => $practiceFinanceSetting->return_show_shipping,
+
+
         ];
         
     }
