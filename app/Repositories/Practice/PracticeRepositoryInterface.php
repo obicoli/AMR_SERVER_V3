@@ -12,6 +12,7 @@ namespace App\Repositories\Practice;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\Practice\Department;
 use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeFinanceSetting;
 use App\Models\Practice\PracticeProductItem;
 use App\Models\Practice\PracticeProductItemStock;
 use App\Models\Practice\PracticeUser;
@@ -82,6 +83,7 @@ interface PracticeRepositoryInterface
     public function setUser(Practice $practice, array $arr);
     public function getUser(Practice $practice);
     public function transform_user(PracticeUser $practiceUser, $source_type, Practice $company=null);
+    public function transform_finance_settings(PracticeFinanceSetting $practiceFinanceSetting);
     public function setPermission(Role $role,$permissions);
     public function setWorkPlace(PracticeUser $practiceUser,array $arr);
     public function getWorkPlace(PracticeUser $practiceUser);

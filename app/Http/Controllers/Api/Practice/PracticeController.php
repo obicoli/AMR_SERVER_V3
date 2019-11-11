@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Validator;
 use jeremykenedy\LaravelRoles\Models\Role;
 use App\Models\Product\ProductType;
 use App\Models\Hospital\Hospital;
+use App\Models\Module\Module;
 
 class PracticeController extends Controller
 {
@@ -76,25 +77,25 @@ class PracticeController extends Controller
         return response()->json($http_resp);
     }
 
-    public function facilities($facility_id){
-        $http_resp = $this->response_type['200'];
-        $practice = $this->practice->findByUuid($facility_id);
-        $parent_main = $this->practice->findParent($practice);
-        $branches = $parent_main->practices()->get()->sortBy('name');
-        $results = array();
-        foreach($branches as $branch){
-            $data['id'] = $branch->uuid;
-            $data['name'] = $branch->name;
-            $data['address'] = $branch->address;
-            $data['email'] = $branch->email;
-            $data['longitude'] = $branch->longitude;
-            $data['latitude'] = $branch->latitude;
-            $data['mobile'] = $branch->mobile;
-            array_push($results,$data);
-        }
-        $http_resp['results'] = $results;
-        return response()->json($http_resp);
-    }
+    // public function facilities($facility_id){
+    //     $http_resp = $this->response_type['200'];
+    //     $practice = $this->practice->findByUuid($facility_id);
+    //     $parent_main = $this->practice->findParent($practice);
+    //     $branches = $parent_main->practices()->get()->sortBy('name');
+    //     $results = array();
+    //     foreach($branches as $branch){
+    //         $data['id'] = $branch->uuid;
+    //         $data['name'] = $branch->name;
+    //         $data['address'] = $branch->address;
+    //         $data['email'] = $branch->email;
+    //         $data['longitude'] = $branch->longitude;
+    //         $data['latitude'] = $branch->latitude;
+    //         $data['mobile'] = $branch->mobile;
+    //         array_push($results,$data);
+    //     }
+    //     $http_resp['results'] = $results;
+    //     return response()->json($http_resp);
+    // }
 
     public function practice($uuid){
         $http_resp = $this->response_type['200'];
@@ -112,7 +113,9 @@ class PracticeController extends Controller
         return response()->json($http_resp);
     }
 
-    public function show_resource_based($uuid, $resource_type){
+    public function show_resource_based(Request $request, $uuid, $resource_type){
+
+        $company = $this->practice->find($request->user()->company_id);
        
         $http_resp = $this->response_type['200'];
         switch ($resource_type){
@@ -268,10 +271,10 @@ class PracticeController extends Controller
             //     $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
             //     break;
             case "Practices":
-                $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
+                $http_resp['results'] = $this->practice->transform_($company,$resource_type);
                 break;
             default:
-                $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
+                $http_resp['results'] = $this->practice->transform_($company,$resource_type);
                 break;
         }
         return response()->json($http_resp);
@@ -323,7 +326,7 @@ class PracticeController extends Controller
             return response()->json($http_resp,422);
         }
 
-        DB::beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
 
             $inputs = $request->except(['practice_id']);
@@ -344,11 +347,11 @@ class PracticeController extends Controller
         }catch (\Exception $e){
             //$this->helper->delete_file($path_to_store);
             Log::info($e);
-            DB::rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp,500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

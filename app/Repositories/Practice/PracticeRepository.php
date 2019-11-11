@@ -43,6 +43,7 @@ use App\Models\Practice\PracticeDepartment;
 use App\Models\Practice\PracticeVendor;
 use App\Models\Practice\PracticeRole;
 use App\Models\Product\Store\ProductStore;
+use App\Models\Practice\PracticeFinanceSetting;
 
 class PracticeRepository implements PracticeRepositoryInterface
 {
@@ -266,6 +267,69 @@ class PracticeRepository implements PracticeRepositoryInterface
         //$temp_data['facility'] = $this->getWorkPlace($practiceUser);
         //array_push($results, $temp_data);
         return $temp_data;
+    }
+
+    public function transform_finance_settings(PracticeFinanceSetting $practiceFinanceSetting){
+
+        return [
+            'id' => $practiceFinanceSetting->uuid,
+            'so_prefix' => $practiceFinanceSetting->so_prefix,
+            'so_title' => $practiceFinanceSetting->so_title,
+            'so_summary' => $practiceFinanceSetting->so_summary,
+            'so_terms' => $practiceFinanceSetting->so_terms,
+            'so_notes' => $practiceFinanceSetting->so_notes,
+            'so_mail_subject' => $practiceFinanceSetting->so_mail_subject,
+            'so_text_below_phone' => $practiceFinanceSetting->so_text_below_phone,
+            'so_due_term' => $practiceFinanceSetting->so_due_term,
+            'so_bank_details' => $practiceFinanceSetting->so_bank_details,
+            'so_show_shipping' => $practiceFinanceSetting->so_show_shipping,
+
+            'inv_prefix' => $practiceFinanceSetting->inv_prefix,
+            'inv_title' => $practiceFinanceSetting->inv_title,
+            'inv_summary' => $practiceFinanceSetting->inv_summary,
+            'inv_terms' => $practiceFinanceSetting->inv_terms,
+            'inv_notes' => $practiceFinanceSetting->inv_notes,
+            'inv_mail_subject' => $practiceFinanceSetting->inv_mail_subject,
+            'inv_text_below_phone' => $practiceFinanceSetting->inv_text_below_phone,
+            'inv_due_term' => $practiceFinanceSetting->inv_due_term,
+            'inv_bank_details' => $practiceFinanceSetting->inv_bank_details,
+            'inv_show_shipping' => $practiceFinanceSetting->inv_show_shipping,
+
+            'po_prefix' => $practiceFinanceSetting->po_prefix,
+            'po_title' => $practiceFinanceSetting->po_title,
+            'po_summary' => $practiceFinanceSetting->po_summary,
+            'po_terms' => $practiceFinanceSetting->po_terms,
+            'po_notes' => $practiceFinanceSetting->po_notes,
+            'po_mail_subject' => $practiceFinanceSetting->po_mail_subject,
+            'po_text_below_phone' => $practiceFinanceSetting->po_text_below_phone,
+            'po_due_term' => $practiceFinanceSetting->po_due_term,
+            'po_bank_details' => $practiceFinanceSetting->po_bank_details,
+            'po_show_shipping' => $practiceFinanceSetting->po_show_shipping,
+
+            'bill_prefix' => $practiceFinanceSetting->bill_prefix,
+            'bill_title' => $practiceFinanceSetting->bill_title,
+            'bill_summary' => $practiceFinanceSetting->bill_summary,
+            'bill_terms' => $practiceFinanceSetting->bill_terms,
+            'bill_notes' => $practiceFinanceSetting->bill_notes,
+            'bill_mail_subject' => $practiceFinanceSetting->bill_mail_subject,
+            'bill_text_below_phone' => $practiceFinanceSetting->bill_text_below_phone,
+            'bill_due_term' => $practiceFinanceSetting->bill_due_term,
+            'bill_bank_details' => $practiceFinanceSetting->bill_bank_details,
+            'bill_show_shipping' => $practiceFinanceSetting->bill_show_shipping,
+
+            'est_prefix' => $practiceFinanceSetting->est_prefix,
+            'est_title' => $practiceFinanceSetting->est_title,
+            'est_summary' => $practiceFinanceSetting->est_summary,
+            'est_terms' => $practiceFinanceSetting->est_terms,
+            'est_notes' => $practiceFinanceSetting->est_notes,
+            'est_mail_subject' => $practiceFinanceSetting->est_mail_subject,
+            'est_text_below_phone' => $practiceFinanceSetting->est_text_below_phone,
+            'est_due_term' => $practiceFinanceSetting->est_due_term,
+            'est_bank_details' => $practiceFinanceSetting->est_bank_details,
+            'est_show_shipping' => $practiceFinanceSetting->est_show_shipping,
+
+        ];
+        
     }
 
     public function setPermission(Role $role, $permissions)
