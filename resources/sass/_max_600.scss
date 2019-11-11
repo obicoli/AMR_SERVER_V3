@@ -1,0 +1,337 @@
+@media only screen and (max-width: 600px){
+    .payment-option h5{
+        font-size: 13px!important;
+        font-weight: 600!important;
+    }
+    .td-bld{
+        font-weight: 500!important;
+        font-size: 14px!important;
+    }
+    //payment icon styled here
+    .payment-icons-holder{
+        width: 100%!important;
+    }
+    .payment-icons-holder a{
+        display: inline;
+        cursor: pointer;
+    }
+    .payment-icons-holder a img{
+        border: 1px solid #ccc;
+        padding: 2px;
+        margin-bottom: $fs-4!important;
+    }
+    .payment-icons-holder a img:hover{
+        padding: 2px!important;
+        border-color: #333!important;
+    }
+    //instructions goes here
+    .instructions p{
+        padding: 10px 5px 5px 10px;
+        font-size: $fs-13!important;
+    }
+    .instructions p b{
+        font-weight: 600!important;
+    }
+    .instructions ol li{
+        font-size: $fs-12!important;
+    }
+    .instructions ol{
+        padding-bottom: 7px!important;
+    }
+    .offset-3{
+        margin-left: 0!important;
+    }
+    #confirm h2{
+        font-size: $fs-15!important;
+        font-weight: 600!important;
+    }
+    .camera-view{
+        width: 210px!important;
+        height: 210px!important;
+        background: #fff!important;
+        border: #1abc9c dotted 1px!important;
+        margin: auto;
+        margin-bottom: 15px!important;
+        font-size: 50px!important;
+    }
+    .camera-view i{
+        color: #ccc!important;
+    }
+
+    .camera-view span{
+        width: 40%;
+        height: 40%;
+        margin-right: 30%;
+        margin-left: 30%;
+        margin-top: 30%;
+        margin-bottom: 30%;
+    }
+    .passed p{
+        font-size: 15px!important;
+    }
+    .passed i{
+        color: #259b24!important;
+    }
+    .main_title h2 {
+        //font-weight: 300;
+        //letter-spacing: -1px;
+        //font-size: 36px;
+        //margin: 0;
+        font-size: 20px!important;
+        font-weight: bold!important;
+        margin-top: 0!important;
+        font-family: Camphor,Helvetica,Arial,sans-serif!important;
+    }
+    .main_title p {
+        font-size: .9rem!important;
+        font-family: Camphor,Helvetica,Arial,sans-serif!important;
+    }
+    .box_feat h3 {
+        font-weight: normal!important;
+        font-size: 29px!important;
+        line-height: 1.38!important;
+        color: #2d2d32!important;
+        margin-top: 31px!important;
+        margin-bottom: 17px!important;
+        text-transform: capitalize!important;
+        //font-family: Camphor,Helvetica,Arial,sans-serif!important;
+    }
+    .box_feat p{
+        color: #2d2d32!important;
+        //font-family: Camphor,Helvetica,Arial,sans-serif!important;
+    }
+    .each-guide-number {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        font-size: 20px;
+        background-color: #28328c;
+        border-radius: 4px;
+        color: #14bef0;
+        font-weight: bold;
+    }
+    .box_feat_customs {
+        padding: 60px 30px 20px!important;
+    }
+    .why_afyamkononi a span i{
+        color: #fff!important;
+        font-size: 20px!important;
+        font-weight: 400!important;
+    }
+    .why_afyamkononi a span i:hover{
+        cursor: pointer!important;
+        font-size: 15px!important;
+        font-weight: 300!important;
+    }
+    .why_afyamkononi a h5 {
+        font-size: 12px!important;
+        font-weight: 500!important;
+        text-transform: capitalize!important;
+        text-align: center!important;
+        color: #fff!important;
+        //font-family: Camphor,Helvetica,Arial,sans-serif!important;
+    }
+    .no-records-founds i{
+        font-size: 80px!important;
+    }
+    .no-records-founds p{
+        font-size: 1.3rem!important;
+    }
+    .mt-sm-80{
+        margin-top: 80px!important;
+    }
+
+    #calling_panel{
+        position: relative;
+        width: 100%;
+        //max-width: 400px;
+    }
+    #calling_panel video{
+        width: 100%!important;
+        height: auto!important;
+
+    }
+    #calling_panel .btn-group .btn{
+        margin-right: 3px!important;
+    }
+    //this can also be used for centering
+    #calling_panel .btn-group {
+        position: absolute;
+        border-bottom: 5px!important;
+        right: 5px!important;
+        //transform: translate(-50%, -50%);
+        //-ms-transform: translate(-50%, -50%);
+        background-color: transparent;
+        //padding: 12px 24px;
+        border: none;
+        cursor: pointer;
+        border-radius: 0!important;
+        text-align: center;
+    }
+    #calling_panel .btn-group btn i{
+        font-size: 15px!important;
+    }
+    .drop-d {
+        text-align: center !important;
+        background-color: #fff !important;
+        margin-left: 5px !important;
+        padding: auto !important;
+        padding-top: 5px !important;
+        width: 25px !important;
+        height: 25px !important;
+        border-radius: 50% !important;
+        border: #e1e8ed solid 1px !important;
+        cursor: pointer !important;
+    }
+    .card-header-custom img{
+        width: 40px!important;
+        height: 40px!important;
+    }
+    .height-sm-50{
+        height: 50px!important;
+    }
+    .block_2_custom img{
+        height: 250px!important;
+    }
+    .box_feat_customs h4{
+        font-size: 1.3rem!important;
+    }
+    .txt-1-3 p{
+        font-size: 1.2rem!important;
+    }
+    .margin_120_95_custom{
+        padding-top: 20px!important;
+        padding-bottom: 10px!important;
+    }
+    .site-title h1{
+        font-size: 16px!important;
+        font-weight: 700!important;
+    }
+    .site-title p{
+        font-size: 1.3rem!important;
+    }
+    form p, .body-normal p{
+        font-size: 1rem!important;
+    }
+    .padding_120_95_custom{
+        margin-bottom: 15px!important;
+    }
+    .block_2_custom ul li{
+        font-size: 1.2rem!important;
+        padding-left: 10px!important;
+        margin-bottom: 5px!important;
+    }
+    .sub-title{
+        font-weight: 700!important;
+        font-size: 13px!important;
+        margin-bottom: 10px!important;
+    }
+    .vary-height{
+        height: auto!important;
+    }
+    .vary-height-2{
+        height: auto!important;
+    }
+    .block_2_custom_img img{
+        height: 380px!important;
+        width: 300px!important;
+    }
+    .img-banner img{
+        height: 150px!important;
+    }
+
+    .vary-height-img img{
+        width: 100px!important;
+        height: 100px!important;
+        margin: 0 auto!important;
+    }
+
+    .box_general_scrollable{
+        max-height: 400px!important;
+        overflow-y: scroll!important;
+    }
+    .list_general>ul h4{
+        font-size: 1.3rem!important;
+        font-weight: 400!important;
+    }
+    .signature-pad-custom{
+        width: 90%!important;
+        margin-left: 5%!important;
+        margin-right: 5%!important;
+        height: 200px;
+    }
+
+    .search-content form{
+        width: 100%!important;
+        float: left!important;
+        margin-bottom: 5px!important;
+    }
+    .search-content .search-content-button{
+        margin-left: auto !important;
+    }
+
+    .min-height-lg-70{
+        min-height: 100px!important;
+    }
+
+    .current-user-header .user-data, .current-user-header .user-contact{
+        margin-left: 10px!important;
+    }
+
+    .patients-panel .dropdown{
+        float: left!important;
+    }
+
+    .partner-dash{
+        height: auto!important;
+    }
+
+    .partner-dash p {
+        font-size: 1.2rem!important;
+    }
+    .partner-dash h3{
+        font-size: 1.5rem!important;
+        font-weight: 400!important;
+    }
+    .partner-dash .dashboard-icon i{
+        font-size: 30px!important;
+    }
+
+    .current-user-header{
+        min-height: 120px!important;
+    }
+
+    .current-user-header .inlined-divs img{
+        width: 40px!important;
+        height: 40px!important;
+        border-radius: 50%!important;
+        margin: 10px 5px 5px 10px!important;
+    }
+
+    .current-user-header .inlined-divs .users-data{
+        margin: 15px 5px 5px 10px!important;
+    }
+    .current-user-header .inlined-divs .contact-group{
+        margin: 15px 5px 5px 10px!important;
+    }
+    .current-user-header .inlined-divs .search-content-button{
+        margin: 15px 5px 5px 10px!important;
+    }
+    .current-user-header .inlined-divs .users-data small, .current-user-header .inlined-divs .contact-group small{
+        font-size: 1.1rem!important;
+    }
+
+    .current-user-body{
+        //padding: 5px 5px 5px 5px!important;
+    }
+
+    .current-user-body .action-header{
+        margin-right: 10px!important;
+    }
+
+    .label-txt-right{
+        text-align: left!important;
+    }
+
+}

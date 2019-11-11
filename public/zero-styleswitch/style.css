@@ -1,0 +1,123 @@
+/*=========================switcher ==============================*/
+
+.color01 {
+  background-color: #833ab4 !important;
+}
+
+.color1 {
+  background: #833ab4 !important;
+  background: -webkit-gradient(linear, left top, right top, from(#fc1e4f), to(#833ab4)) !important;
+  background: linear-gradient(to right, #fc1e4f, #833ab4) !important;
+}
+
+.color02 {
+  background: #507cbe !important;
+}
+
+.color2 {
+  background: #507cbe !important;
+  background: -webkit-gradient(linear, left top, right top, from(#C73B6F), to(#507cbe)) !important;
+  background: linear-gradient(to right, #C73B6F, #507cbe) !important;
+}
+
+.color03 {
+  background: #31405f !important;
+}
+
+.color3 {
+  background: #31405f !important;
+  background: -webkit-gradient(linear, left top, right top, from(#90adbd), to(#31405f)) !important;
+  background: linear-gradient(to right, #90adbd, #31405f) !important;
+}
+
+.color04 {
+  background-color: #101E3B !important;
+}
+
+.color4 {
+  background: #101E3B !important;
+  background: -webkit-gradient(linear, left top, right top, from(#E6282F), to(#101E3B)) !important;
+  background: linear-gradient(to right, #E6282F, #101E3B) !important;
+}
+
+.color05 {
+  background-color: #ee0979 !important;
+}
+
+.color5 {
+  background: #ee0979 !important;
+  background: -webkit-gradient(linear, left top, right top, from(#ff6a00), to(#ee0979)) !important;
+  background: linear-gradient(to right, #ff6a00, #ee0979) !important;
+}
+
+.color06 {
+  background-color: #36D0AE !important;
+}
+
+.color6 {
+  background: #36D0AE !important;
+  background: -webkit-gradient(linear, left top, right top, from(#FD7790), to(#36D0AE)) !important;
+  background: linear-gradient(to right, #FD7790, #36D0AE) !important;
+}
+
+.zero-styleswitch {
+  background-color: #833ab4;
+  border: 2px solid #ddd;
+  display: block;
+  height: 30px;
+  margin: 3px 7px;
+  width: 30px;
+  float: left;
+}
+
+.zero-styleswitch.active {
+  border: 2px solid #000;
+}
+
+.zero-switcher {
+  z-index: 9;
+  position: fixed;
+  left: -105px;
+  top: 150px;
+  height: 40px;
+  font-weight: 400 !important;
+}
+
+.zero-switcher.active {
+  height: auto;
+}
+
+.zero-switcher p {
+  margin: 10px 0;
+}
+
+.zero-switcher i {
+  color: #fff;
+  font-size: 23px;
+}
+
+.zero-switcher .zero-icon {
+  background: #833ab4;
+  cursor: pointer;
+  text-align: center;
+  padding: 2px;
+  float: right;
+  height: 40px;
+  line-height: 40px;
+  width: 40px;
+}
+
+.zero-switcher .zero-holder {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  cursor: pointer;
+  float: right;
+  font-size: 12px;
+  padding: 5px;
+  width: 105px;
+}
+
+.zero-switcher .zero-holder p {
+  font-size: 12px;
+}

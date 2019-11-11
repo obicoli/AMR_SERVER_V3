@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Customer\Models\Quote;
+
+use App\Customer\Models\Customer;
+use App\Models\Module\Module;
+use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
+use App\Traits\UuidTrait;
+use ByTestGear\Accountable\Traits\Accountable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Estimate extends Model
+{
+    use SoftDeletes,UuidTrait,Accountable;
+    protected $connection = Module::MYSQL_CUSTOMER_DB_CONN;
+    const ACCEPTED = "Accepted";
+    const DECLINED = "Declined";
+    const DRAFT = "Draft";
+    const SENT = "Sent";
+    const VIEWD = "Viewed";
+    const INVOICED = "Invoiced";
+    const EXPIRED = "Expired";
+    protected $table = "estimates";
+    protected $fillable = [
+        'trans_number',
+        'ref_number',
+        'estimate_date',
+        'expiry_date',
+        'shipping_charges',
+        'adjustment_charges',
+        'notes',
+        'terms_condition',
+    ];
+
+    public function items(){ return $this->hasMany(EstimateItems::class,'estimate_id'); }
+    public function owning(){ return $this->morphTo();} //Branch level
+    public function customer(){ return $this->morphTo();}
+    //public function customers(){ return $this->belongsTo(Customer::class,'customer_id'); }
+    public function estimate_status(){ return $this->hasMany(EstimateStatus::class,'estimate_id');}
+    public function mails_attachments(){ return $this->morphMany(NotificationInventoryMailAttach::class,'attachable','attachable_type','attachable_id'); }
+}

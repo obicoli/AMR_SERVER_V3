@@ -1,0 +1,85 @@
+.modal {
+    background: rgba(0, 0, 0, 0.62);
+    z-index: 9999;
+}
+.modal-lg {
+    max-width: 800px!important;
+    min-width: 800px!important;
+}
+.modal-header{
+    border-bottom: 1px solid #fff!important;
+}
+.modal-content{
+    top: 20px!important;
+}
+.pd-l-55{padding-left: 55px!important;}
+.pd-r-55{padding-right: 55px!important;}
+.dijitDialogTitle {
+    font-weight: 600;
+    color: #000000;
+    font-size: 2.2rem!important;
+    /* line-height: 70px; */
+    line-height: 50px!important;
+    max-width: calc(100% - 40px);
+}
+.fullAdd.employeeForm .row {
+    padding-bottom: 4px;
+}
+.inlineBlock {
+    display: inline-block;
+}
+.inlineBlock label {
+    font-weight: 600!important;
+    color: #404040!important;
+    display: block!important;
+    margin-bottom: 4px!important;
+    font-size: 14px!important;
+}
+.dijitInline {
+    display: inline-block;
+    border: 0;
+    padding: 0;
+    vertical-align: middle;
+}
+.dijitTextBox input, .dijitTextBox textarea, .dijitTextBox select{
+    outline: none!important;
+    /* height: 32px!important; */
+    border: 1px solid #BABEC5!important;
+    padding: 0 8px!important;
+    border-radius: 2px!important;
+    transition-property: border!important;
+    transition-duration: 0.35s!important;
+    font-size: 13px!important;
+    background-color: #FFFFFF;
+    box-sizing: border-box!important;
+    -webkit-appearance: none!important;
+    width: 100%;
+    vertical-align: middle!important;
+}
+
+input::placeholder, textarea::placeholder  {
+    color: #babec5!important;
+    font-size: 12px!important;
+    font-style: italic;
+    font-weight: 400!important;
+}
+.checkboxInline {
+    margin-left: 5px;
+}
+input[type=checkbox]:not(.dijitCheckBoxInput):not(.idsCheckbox__input) {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    background-color: transparent;
+    border: 1px solid #8D9096;
+    border-radius: 2px;
+    background-repeat: no-repeat;
+    background-size: 124px;
+    background-position: -28px -3px;
+    user-select: none;
+    -webkit-appearance: none;
+}
+.attended_fiel{
+    background-color: #f4f4f4!important;
+    font-weight: 600!important;
+}
