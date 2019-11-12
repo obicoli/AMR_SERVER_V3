@@ -785,6 +785,19 @@ class PracticeRepository implements PracticeRepositoryInterface
         $branch_data['support_email'] = $practice->support_email;
         $branch_data['category'] = $practice->category;
         $branch_data['postal_code'] = $practice->postal_code;
+        $branch_data['region'] = $practice->region;
+        $branch_data['fax'] = $practice->fax;
+
+        $branch_data['propriator_title'] = $practice->propriator_title;
+        $branch_data['propriator_name'] = $practice->propriator_name;
+        $branch_data['business_type'] = $practice->business_type;
+        $branch_data['industry'] = $practice->industry;
+        $branch_data['display_assigned_user'] = $practice->display_assigned_user;
+        $branch_data['inventory_increase'] = $practice->inventory_increase;
+        $branch_data['inventory_descrease'] = $practice->inventory_descrease;
+        $branch_data['warehouse_config'] = $practice->warehouse_config;
+        $branch_data['batch_tracking'] = $practice->batch_tracking;
+        $branch_data['date_format'] = $practice->date_format;
 
         if ($resource_type){
             switch ($resource_type){

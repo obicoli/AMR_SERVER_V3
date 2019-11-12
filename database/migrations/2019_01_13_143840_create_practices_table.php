@@ -41,7 +41,19 @@ class CreatePracticesTable extends Migration
             $table->boolean('status')->default(true);
             $table->unsignedInteger('owner_id')->index();
             $table->string('owner_type')->index();
+            $table->string('region')->nullable();
+            $table->string('fax')->nullable();
             $table->string('uuid')->nullable()->index();
+            $table->string('propriator_title')->nullable();
+            $table->string('propriator_name')->nullable();
+            $table->string('business_type')->nullable();
+            $table->string('industry')->nullable();
+            $table->boolean('display_assigned_user')->default(true);
+            $table->enum('inventory_increase',['Receive','Bill'])->default('Bill');
+            $table->enum('inventory_descrease',['Invoice','Sales Order'])->default('Invoice');
+            $table->boolean('warehouse_config')->default(true);
+            $table->boolean('batch_tracking')->default(true);
+
             $table->softDeletes();
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->timestamps();

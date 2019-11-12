@@ -97,188 +97,189 @@ class PracticeController extends Controller
     //     return response()->json($http_resp);
     // }
 
-    public function practice($uuid){
+    // public function practice($uuid){
+    //     $http_resp = $this->response_type['200'];
+    //     $practice = $this->practice->findByUuid($uuid);
+    //     //$owner = $practice->owner()->get()->first();
+    //     $parent_main = $this->practice->findParent($practice);
+    //     $branches = $parent_main->practices()->get();
+    //     $http_resp['results'] = $this->practice->transform_collection($branches);
+    //     return response()->json($http_resp);
+    // }
+
+    public function show(Request $request, $uuid){
         $http_resp = $this->response_type['200'];
-        $practice = $this->practice->findByUuid($uuid);
-        //$owner = $practice->owner()->get()->first();
-        $parent_main = $this->practice->findParent($practice);
-        $branches = $parent_main->practices()->get();
-        $http_resp['results'] = $this->practice->transform_collection($branches);
+        $practice = $this->practice->find($request->user()->company_id);
+        $http_resp['results'] = $this->practice->transform_($practice);
         return response()->json($http_resp);
     }
 
-    public function show($uuid){
-        $http_resp = $this->response_type['200'];
-        $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid));
-        return response()->json($http_resp);
-    }
+    // public function show_resource_based(Request $request, $uuid, $resource_type){
 
-    public function show_resource_based(Request $request, $uuid, $resource_type){
-
-        $company = $this->practice->find($request->user()->company_id);
+    //     $company = $this->practice->find($request->user()->company_id);
        
-        $http_resp = $this->response_type['200'];
-        switch ($resource_type){
-            case "Product Items":
-                $prodRepo = new ProductReposity(new PracticeProductItem());
-                $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid));
-                break;
-            case "Drug":
-            case "Equipment":
-            case "Supplies":
-                $prodRepo = new ProductReposity(new PracticeProductItem());
-                $itemRepo = new ProductReposity(new ProductType());
-                $item_type = $itemRepo->findByName($resource_type);
-                $arr['column'] = 'product_type_id';
-                $arr['value'] = $item_type->id;
-                $prodRepo = new ProductReposity(new PracticeProductItem());
-                $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid),$arr);
-                break;
-            case "Account Holders": //
-                $prodRepo = new ProductReposity(new Practice());
-                $resource = $prodRepo->getAccountHolders($this->practice->findByUuid($uuid));
-                $http_resp['results'] = $resource;
-                break;
-            case "Banks": //
-                $prodRepo = new ProductReposity(new Practice());
-                $http_resp['results'] = $prodRepo->getBanks($this->practice->findByUuid($uuid));
-                break;
-            case "Purchases":
-                $prodRepo = new ProductReposity(new ProductPurchase());
-                $http_resp['results'] = $prodRepo->getPurchases($this->practice->findByUuid($uuid));
-                break;
-            case "ICC":
-                $results = array();
-                for ( $i=1; $i<31; $i++){
-                    $temp_data['date'] = date("Y-m-d",strtotime("2019-06-".$i));
-                    $temp_data['max_level'] = 3000000;
-                    $temp_data['buffer_level'] = 500000;
-                    $temp_data['reorder_level'] = 1200000;
-                    $temp_data['purchased'] = rand(1000, 500000);
-                    $temp_data['sold'] = rand(1000, 500000);
-                    $temp_data['stock_level'] = rand(1000, 3000000);
-                    array_push($results,$temp_data);
-                }
+    //     $http_resp = $this->response_type['200'];
+    //     switch ($resource_type){
+    //         case "Product Items":
+    //             $prodRepo = new ProductReposity(new PracticeProductItem());
+    //             $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid));
+    //             break;
+    //         case "Drug":
+    //         case "Equipment":
+    //         case "Supplies":
+    //             $prodRepo = new ProductReposity(new PracticeProductItem());
+    //             $itemRepo = new ProductReposity(new ProductType());
+    //             $item_type = $itemRepo->findByName($resource_type);
+    //             $arr['column'] = 'product_type_id';
+    //             $arr['value'] = $item_type->id;
+    //             $prodRepo = new ProductReposity(new PracticeProductItem());
+    //             $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid),$arr);
+    //             break;
+    //         case "Account Holders": //
+    //             $prodRepo = new ProductReposity(new Practice());
+    //             $resource = $prodRepo->getAccountHolders($this->practice->findByUuid($uuid));
+    //             $http_resp['results'] = $resource;
+    //             break;
+    //         case "Banks": //
+    //             $prodRepo = new ProductReposity(new Practice());
+    //             $http_resp['results'] = $prodRepo->getBanks($this->practice->findByUuid($uuid));
+    //             break;
+    //         case "Purchases":
+    //             $prodRepo = new ProductReposity(new ProductPurchase());
+    //             $http_resp['results'] = $prodRepo->getPurchases($this->practice->findByUuid($uuid));
+    //             break;
+    //         case "ICC":
+    //             $results = array();
+    //             for ( $i=1; $i<31; $i++){
+    //                 $temp_data['date'] = date("Y-m-d",strtotime("2019-06-".$i));
+    //                 $temp_data['max_level'] = 3000000;
+    //                 $temp_data['buffer_level'] = 500000;
+    //                 $temp_data['reorder_level'] = 1200000;
+    //                 $temp_data['purchased'] = rand(1000, 500000);
+    //                 $temp_data['sold'] = rand(1000, 500000);
+    //                 $temp_data['stock_level'] = rand(1000, 3000000);
+    //                 array_push($results,$temp_data);
+    //             }
 
-                $stock_ou['facility'] = "(Amref Langata Main)";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[0] = $stock_ou;
-                $stock_ou['facility'] = "Amref Upper Hill";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[1] = $stock_ou;
-                $stock_ou['facility'] = "Amref Westlands";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[2] = $stock_ou;
-                $stock_ou['facility'] = "Amref Buruburu";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[3] = $stock_ou;
-                $stock_ou['facility'] = "Amref Embakasi";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[4] = $stock_ou;
-                $stock_ou['facility'] = "Amref Thika";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[5] = $stock_ou;
-                $stock_ou['facility'] = "Amref Kibera";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[6] = $stock_ou;
-                $stock_ou['facility'] = "Amref Karen";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[7] = $stock_ou;
-                $stock_ou['facility'] = "Amref Nakuru";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[8] = $stock_ou;
-                $stock_ou['facility'] = "Amref Eldoret";
-                $stock_ou['percentage_amount'] = rand(1, 100);
-                $stock_ou['amount'] = rand(90000, 1200000);
-                $stock_out[9] = $stock_ou;
+    //             $stock_ou['facility'] = "(Amref Langata Main)";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[0] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Upper Hill";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[1] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Westlands";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[2] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Buruburu";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[3] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Embakasi";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[4] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Thika";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[5] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Kibera";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[6] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Karen";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[7] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Nakuru";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[8] = $stock_ou;
+    //             $stock_ou['facility'] = "Amref Eldoret";
+    //             $stock_ou['percentage_amount'] = rand(1, 100);
+    //             $stock_ou['amount'] = rand(90000, 1200000);
+    //             $stock_out[9] = $stock_ou;
 
-                $stock_out_item['name'] = "Amoxicillin 250mg Capsules 10";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[0]= $stock_out_item;
-                $stock_out_item['name'] = "USN Blue Lab Whey Protein Chocolate 454g";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[1]= $stock_out_item;
-                $stock_out_item['name'] = "USN Blue Protein Chocolate 500g";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[2]= $stock_out_item;
-                $stock_out_item['name'] = "Amoxicillin";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[3]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[4]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[5]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[6]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[7]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[8]= $stock_out_item;
-                $stock_out_item['name'] = "Acetaminophen";
-                $stock_out_item['total_facility'] = rand(1, 50);
-                $stock_out_item['alternatives'] = rand(1, 100);
-                $stock_out_items[9]= $stock_out_item;
+    //             $stock_out_item['name'] = "Amoxicillin 250mg Capsules 10";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[0]= $stock_out_item;
+    //             $stock_out_item['name'] = "USN Blue Lab Whey Protein Chocolate 454g";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[1]= $stock_out_item;
+    //             $stock_out_item['name'] = "USN Blue Protein Chocolate 500g";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[2]= $stock_out_item;
+    //             $stock_out_item['name'] = "Amoxicillin";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[3]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[4]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[5]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[6]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[7]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[8]= $stock_out_item;
+    //             $stock_out_item['name'] = "Acetaminophen";
+    //             $stock_out_item['total_facility'] = rand(1, 50);
+    //             $stock_out_item['alternatives'] = rand(1, 100);
+    //             $stock_out_items[9]= $stock_out_item;
 
-                $results2['stock_movement'] = $results;
-                $results2['stock_out'] = $stock_out;
-                $results2['stock_out_items'] = $stock_out_items;
-                $http_resp['results'] = $results2;
-                break;
-            case "Medicine Category":
-            case "Product Category":
-            case "Product Type":
-            case "Accounts":
-            case "Units":
-            case "Account Nature":
-            case "Account Type":
-            case "Brands":
-            case "Branches":
-            case "Currency":
-            case "Human Resource":
-            case "Brand Sector":
-            case "Payment Methods":
-            case "Departments":
-            case "Suppliers":
-                $practice = $this->practice->findByUuid($uuid);
-                $practice_main = $this->practice->findOwner($practice);
-                $http_resp['results'] = $this->practice->transform_($practice_main,$resource_type);
-                break;
-            case "Items Page Initialization":
-            // case "Taxes":
-            //     $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
-            //     break;
-            case "Practices":
-                $http_resp['results'] = $this->practice->transform_($company,$resource_type);
-                break;
-            default:
-                $http_resp['results'] = $this->practice->transform_($company,$resource_type);
-                break;
-        }
-        return response()->json($http_resp);
-    }
+    //             $results2['stock_movement'] = $results;
+    //             $results2['stock_out'] = $stock_out;
+    //             $results2['stock_out_items'] = $stock_out_items;
+    //             $http_resp['results'] = $results2;
+    //             break;
+    //         case "Medicine Category":
+    //         case "Product Category":
+    //         case "Product Type":
+    //         case "Accounts":
+    //         case "Units":
+    //         case "Account Nature":
+    //         case "Account Type":
+    //         case "Brands":
+    //         case "Branches":
+    //         case "Currency":
+    //         case "Human Resource":
+    //         case "Brand Sector":
+    //         case "Payment Methods":
+    //         case "Departments":
+    //         case "Suppliers":
+    //             $practice = $this->practice->findByUuid($uuid);
+    //             $practice_main = $this->practice->findOwner($practice);
+    //             $http_resp['results'] = $this->practice->transform_($practice_main,$resource_type);
+    //             break;
+    //         case "Items Page Initialization":
+    //         // case "Taxes":
+    //         //     $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
+    //         //     break;
+    //         case "Practices":
+    //             $http_resp['results'] = $this->practice->transform_($company,$resource_type);
+    //             break;
+    //         default:
+    //             $http_resp['results'] = $this->practice->transform_($company,$resource_type);
+    //             break;
+    //     }
+    //     return response()->json($http_resp);
+    // }
 
     public function delete($uuid){
         $http_resp = $this->response_type['200'];

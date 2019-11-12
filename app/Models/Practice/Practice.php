@@ -105,6 +105,16 @@ class Practice extends Model implements AccountableInterface
         'is_verified',
         'activated',
         'registration_number',
+
+        'propriator_title',
+        'propriator_name',
+        'business_type',
+        'industry',
+        'display_assigned_user',
+        'inventory_increase',
+        'inventory_descrease',
+        'warehouse_config',
+        'batch_tracking',
     ];
 
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }

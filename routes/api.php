@@ -288,12 +288,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         //     Route::get('/', "Api\Practice\StoresController@index");
         // });
 
-        Route::get('/{facility_id}/facilities', "Api\Practice\PracticeController@facilities");
+        //Route::get('/{facility_id}/facilities', "Api\Practice\PracticeController@facilities");
         Route::get('/', "Api\Practice\PracticeController@index");//->middleware('permission:view.users');
         Route::post('/', "Api\Practice\PracticeController@create");//->middleware('permission:create.practice');
         Route::get('/{uuid}', "Api\Practice\PracticeController@show");//->middleware('permission:view.practice');
-        Route::get('/practice/{practice_uuid}', "Api\Practice\PracticeController@practice");//->middleware('permission:view.practice');
-        Route::get('/{practice_uuid}/{resource_type}', "Api\Practice\PracticeController@show_resource_based");//->middleware('permission:view.practice');
+        //Route::get('/practice/{practice_uuid}', "Api\Practice\PracticeController@practice");//->middleware('permission:view.practice');
+        //Route::get('/{practice_uuid}/{resource_type}', "Api\Practice\PracticeController@show_resource_based");//->middleware('permission:view.practice');
         Route::post('/{uuid}', "Api\Practice\PracticeController@update");//->middleware('permission:edit.practice');
         Route::delete('/{uuid}', "Api\Practice\PracticeController@delete");//->middleware('permission:delete.practice');
 
