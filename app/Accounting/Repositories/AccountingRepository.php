@@ -548,8 +548,41 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $debit['account_nature'] = $this->transform_account_nature($account_nature);
                 break;
         }
-
         return $debit;
+    }
+
+    public function company_coa_initialization(Model $company){
+
+        $coas = AccountsCoa::all()->where('sys_default',true)->where('owning_id','')->where('owning_type','');
+        foreach( $coas as $coa ){
+            //Create company's COA in AccountsCOA
+            $inputs['name'] = $coa->name;
+            $inputs['code'] = $coa->code.'0000'.$company->id;
+            $inputs['accounts_type_id'] = $coa->accounts_type_id;
+            $inputs['sys_default'] = true;
+            $inputs['is_special'] = false;
+            //Create account in itself
+            $default_account = AccountsCoa::create($inputs);
+            //Link above account to a company
+            $default_account = $company->coas()->save($default_account);
+            $inputs2['name'] = $coa->name;
+            $inputs2['code'] = $coa->code.'0000'.$company->id;
+            $inputs2['accounts_type_id'] = $coa->accounts_type_id;
+            $inputs2['default_code'] = $coa->code;
+            $inputs2['is_special'] = true;
+            //Create this company default&special account in debitable,creditable table
+            $debitable_creditable_ac = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
+            //Link above debitable_creditable_ac account to a company
+            $debitable_creditable_ac = $company->chart_of_accounts()->save($debitable_creditable_ac);
+        }
+    }
+
+    public function company_payment_initialization(Model $company){
+
+        $company->accounts_payment_methods()->create(['name'=>'Cash']);
+        $company->accounts_payment_methods()->create(['name'=>'Cheque']);
+        $company->accounts_payment_methods()->create(['name'=>'Credit Card']);
+        $company->accounts_payment_methods()->create(['name'=>'Direct Debit']);
 
     }
 

@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api\Practice;
 
+use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Repositories\AccountingRepository;
+use App\Customer\Models\Customer;
+use App\Customer\Repositories\CustomerRepository;
 use App\helpers\HelperFunctions;
 use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
@@ -33,6 +37,9 @@ use jeremykenedy\LaravelRoles\Models\Role;
 use App\Models\Product\ProductType;
 use App\Models\Hospital\Hospital;
 use App\Models\Module\Module;
+use App\Models\Practice\PracticeFinanceSetting;
+use App\Supplier\Models\Supplier;
+use App\Supplier\Repositories\SupplierRepository;
 
 class PracticeController extends Controller
 {
@@ -48,6 +55,9 @@ class PracticeController extends Controller
     protected $user_transformer;
     protected $practice_asset;
     protected $pharmacy;
+    protected $accountsCoa;
+    protected $suppliers;
+    protected $customers;
 
     public function __construct(Practice $practice)
     {
@@ -60,6 +70,10 @@ class PracticeController extends Controller
         $this->patient = new PatientRepository(new Patient());
         $this->doctor = new DoctorRepository(new Doctor());
         $this->pharmacy = new PharmacyRepository(new Pharmacy());
+        $this->accountsCoa = new AccountingRepository( new AccountsCoa() );
+        $this->suppliers = new SupplierRepository( new Supplier() );
+        $this->customers = new CustomerRepository( new Customer() );
+
         //$this->user_transformer = new UserTransformer();
         //$this->practiceUser = new PracticeUserRepository(new PracticeUsers());
     }
@@ -122,7 +136,6 @@ class PracticeController extends Controller
     }
 
     public function create(Request $request){
-        Log::info($request);
         $http_resp = $this->response_type['200'];
         $rules = [
             'name' => 'required',
@@ -162,12 +175,13 @@ class PracticeController extends Controller
 
         /*
             Steps in Setting up a Company
-            1. Create a company
-            2. Setup charts of accounts for a company
-            3. Setup Payment methods for a company
-            4. Setup Company Default supplier Terms
-            5. Setup Company Default customer Terms
-            6. If Logo is not provided let parent logo be default
+            1. Create a company,
+            2.  And Attach Company Financial Settings,
+            3. Setup charts of accounts for a company
+            4. Setup Payment methods for a company
+            5. Setup Company Default supplier Terms
+            6. Setup Company Default customer Terms
+            7. If Logo is not provided let parent logo be default
         */
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
@@ -176,27 +190,46 @@ class PracticeController extends Controller
         try{
 
             $new_company = $this->practice->create($request->all());
+            $finance_settings = $new_company->practice_finance_settings()->save( new PracticeFinanceSetting() );
+            if($request->has("file")){
+                $rule = [
+                    'file' => 'required|max:500000',
+                ];
+                $validation = Validator::make($request->all(), $rule);
+                if ($validation->fails()){
+                    $http_resp = $this->response_type['422'];
+                    $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                    return response()->json($http_resp,422);
+                }
+                $doc_tmp_name = $_FILES['file']['tmp_name'];
+                $root_directory_array = $this->helper->create_logo_directory($new_company->id);
+                $newFilePath = $root_directory_array['file_server_root'].'/'.$_FILES['file']['name'];
+                $file_path = $root_directory_array['file_public_access'].'/'.$_FILES['file']['name'];
+                if(move_uploaded_file($doc_tmp_name, $newFilePath)){
+                    $new_company->logo = $file_path;
+                    $new_company->save();
+                }
+            }
+
             $default_company = $this->practice->find($request->user()->company_id);
             if($default_company){
                 $head_quarter = $this->practice->findOwner($default_company);//Main Facility
                 $the_enterprise = $this->practice->findParent($head_quarter); //Hospital()
                 //Link newly created company to Main/Compny
                 $new_company = $the_enterprise->practices()->save($new_company);
+                if( !$request->has("file") ){
+                    $new_company->logo = $default_company->logo;
+                    $new_company->save();
+                }
             }
-            // $inputs = $request->except(['practice_id']);
-            // $inputs['mobile'] = $encoded_mobile;
-            // $practice_main = $this->practice->findByUuid($request->practice_id);
-            // $practice_main = $this->practice->findOwner($practice_main);
-            // $owner = $practice_main->owner()->get()->first();
-            // $practice = $owner->practices()->create($inputs);
-            // $otp_code = $this->helper->getCode(5);
-            // $otp['token'] = $otp_code;
-            // $sms = "Hi ".$owner->name."\n";
-            // $sms .= "Your one-time-password is ".$otp_code." valid until 24 hours. Please key in to complete your ".$practice->name." branch registration.";
-            // $this->practice->create_activation($practice, $otp);
-            // //$this->initiateSms($encoded_mobile, $sms);
-            // $http_resp['results'] = $this->practice->transform_($practice);
-            // $http_resp['description'] = "OTP was sent to ".$encoded_mobile.". Please key in to continue";
+            //Set Company Chart of Accounts
+            $this->accountsCoa->company_coa_initialization($new_company);
+            //Set Company Default Payment Methods
+            $this->accountsCoa->company_payment_initialization($new_company);
+            //Set Company Default Supplier Terms
+            $this->suppliers->company_terms_initializations($new_company);
+            //Set Company Default Customer Terms
+            $this->customers->company_terms_initialization($new_company);
 
         }catch (\Exception $e){
             //$this->helper->delete_file($path_to_store);
@@ -208,10 +241,10 @@ class PracticeController extends Controller
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

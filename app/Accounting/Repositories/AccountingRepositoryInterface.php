@@ -33,4 +33,6 @@ interface AccountingRepositoryInterface
     public function create_trail_balance(Model $company);
     public function create_balance_sheet(Model $company);
     public function transform_journal_entry(AccountsVoucher $accountsVoucher, $journal_type=AccountsCoa::BALANCE_DEBIT);
+    public function company_coa_initialization(Model $company);
+    public function company_payment_initialization(Model $company);
 }

@@ -313,4 +313,15 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     }
 
+    public function company_terms_initializations(Model $company){
+        $company->supplier_terms()->create(['name'=>'net 15','notes'=>'full payment is expected within 10 days']);
+        $company->supplier_terms()->create(['name'=>'net 30','notes'=>'full payment is expected within 30 days']);
+        $company->supplier_terms()->create(['name'=>'net 45','notes'=>'full payment is expected within 45 days']);
+        $company->supplier_terms()->create(['name'=>'net 60','notes'=>'full payment is expected within 60 days']);
+        $company->supplier_terms()->create(['name'=>'2% 10, net 30','notes'=>"2% discount can be taken by the buyer only if payment is received in full within 10 days of the date of the invoice, and that full payment is expected within 30 days"]);
+        $company->supplier_terms()->create(['name'=>'Due on Receipt','notes'=>"You're expected to be pay as soon as possible after you receive the invoice"]);
+        $company->supplier_terms()->create(['name'=>'Due end of the month','notes'=>'full payment is expected end month']);
+        $company->supplier_terms()->create(['name'=>'Due end of next month','notes'=>'full payment is expected end of next month']);
+    }
+
 }

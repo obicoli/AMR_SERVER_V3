@@ -9,6 +9,7 @@ use App\Supplier\Models\SupplierAddress;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierTerms;
+use Illuminate\Database\Eloquent\Model;
 
 interface SupplierRepositoryInterface
 {
@@ -24,4 +25,5 @@ interface SupplierRepositoryInterface
     public function transform_term(SupplierTerms $supplierTerms);
     public function transform_purchase_order(PurchaseOrder $purchaseOrder);
     public function transform_bill(SupplierBill $supplierBill);
+    public function company_terms_initializations(Model $company);
 }

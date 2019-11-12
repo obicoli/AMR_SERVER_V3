@@ -34,7 +34,7 @@ class CreatePracticesTable extends Migration
             $table->string('registration_number')->nullable()->index();
             $table->string('name')->nullable()->index();
             $table->string('type')->default('Hospital')->index(); //Hospital, Clinic, Pharmacy
-            $table->string('website')->nullable()->unique()->index();
+            $table->string('website')->nullable()->index();
             $table->string("longitude",30)->default("36.809858")->index();
             $table->string("latitude",30)->default("-1.319256")->index();
             $table->string('approval_status',20)->default('pending')->index();
@@ -44,7 +44,6 @@ class CreatePracticesTable extends Migration
             $table->string('region')->nullable();
             $table->string('fax')->nullable();
             $table->string('logo')->nullable();
-
             $table->string('uuid')->nullable()->index();
             $table->string('propriator_title')->nullable();
             $table->string('propriator_name')->nullable();
@@ -55,7 +54,6 @@ class CreatePracticesTable extends Migration
             $table->enum('inventory_descrease',['Invoice','Sales Order'])->default('Invoice');
             $table->boolean('warehouse_config')->default(true);
             $table->boolean('batch_tracking')->default(true);
-
             $table->softDeletes();
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->timestamps();

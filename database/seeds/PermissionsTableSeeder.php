@@ -191,60 +191,60 @@ class PermissionsTableSeeder extends Seeder
         //
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.branch',
-            'description' => 'Administrative',
-            'descriptions' => 'Facility Branch',
+            'slug'        => 'create.company',
+            'description' => 'Configuration',
+            'descriptions' => 'Company',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
-            'slug'        => 'edit.branch',
-            'description' => 'Administrative',
-            'descriptions' => 'Facility Branch',
+            'slug'        => 'edit.company',
+            'description' => 'Configuration',
+            'descriptions' => 'Company',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
-            'slug'        => 'view.branch',
-            'description' => 'Administrative', //----------
-            'descriptions' => 'Facility Branch',
+            'slug'        => 'view.company',
+            'description' => 'Configuration', //----------
+            'descriptions' => 'Company',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
-            'slug'        => 'delete.branch',
-            'description' => 'Administrative',
-            'descriptions' => 'Facility Branch',
+            'slug'        => 'delete.company',
+            'description' => 'Configuration',
+            'descriptions' => 'Company',
             'model'       => 'Permission',
         ]);
 
         //------------
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.backup',
-            'description' => 'Administrative',
-            'descriptions' => 'DB Backup',
+            'slug'        => 'create.finance',
+            'description' => 'Configuration',
+            'descriptions' => 'Finance',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
-            'slug'        => 'edit.backup',
-            'description' => 'Administrative',
-            'descriptions' => 'DB Backup',
+            'slug'        => 'edit.finance',
+            'description' => 'Configuration',
+            'descriptions' => 'Finance',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
-            'slug'        => 'view.backup',
-            'description' => 'Administrative',
-            'descriptions' => 'DB Backup',
+            'slug'        => 'view.finance',
+            'description' => 'Configuration',
+            'descriptions' => 'Finance',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
-            'slug'        => 'delete.backup',
-            'description' => 'Administrative',
-            'descriptions' => 'DB Backup',
+            'slug'        => 'delete.finance',
+            'description' => 'Configuration',
+            'descriptions' => 'Finance',
             'model'       => 'Permission',
         ]);
         //
