@@ -105,7 +105,8 @@ class Practice extends Model implements AccountableInterface
         'is_verified',
         'activated',
         'registration_number',
-
+        'region',
+        'fax',
         'propriator_title',
         'propriator_name',
         'business_type',

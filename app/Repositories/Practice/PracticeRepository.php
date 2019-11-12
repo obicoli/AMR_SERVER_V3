@@ -77,6 +77,7 @@ class PracticeRepository implements PracticeRepositoryInterface
     public function findOwner(Practice $practice)
     {
         // TODO: Implement findOwner() method.
+        //This method return the HeadQuarter(Main Branch)
         if ($practice->category == 'Main'){
             return $practice;
         }
@@ -787,6 +788,10 @@ class PracticeRepository implements PracticeRepositoryInterface
         $branch_data['postal_code'] = $practice->postal_code;
         $branch_data['region'] = $practice->region;
         $branch_data['fax'] = $practice->fax;
+        $branch_data['logo'] = $practice->logo;
+        if(!$practice->logo){
+            $branch_data['logo'] = "/assets/img/logos/amref-white.png";
+        }
 
         $branch_data['propriator_title'] = $practice->propriator_title;
         $branch_data['propriator_name'] = $practice->propriator_name;

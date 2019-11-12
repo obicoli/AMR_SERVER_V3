@@ -1373,6 +1373,25 @@ class HelperFunctions
 
     }
 
+    public function create_logo_directory($company_id){
+        $file_public = "/assets/company/".$company_id."/logos";
+        $directory = $_SERVER['DOCUMENT_ROOT'].$file_public;
+        if ( file_exists( $directory ) ){
+            //return $directory;
+            return [
+                'file_server_root'=>$directory,
+                'file_public_access'=>$file_public
+            ];
+        }
+        mkdir($directory, 0755, true);
+        return [
+            'file_server_root'=>$directory,
+            'file_public_access'=>$file_public
+        ];
+    }
+
+
+
     public function delete_file($file_to_delete){
         if ( file_exists( $file_to_delete ) ){
             unlink($file_to_delete);

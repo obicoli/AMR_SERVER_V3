@@ -114,197 +114,30 @@ class PracticeController extends Controller
         return response()->json($http_resp);
     }
 
-    // public function show_resource_based(Request $request, $uuid, $resource_type){
-
-    //     $company = $this->practice->find($request->user()->company_id);
-       
-    //     $http_resp = $this->response_type['200'];
-    //     switch ($resource_type){
-    //         case "Product Items":
-    //             $prodRepo = new ProductReposity(new PracticeProductItem());
-    //             $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid));
-    //             break;
-    //         case "Drug":
-    //         case "Equipment":
-    //         case "Supplies":
-    //             $prodRepo = new ProductReposity(new PracticeProductItem());
-    //             $itemRepo = new ProductReposity(new ProductType());
-    //             $item_type = $itemRepo->findByName($resource_type);
-    //             $arr['column'] = 'product_type_id';
-    //             $arr['value'] = $item_type->id;
-    //             $prodRepo = new ProductReposity(new PracticeProductItem());
-    //             $http_resp['results'] = $prodRepo->getProductItem($this->practice->findByUuid($uuid),$arr);
-    //             break;
-    //         case "Account Holders": //
-    //             $prodRepo = new ProductReposity(new Practice());
-    //             $resource = $prodRepo->getAccountHolders($this->practice->findByUuid($uuid));
-    //             $http_resp['results'] = $resource;
-    //             break;
-    //         case "Banks": //
-    //             $prodRepo = new ProductReposity(new Practice());
-    //             $http_resp['results'] = $prodRepo->getBanks($this->practice->findByUuid($uuid));
-    //             break;
-    //         case "Purchases":
-    //             $prodRepo = new ProductReposity(new ProductPurchase());
-    //             $http_resp['results'] = $prodRepo->getPurchases($this->practice->findByUuid($uuid));
-    //             break;
-    //         case "ICC":
-    //             $results = array();
-    //             for ( $i=1; $i<31; $i++){
-    //                 $temp_data['date'] = date("Y-m-d",strtotime("2019-06-".$i));
-    //                 $temp_data['max_level'] = 3000000;
-    //                 $temp_data['buffer_level'] = 500000;
-    //                 $temp_data['reorder_level'] = 1200000;
-    //                 $temp_data['purchased'] = rand(1000, 500000);
-    //                 $temp_data['sold'] = rand(1000, 500000);
-    //                 $temp_data['stock_level'] = rand(1000, 3000000);
-    //                 array_push($results,$temp_data);
-    //             }
-
-    //             $stock_ou['facility'] = "(Amref Langata Main)";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[0] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Upper Hill";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[1] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Westlands";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[2] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Buruburu";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[3] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Embakasi";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[4] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Thika";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[5] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Kibera";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[6] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Karen";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[7] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Nakuru";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[8] = $stock_ou;
-    //             $stock_ou['facility'] = "Amref Eldoret";
-    //             $stock_ou['percentage_amount'] = rand(1, 100);
-    //             $stock_ou['amount'] = rand(90000, 1200000);
-    //             $stock_out[9] = $stock_ou;
-
-    //             $stock_out_item['name'] = "Amoxicillin 250mg Capsules 10";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[0]= $stock_out_item;
-    //             $stock_out_item['name'] = "USN Blue Lab Whey Protein Chocolate 454g";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[1]= $stock_out_item;
-    //             $stock_out_item['name'] = "USN Blue Protein Chocolate 500g";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[2]= $stock_out_item;
-    //             $stock_out_item['name'] = "Amoxicillin";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[3]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[4]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[5]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[6]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[7]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[8]= $stock_out_item;
-    //             $stock_out_item['name'] = "Acetaminophen";
-    //             $stock_out_item['total_facility'] = rand(1, 50);
-    //             $stock_out_item['alternatives'] = rand(1, 100);
-    //             $stock_out_items[9]= $stock_out_item;
-
-    //             $results2['stock_movement'] = $results;
-    //             $results2['stock_out'] = $stock_out;
-    //             $results2['stock_out_items'] = $stock_out_items;
-    //             $http_resp['results'] = $results2;
-    //             break;
-    //         case "Medicine Category":
-    //         case "Product Category":
-    //         case "Product Type":
-    //         case "Accounts":
-    //         case "Units":
-    //         case "Account Nature":
-    //         case "Account Type":
-    //         case "Brands":
-    //         case "Branches":
-    //         case "Currency":
-    //         case "Human Resource":
-    //         case "Brand Sector":
-    //         case "Payment Methods":
-    //         case "Departments":
-    //         case "Suppliers":
-    //             $practice = $this->practice->findByUuid($uuid);
-    //             $practice_main = $this->practice->findOwner($practice);
-    //             $http_resp['results'] = $this->practice->transform_($practice_main,$resource_type);
-    //             break;
-    //         case "Items Page Initialization":
-    //         // case "Taxes":
-    //         //     $http_resp['results'] = $this->practice->transform_($this->practice->findByUuid($uuid),$resource_type);
-    //         //     break;
-    //         case "Practices":
-    //             $http_resp['results'] = $this->practice->transform_($company,$resource_type);
-    //             break;
-    //         default:
-    //             $http_resp['results'] = $this->practice->transform_($company,$resource_type);
-    //             break;
-    //     }
-    //     return response()->json($http_resp);
-    // }
-
     public function delete($uuid){
         $http_resp = $this->response_type['200'];
         $this->practice->delete($uuid);
-        $http_resp['description'] = "Branch successful deleted";
+        $http_resp['description'] = "Company successful deleted";
         return response()->json($http_resp);
     }
 
     public function create(Request $request){
-
+        Log::info($request);
         $http_resp = $this->response_type['200'];
         $rules = [
-//            'clinic_logo' => 'required|mimes:jpeg,jpg,png,gif|max:10000',
-//            'verification_certificate' => 'required|mimes:jpeg,jpg,png,gif|max:10000',
             'name' => 'required',
-            //'user_id' => 'required',
             'address' => 'required',
             'registration_number' => 'required|unique:practices',
             'email' => 'required|unique:practices',
-            'mobile' => 'required|unique:practices',
+            'phone' => 'required',
             'country' => 'required',
             'city' => 'required',
-            //'website' => 'required|unique:practices',
-            'type' => 'required',
-            'practice_id' => 'required',
+            'propriator_title' => 'required',
+            'website' => 'required',
+            'postal_code' => 'sometimes|required',
+            'business_type' => 'sometimes|required',
+            'industry' => 'sometimes|required',
+
         ];
         $validation = Validator::make($request->all(),$rules);
         if ($validation->fails()){
@@ -314,12 +147,12 @@ class PracticeController extends Controller
         }
 
         //verify mobile
-        $encoded_mobile = $this->helper->encode_mobile($request->mobile);
-        if (!$encoded_mobile){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = ['Invalid mobile number!'];
-            return response()->json($http_resp,422);
-        }
+        // $encoded_mobile = $this->helper->encode_mobile($request->mobile);
+        // if (!$encoded_mobile){
+        //     $http_resp = $this->response_type['422'];
+        //     $http_resp['errors'] = ['Invalid mobile number!'];
+        //     return response()->json($http_resp,422);
+        // }
 
         if ( ($request->website != "") && (!$this->helper->is_website_exist($request->website))){
             $http_resp = $this->response_type['422'];
@@ -327,46 +160,79 @@ class PracticeController extends Controller
             return response()->json($http_resp,422);
         }
 
+        /*
+            Steps in Setting up a Company
+            1. Create a company
+            2. Setup charts of accounts for a company
+            3. Setup Payment methods for a company
+            4. Setup Company Default supplier Terms
+            5. Setup Company Default customer Terms
+            6. If Logo is not provided let parent logo be default
+        */
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         try{
 
-            $inputs = $request->except(['practice_id']);
-            $inputs['mobile'] = $encoded_mobile;
-            $practice_main = $this->practice->findByUuid($request->practice_id);
-            $practice_main = $this->practice->findOwner($practice_main);
-            $owner = $practice_main->owner()->get()->first();
-            $practice = $owner->practices()->create($inputs);
-            $otp_code = $this->helper->getCode(5);
-            $otp['token'] = $otp_code;
-            $sms = "Hi ".$owner->name."\n";
-            $sms .= "Your one-time-password is ".$otp_code." valid until 24 hours. Please key in to complete your ".$practice->name." branch registration.";
-            $this->practice->create_activation($practice, $otp);
-            //$this->initiateSms($encoded_mobile, $sms);
-            $http_resp['results'] = $this->practice->transform_($practice);
-            $http_resp['description'] = "OTP was sent to ".$encoded_mobile.". Please key in to continue";
+            $new_company = $this->practice->create($request->all());
+            $default_company = $this->practice->find($request->user()->company_id);
+            if($default_company){
+                $head_quarter = $this->practice->findOwner($default_company);//Main Facility
+                $the_enterprise = $this->practice->findParent($head_quarter); //Hospital()
+                //Link newly created company to Main/Compny
+                $new_company = $the_enterprise->practices()->save($new_company);
+            }
+            // $inputs = $request->except(['practice_id']);
+            // $inputs['mobile'] = $encoded_mobile;
+            // $practice_main = $this->practice->findByUuid($request->practice_id);
+            // $practice_main = $this->practice->findOwner($practice_main);
+            // $owner = $practice_main->owner()->get()->first();
+            // $practice = $owner->practices()->create($inputs);
+            // $otp_code = $this->helper->getCode(5);
+            // $otp['token'] = $otp_code;
+            // $sms = "Hi ".$owner->name."\n";
+            // $sms .= "Your one-time-password is ".$otp_code." valid until 24 hours. Please key in to complete your ".$practice->name." branch registration.";
+            // $this->practice->create_activation($practice, $otp);
+            // //$this->initiateSms($encoded_mobile, $sms);
+            // $http_resp['results'] = $this->practice->transform_($practice);
+            // $http_resp['description'] = "OTP was sent to ".$encoded_mobile.". Please key in to continue";
 
         }catch (\Exception $e){
             //$this->helper->delete_file($path_to_store);
             Log::info($e);
             DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
         return response()->json($http_resp);
     }
 
     public function update(Request $request, $uuid){
 
+        // Log::info($request);
         $http_resp = $this->response_type['200'];
         $practice = $this->practice->findByUuid($uuid);
+
         $rules = [
             'address' => 'sometimes|required',
             'city' => 'sometimes|required',
             'country' => 'sometimes|required',
             'name' => 'sometimes|required',
             'status' => 'sometimes|required',
-            'type' => 'sometimes|required',
+            'file' => 'sometimes|required|max:500000',
+            'propriator_title' => 'sometimes|required',
+            'website' => 'sometimes|required',
+            'postal_code' => 'sometimes|required',
+            'business_type' => 'sometimes|required',
+            'industry' => 'sometimes|required',
             'registration_number' => 'sometimes|required|unique:practices,registration_number,'.$practice->id,
             'email' => 'sometimes|required|unique:practices,email,'.$practice->id,
             'mobile' => 'sometimes|required|unique:practices,mobile,'.$practice->id,
@@ -377,139 +243,39 @@ class PracticeController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $this->practice->update($request->all(), $uuid);
-        $http_resp['description'] = "Changes saved successful!";
-        $http_resp['results'] = $this->practice->transform_($practice);
-        return response()->json($http_resp);
-    }
 
-
-
-
-
-    public function preferred(Request $request){
-
-        $http_resp = $this->response_type['200'];
-
-        $rules = [
-            'practice_id' => 'required',
-            'patient_id' => 'required',
-        ];
-        $msg = [
-            'practice_id.required' => 'Facility ID required',
-            'patient_id.required' => 'Patient ID required'
-        ];
-        $validation = Validator::make($request->all(),$rules,$msg);
-        if ($validation->fails()){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-            return response()->json($http_resp,422);
-        }
-
-//        Log::info($request);
-//        Log::info($request);
-
-        DB::beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
-
-            $patient = $this->patient->findByUuid($request->patient_id);
-            $practice = $this->practice->findByUuid($request->practice_id);
-            if ($this->patient->check_preference($patient->id, $practice->id)){
-                DB::rollBack();
-                $http_resp = $this->response_type['422'];
-                $http_resp['errors'] = ['Pharmacy already in your preferred list'];
-                return response()->json($http_resp,422);
+            $this->practice->update($request->all(), $uuid);
+            $http_resp['description'] = "Changes saved successful!";
+            if($request->has("file")){
+                $rule = [
+                    'file' => 'required|max:500000',
+                ];
+                $validation = Validator::make($request->all(), $rule);
+                if ($validation->fails()){
+                    $http_resp = $this->response_type['422'];
+                    $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                    return response()->json($http_resp,422);
+                }
+                $doc_tmp_name = $_FILES['file']['tmp_name'];
+                $root_directory_array = $this->helper->create_logo_directory($practice->id);
+                $newFilePath = $root_directory_array['file_server_root'].'/'.$_FILES['file']['name'];
+                $file_path = $root_directory_array['file_public_access'].'/'.$_FILES['file']['name'];
+                if(move_uploaded_file($doc_tmp_name, $newFilePath)){
+                    $practice->logo = $file_path;
+                    $practice->save();
+                    $http_resp['description'] = "Company Logo successful saved";
+                }
             }
-            $this->patient->setPreferredPharmacy($patient, $practice);
-
-        }catch (\Exception $e){
+            
+        }catch(\Exception $e){
             Log::info($e);
-            DB::rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp,500);
         }
-        DB::commit();
-        return response()->json($http_resp);
-    }
-
-
-
-    public function practice_users($uuid){
-
-        $http_resp = $this->response_type['200'];
-        $practice = $this->practice->findByUuid($uuid);
-        $practice_users = $this->practiceUser->getByPracticeId($practice->id);
-
-        $response = [
-
-            'pagination' => [
-                'total' => $practice_users->total(),
-                'per_page' => $practice_users->perPage(),
-                'current_page' => $practice_users->currentPage(),
-                'last_page' => $practice_users->lastPage(),
-                'from' => $practice_users->firstItem(),
-                'to' => $practice_users->lastItem()
-            ],
-            'data' => $this->user_transformer->transformPracticeUsers($practice_users, $uuid)
-        ];
-        $http_resp['results'] = $response;
-        return response()->json($http_resp);
-    }
-
-    public function create_users(Request $request, $uuid){
-
-        $http_resp = $this->response_type['200'];
-        $rule = [
-            'user_role' => 'required',
-            'email' => 'required'
-        ];
-
-        $validator = Validator::make($request->all(), $rule);
-        if ($validator->fails()){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validator->errors());
-            return response()->json($http_resp,422);
-        }
-
-        DB::beginTransaction();
-        try{
-            $practice = $this->practice->findByUuid($uuid);
-            $user = $this->user->findByEmail($request->email);
-            $user_role = $this->role->find($request->user_role);
-            if (!$user){
-                $user = $this->user->storeRecord($request->all());
-                if ($user_role->slug == 'doctor'){
-                    $this->user->setDoctor($user, $request->except(['email','mobile']));
-                }elseif ($user_role->slug == 'patient'){
-                    $this->user->setPatient($user, $request->except(['email','mobile']));
-                }elseif ($user_role->slug == 'receptionist'){
-
-                }
-                $this->user->attachRole($user, $user_role->slug);
-            }
-            //check if user already exists in practice
-            if ($this->user->exist_in_practice($user, $practice)){
-                $http_resp = $this->response_type['422'];
-                $http_resp['errors'] = ['User with similar email already invited in this practice'];
-                return response()->json($http_resp,422);
-            }
-            //add user to practice
-            $this->user->attachToPractice($user, $practice);
-            //attach practice role to user
-            $practice_user = $this->practiceUser->findPracticeUser($practice, $user);
-            $this->practiceUser->setConfirmed($practice_user, false);
-            $this->practiceUser->attachRole($practice_user, $user_role);
-            //send user an email
-            $inviter_name = $practice->name;
-            $this->initiatePracticeUserInvitation($user, $practice);
-        }catch (\Exception $e){
-            Log::info($e);
-            DB::rollBack();
-            $http_resp = $this->response_type['500'];
-            return response()->json($http_resp, 500);
-        }
-
-        DB::commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

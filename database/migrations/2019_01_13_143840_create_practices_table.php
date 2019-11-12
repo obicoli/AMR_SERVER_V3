@@ -39,10 +39,12 @@ class CreatePracticesTable extends Migration
             $table->string("latitude",30)->default("-1.319256")->index();
             $table->string('approval_status',20)->default('pending')->index();
             $table->boolean('status')->default(true);
-            $table->unsignedInteger('owner_id')->index();
-            $table->string('owner_type')->index();
+            $table->unsignedInteger('owner_id')->index()->nullable();
+            $table->string('owner_type')->index()->nullable();
             $table->string('region')->nullable();
             $table->string('fax')->nullable();
+            $table->string('logo')->nullable();
+
             $table->string('uuid')->nullable()->index();
             $table->string('propriator_title')->nullable();
             $table->string('propriator_name')->nullable();
