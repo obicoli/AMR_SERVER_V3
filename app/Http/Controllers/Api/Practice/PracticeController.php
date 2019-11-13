@@ -182,6 +182,7 @@ class PracticeController extends Controller
             5. Setup Company Default supplier Terms
             6. Setup Company Default customer Terms
             7. If Logo is not provided let parent logo be default
+            8. Set Default Government Taxation Rates
         */
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();

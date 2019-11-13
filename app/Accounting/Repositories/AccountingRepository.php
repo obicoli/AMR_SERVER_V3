@@ -2,6 +2,7 @@
 
 namespace App\Accounting\Repositories;
 
+use App\Accounting\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\Banks\AccountsBank;
 use Illuminate\Database\Eloquent\Model;
 use App\Accounting\Models\COA\AccountChartAccount;
@@ -28,7 +29,7 @@ class AccountingRepository implements AccountingRepositoryInterface
     }
 
     public function all(){
-        return $this->model->all();
+        return $this->model->all()->sortBy('name');
     }
     public function find($id){
         return $this->model->find($id);
@@ -97,6 +98,19 @@ class AccountingRepository implements AccountingRepositoryInterface
             'account_type'=>$acc_type,
             'bank'=>$bank,
             'bank_branch'=>$bank_branch,
+        ];
+    }
+
+    public function transform_bank(AccountMasterBank $accountMasterBank){
+        return [
+            'id'=>$accountMasterBank->uuid,
+            'name'=>$accountMasterBank->name,
+            'description'=>$accountMasterBank->description,
+            'phone'=>$accountMasterBank->phone,
+            'address'=>$accountMasterBank->address,
+            'email'=>$accountMasterBank->email,
+            'code'=>$accountMasterBank->code,
+            'comments'=>$accountMasterBank->comments,
         ];
     }
 

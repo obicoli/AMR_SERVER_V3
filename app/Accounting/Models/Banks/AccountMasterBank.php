@@ -15,6 +15,12 @@ class AccountMasterBank extends Model
     protected $table = "account_master_banks";
     protected $fillable = [
         'name',
+        'description',
+        'phone',
+        'address',
+        'email',
+        'code',
+        'comments',
     ];
 
     public function branches(){ return $this->hasMany(AccountMasterBankBranch::class,'bank_id'); }

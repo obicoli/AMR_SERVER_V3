@@ -19,6 +19,12 @@ class CreateAccountMasterBanksTable extends Migration
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('account_master_banks', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->index();
+            $table->string('description')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('address')->nullable();
+            $table->string('email')->nullable();
+            $table->string('code')->nullable();
+            $table->text('comments')->nullable();
             $table->string('uuid');
             Accountable::columns($table);
             $table->softDeletes();

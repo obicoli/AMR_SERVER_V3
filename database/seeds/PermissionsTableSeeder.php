@@ -14,181 +14,6 @@ class PermissionsTableSeeder extends Seeder
     public function run()
     {
 
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.spl.order',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Order',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.spl.order',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Order',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.spl.order',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Order',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.spl.order',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Order',
-        //     'model'       => 'Permission',
-        // ]);
-        // //
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.salesman',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Salesman',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.salesman',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Salesman',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.salesman',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Salesman',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.salesman',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Salesman',
-        //     'model'       => 'Permission',
-        // ]);
-        // //
-        // //
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.vehicle',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Vehicle',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.vehicle',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Vehicle',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.vehicle',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Vehicle',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.vehicle',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Vehicle',
-        //     'model'       => 'Permission',
-        // ]);
-        // //
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.driver',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Driver',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.driver',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Driver',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.driver',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Driver',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.driver',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Driver',
-        //     'model'       => 'Permission',
-        // ]);
-        // //
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.supply',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Supply',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.supply',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Supply',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.supply',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Supply',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.supply',
-        //     'description' => 'Supply',
-        //     'descriptions' => 'Supply',
-        //     'model'       => 'Permission',
-        // ]);
-
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.branch',
-        //     'description' => 'Administrative',
-        //     'descriptions' => 'Company',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.company',
-        //     'description' => 'Administrative',
-        //     'descriptions' => 'Company',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.company',
-        //     'description' => 'Administrative',
-        //     'descriptions' => 'Company',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.company',
-        //     'description' => 'Administrative',
-        //     'descriptions' => 'Company',
-        //     'model'       => 'Permission',
-        // ]);
-        //
         Permission::create([
             'name'        => 'Create',
             'slug'        => 'create.company',
@@ -250,30 +75,30 @@ class PermissionsTableSeeder extends Seeder
         //
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.hcc.code',
-            'description' => 'Administrative',
-            'descriptions' => 'HCC Code',
+            'slug'        => 'create.tax',
+            'description' => 'Configuration',
+            'descriptions' => 'Tax',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
-            'slug'        => 'edit.hcc.code',
-            'description' => 'Administrative',
-            'descriptions' => 'HCC Code',
+            'slug'        => 'edit.tax',
+            'description' => 'Configuration',
+            'descriptions' => 'Tax',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
-            'slug'        => 'view.hcc.code',
-            'description' => 'Administrative',
-            'descriptions' => 'HCC Code',
+            'slug'        => 'view.tax',
+            'description' => 'Configuration',
+            'descriptions' => 'Tax',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
-            'slug'        => 'delete.hcc.code',
-            'description' => 'Administrative',
-            'descriptions' => 'HCC Code',
+            'slug'        => 'delete.tax',
+            'description' => 'Configuration',
+            'descriptions' => 'Tax',
             'model'       => 'Permission',
         ]);
         //
@@ -284,20 +109,20 @@ class PermissionsTableSeeder extends Seeder
         //     'descriptions' => 'Company',
         //     'model'       => 'Permission',
         // ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.company',
-            'description' => 'Administrative',
-            'descriptions' => 'Company',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.company',
-            'description' => 'Administrative',
-            'descriptions' => 'Company',
-            'model'       => 'Permission',
-        ]);
+        // Permission::create([
+        //     'name'        => 'Edit',
+        //     'slug'        => 'edit.company',
+        //     'description' => 'Administrative',
+        //     'descriptions' => 'Company',
+        //     'model'       => 'Permission',
+        // ]);
+        // Permission::create([
+        //     'name'        => 'View',
+        //     'slug'        => 'view.company',
+        //     'description' => 'Administrative',
+        //     'descriptions' => 'Company',
+        //     'model'       => 'Permission',
+        // ]);
         // Permission::create([
         //     'name'        => 'Delete',
         //     'slug'        => 'delete.company',
@@ -308,88 +133,88 @@ class PermissionsTableSeeder extends Seeder
         //
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.practice',
-            'description' => 'Administrative',
-            'descriptions' => 'Practice',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.practice',
-            'description' => 'Administrative',
-            'descriptions' => 'Practice',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.practice',
-            'description' => 'Administrative',
-            'descriptions' => 'Practice',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.practice',
-            'description' => 'Administrative',
-            'descriptions' => 'Practice',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
             'slug'        => 'create.role',
-            'description' => 'Administrative',
-            'descriptions' => 'Roles',
+            'description' => 'Configuration',
+            'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
             'slug'        => 'edit.role',
-            'description' => 'Administrative',
-            'descriptions' => 'Roles',
+            'description' => 'Configuration',
+            'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
             'slug'        => 'view.role',
-            'description' => 'Administrative',
-            'descriptions' => 'Roles',
+            'description' => 'Configuration',
+            'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
             'slug'        => 'delete.role',
-            'description' => 'Administrative',
-            'descriptions' => 'Roles',
+            'description' => 'Configuration',
+            'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
+        //
+        // Permission::create([
+        //     'name'        => 'Create',
+        //     'slug'        => 'create.role',
+        //     'description' => 'Configuration',
+        //     'descriptions' => 'Roles',
+        //     'model'       => 'Permission',
+        // ]);
+        // Permission::create([
+        //     'name'        => 'Edit',
+        //     'slug'        => 'edit.role',
+        //     'description' => 'Configuration',
+        //     'descriptions' => 'Roles',
+        //     'model'       => 'Permission',
+        // ]);
+        // Permission::create([
+        //     'name'        => 'View',
+        //     'slug'        => 'view.role',
+        //     'description' => 'Configuration',
+        //     'descriptions' => 'Roles',
+        //     'model'       => 'Permission',
+        // ]);
+        // Permission::create([
+        //     'name'        => 'Delete',
+        //     'slug'        => 'delete.role',
+        //     'description' => 'Configuration',
+        //     'descriptions' => 'Roles',
+        //     'model'       => 'Permission',
+        // ]);
         //
         Permission::create([
             'name'        => 'Create',
             'slug'        => 'create.users',
-            'description' => 'Administrative',
-            'descriptions' => 'Users',
+            'description' => 'Configuration',
+            'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
             'slug'        => 'edit.users',
-            'description' => 'Administrative',
-            'descriptions' => 'Users',
+            'description' => 'Configuration',
+            'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
             'slug'        => 'view.users',
-            'description' => 'Administrative',
-            'descriptions' => 'Users',
+            'description' => 'Configuration',
+            'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
             'slug'        => 'delete.users',
-            'description' => 'Administrative',
-            'descriptions' => 'Users',
+            'description' => 'Configuration',
+            'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
 
