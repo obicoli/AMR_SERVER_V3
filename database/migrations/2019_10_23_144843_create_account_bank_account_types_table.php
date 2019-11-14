@@ -15,8 +15,8 @@ class CreateAccountBankAccountTypesTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_bank_account_types');
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('account_bank_account_types', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_bank_account_types');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->create('account_bank_account_types', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
             $table->softDeletes();
@@ -33,6 +33,6 @@ class CreateAccountBankAccountTypesTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_bank_account_types');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_bank_account_types');
     }
 }

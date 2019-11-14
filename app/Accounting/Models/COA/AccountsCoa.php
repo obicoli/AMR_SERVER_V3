@@ -2,6 +2,7 @@
 
 namespace App\Accounting\Models\COA;
 
+use App\Finance\Models\Banks\AccountsBank;
 use App\Models\Module\Module;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,6 +26,7 @@ class AccountsCoa extends Model
     /*
         WARNING! DO NOT EDIT/CHANGE THE ACCOUNT CODE CONSTANTS LISTED BELOW
     */
+    const AC_BANK_CODE = 201; //DO NOT EDIT OR CHANGE
     const AC_INVENTORY_CODE = 107; //DO NOT EDIT OR CHANGE
     const AC_PAYABLE_CODE = 301; //DO NOT EDIT OR CHANGE
     const AC_RECEIVABLE_CODE = 102; //DO NOT EDIT OR CHANGE
@@ -71,5 +73,7 @@ class AccountsCoa extends Model
     public function chart_of_accounts(){ return $this->hasMany(AccountChartAccount::class,'default_coa_id'); }
     public function account_types(){ return $this->belongsTo(AccountsType::class,'accounts_type_id'); }
     public function accounts_natures(){ return $this->belongsTo(AccountsNature::class,'accounts_nature_id'); }
+
+    public function bank_accounts(){ return $this->hasMany(AccountsBank::class,'ledger_account_id','id'); }
 
 }

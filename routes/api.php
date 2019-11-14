@@ -571,39 +571,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
     });
 
     Route::group( ['prefix'=>'accounting' ], function (){
-
-        Route::group( ['prefix'=>'banks' ], function (){
-
-            Route::group( ['prefix'=>'branches' ], function (){
-                Route::post('/', "Api\Accounts\BanksController@branch_create");
-                Route::post('/{uuid}', "Api\Accounts\BanksController@branch_update");
-                Route::get('/', "Api\Accounts\BanksController@branch_index");
-                Route::get('/{uuid}', "Api\Accounts\BanksController@branch_show");
-                Route::delete('/{uuid}', "Api\Accounts\BanksController@branch_destroy");
-            });
-
-            Route::group( ['prefix'=>'accounts' ], function (){
-                Route::post('/', "\App\Accounting\Http\Controllers\Api\Banking\BanksAccountsController@create");
-                Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksAccountsController@update");
-                Route::get('/', "\App\Accounting\Http\Controllers\Api\Banking\BanksAccountsController@index");
-                Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksAccountsController@show");
-                Route::delete('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksAccountsController@delete");
-            });
-
-            // Route::post('/', "Api\Accounts\BanksController@create");
-            // Route::post('/{uuid}', "Api\Accounts\BanksController@update");
-            // Route::get('/', "Api\Accounts\BanksController@index");
-            // Route::get('/{uuid}', "Api\Accounts\BanksController@show");
-            // Route::get('/practices/{practice_uuid}', "Api\Accounts\BanksController@practice");
-            // Route::delete('/{uuid}', "Api\Accounts\BanksController@destroy");
-            Route::post('/', "\App\Accounting\Http\Controllers\Api\Banking\BanksController@create");
-            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksController@update");
-            Route::get('/', "\App\Accounting\Http\Controllers\Api\Banking\BanksController@index");
-            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksController@show");
-            Route::delete('/{uuid}', "\App\Accounting\Http\Controllers\Api\Banking\BanksController@destroy");
-
-        });
-
         Route::group( ['prefix'=>'types' ], function (){
             Route::post('/', "Api\Product\Accounts\ProductAccountTypeController@create");
             Route::post('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@update");
@@ -611,7 +578,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@show");
             Route::delete('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@destroy");
         });
-
         Route::group( ['prefix'=>'natures' ], function (){
             Route::post('/', "Api\Product\ProductAccountNatureController@create");
             Route::post('/{uuid}', "Api\Product\ProductAccountNatureController@update");
@@ -619,26 +585,53 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/{uuid}', "Api\Product\ProductAccountNatureController@show");
             Route::delete('/{uuid}', "Api\Product\ProductAccountNatureController@destroy");
         });
-
         Route::group( ['prefix'=>'chart_of_accounts' ], function (){
             Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@index");
             Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
             Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
         });
-
         //Accounting Reports
         Route::group( ['prefix'=>'accounts' ], function (){
             Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Accounts\AccountHolderController@show");
         });
-
         Route::group( ['prefix'=>'reports' ], function (){
             Route::get('/journals', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@journals");
             Route::get('/ledgers', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@ledgers");
             Route::get('/trail_balance', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@trail_balance");
             Route::get('/balance_sheet', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@balance_sheet");
         });
-
         Route::get('/initializations', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@initials");
+    });
+
+    Route::group( ['prefix'=>'finance' ], function (){
+        Route::group( ['prefix'=>'banks' ], function (){
+            Route::group( ['prefix'=>'branches' ], function (){
+                Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@create");
+                Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@update");
+                Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@index");
+                Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@show");
+                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@destroy");
+            });
+            Route::group( ['prefix'=>'accounts' ], function (){
+                Route::group( ['prefix'=>'types' ], function (){
+                    Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\AccountTypeController@create");
+                    Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\AccountTypeController@update");
+                    Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\AccountTypeController@index");
+                    Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\AccountTypeController@show");
+                    Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\AccountTypeController@delete");
+                });
+                Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@create");
+                Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@update");
+                Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@index");
+                Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@show");
+                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@delete");
+            });
+            Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BanksController@create");
+            Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksController@update");
+            Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BanksController@index");
+            Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksController@show");
+            Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksController@destroy");
+        });
     });
 
     Route::group( ['prefix'=>'supplier' ], function (){

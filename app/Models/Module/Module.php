@@ -13,6 +13,7 @@ class Module extends Model
 
     const MYSQL_HR_DB_CONN = "mysql_hr";
     const MYSQL_ACCOUNTING_DB_CONN = "mysql_accounting_module";
+    const MYSQL_FINANCE_DB_CONN = "mysql_finance_module";
     const MYSQL_CUSTOMER_DB_CONN = "mysql_customer_module";
     const MYSQL_ASSETS_DB_CONN = "mysql_assests";
     const MYSQL_PRODUCT_DB_CONN = "mysql";

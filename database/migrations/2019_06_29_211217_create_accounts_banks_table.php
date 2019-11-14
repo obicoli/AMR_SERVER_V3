@@ -15,20 +15,22 @@ class CreateAccountsBanksTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_banks');
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('accounts_banks', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('accounts_banks');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->create('accounts_banks', function (Blueprint $table) {
             $table->increments('id');
             $table->string('account_name')->nullable();
             $table->string('account_number')->nullable();
-            $table->float('balance',32,2)->default(00.00);
-            $table->boolean('status')->default(true);
-            $table->unsignedInteger('account_type_id')->nullable();
-            $table->unsignedInteger('bank_id');
-            $table->unsignedInteger('branch_id');
-            $table->unsignedInteger('owner_id'); //This is Enterprice
-            $table->string('owner_type')->index(); //this is enterprice
-            // $table->unsignedInteger('holder_id')->nullable()->index(); //This is Enterprice individuals
-            // $table->string('holder_type')->nullable()->index(); //this is enterprice individuals
+            $table->string('unique_code');
+            $table->float('balance',32,2)->default(00.00)->index();
+            $table->boolean('status')->default(true)->index();
+            $table->boolean('is_default')->default(false)->index();
+            $table->unsignedInteger('account_type_id')->nullable()->index();
+            $table->unsignedInteger('ledger_account_id')->nullable()->index();
+            $table->unsignedInteger('bank_id')->index();
+            $table->unsignedInteger('branch_id')->index();
+            $table->string('description')->nullable();
+            $table->unsignedInteger('owner_id')->index(); //This is Enterprice,Facility,User etc
+            $table->string('owner_type')->index(); //This is Enterprice,Facility,User etc
             $table->softDeletes();
             $table->string('uuid');
             Accountable::columns($table);

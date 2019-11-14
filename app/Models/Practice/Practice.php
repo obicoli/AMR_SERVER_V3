@@ -2,7 +2,7 @@
 
 namespace App\Models\Practice;
 
-use App\Accounting\Models\Banks\AccountsBank;
+use App\Finance\Models\Banks\AccountsBank;
 use App\Accounting\Models\COA\AccountChartAccount as AppAccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Payments\AccountPaymentType;

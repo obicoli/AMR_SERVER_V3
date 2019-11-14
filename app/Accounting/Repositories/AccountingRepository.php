@@ -3,6 +3,7 @@
 namespace App\Accounting\Repositories;
 
 use App\Accounting\Models\Banks\AccountMasterBank;
+use App\Accounting\Models\Banks\AccountMasterBankBranch;
 use App\Accounting\Models\Banks\AccountsBank;
 use Illuminate\Database\Eloquent\Model;
 use App\Accounting\Models\COA\AccountChartAccount;
@@ -77,42 +78,55 @@ class AccountingRepository implements AccountingRepositoryInterface
 
     }
 
-    public function transform_bank_accounts(AccountsBank $accountsBank){
+    // public function transform_bank_accounts(AccountsBank $accountsBank){
 
-        $account_type = $accountsBank->account_types()->get()->first();
-        $acc_type['id'] = $account_type->uuid;
-        $acc_type['name'] = $account_type->name;
-        $banker = $accountsBank->bank()->get()->first();
-        $bank['id'] = $banker->uuid;
-        $bank['name'] = $banker->name;
-        $banker_branch = $accountsBank->bank_branch()->get()->first();
-        $bank_branch['id'] = $banker_branch->id;
-        $bank_branch['code'] = $banker_branch->code;
-        $bank_branch['name'] = $banker_branch->name;
-        return [
-            'id'=>$accountsBank->uuid,
-            'account_name'=>$accountsBank->account_name,
-            'account_number'=>$accountsBank->account_number,
-            'balance'=>$accountsBank->balance,
-            'status'=>$accountsBank->status,
-            'account_type'=>$acc_type,
-            'bank'=>$bank,
-            'bank_branch'=>$bank_branch,
-        ];
-    }
+    //     $account_type = $accountsBank->account_types()->get()->first();
+    //     $acc_type['id'] = $account_type->uuid;
+    //     $acc_type['name'] = $account_type->name;
+    //     $banker = $accountsBank->bank()->get()->first();
+    //     $bank['id'] = $banker->uuid;
+    //     $bank['name'] = $banker->name;
+    //     $banker_branch = $accountsBank->bank_branch()->get()->first();
+    //     $bank_branch['id'] = $banker_branch->id;
+    //     $bank_branch['code'] = $banker_branch->code;
+    //     $bank_branch['name'] = $banker_branch->name;
+    //     return [
+    //         'id'=>$accountsBank->uuid,
+    //         'account_name'=>$accountsBank->account_name,
+    //         'account_number'=>$accountsBank->account_number,
+    //         'balance'=>$accountsBank->balance,
+    //         'status'=>$accountsBank->status,
+    //         'account_type'=>$acc_type,
+    //         'bank'=>$bank,
+    //         'bank_branch'=>$bank_branch,
+    //     ];
+    // }
 
-    public function transform_bank(AccountMasterBank $accountMasterBank){
-        return [
-            'id'=>$accountMasterBank->uuid,
-            'name'=>$accountMasterBank->name,
-            'description'=>$accountMasterBank->description,
-            'phone'=>$accountMasterBank->phone,
-            'address'=>$accountMasterBank->address,
-            'email'=>$accountMasterBank->email,
-            'code'=>$accountMasterBank->code,
-            'comments'=>$accountMasterBank->comments,
-        ];
-    }
+    // public function transform_bank(AccountMasterBank $accountMasterBank){
+    //     return [
+    //         'id'=>$accountMasterBank->uuid,
+    //         'name'=>$accountMasterBank->name,
+    //         'description'=>$accountMasterBank->description,
+    //         'phone'=>$accountMasterBank->phone,
+    //         'address'=>$accountMasterBank->address,
+    //         'email'=>$accountMasterBank->email,
+    //         'code'=>$accountMasterBank->code,
+    //         'comments'=>$accountMasterBank->comments,
+    //     ];
+    // }
+
+    // public function transform_bank_branch( AccountMasterBankBranch $accountMasterBankBranch ){
+
+    //     $bank = $accountMasterBankBranch->bank()->get()->first();
+    //     return [
+    //         'id' => $accountMasterBankBranch->uuid,
+    //         'name' => $accountMasterBankBranch->name,
+    //         'code' => $accountMasterBankBranch->code,
+    //         'address' => $accountMasterBankBranch->address,
+    //         'bank' => $this->transform_bank($bank),
+    //     ];
+
+    // }
 
     public function transform_payment_type(AccountPaymentType $accountPaymentType){
         return [

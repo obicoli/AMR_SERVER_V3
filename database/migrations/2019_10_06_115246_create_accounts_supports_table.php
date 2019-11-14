@@ -21,8 +21,8 @@ class CreateAccountsSupportsTable extends Migration
             $table->string('account_number')->nullable();
             $table->string('trans_type')->nullable();//Transactions  type e.g Deposit
             $table->string('trans_name')->nullable(); //Transaction name e.g Cash Deposit Receipt
-            $table->unsignedInteger('transactionable_id')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase
-            $table->string('transactionable_type')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase
+            $table->unsignedInteger('transactionable_id')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
+            $table->string('transactionable_type')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
             $table->string('uuid');
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->softDeletes();

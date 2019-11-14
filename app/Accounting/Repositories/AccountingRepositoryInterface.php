@@ -3,6 +3,7 @@
 namespace App\Accounting\Repositories;
 
 use App\Accounting\Models\Banks\AccountMasterBank;
+use App\Accounting\Models\Banks\AccountMasterBankBranch;
 use App\Accounting\Models\Banks\AccountsBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
@@ -22,8 +23,9 @@ interface AccountingRepositoryInterface
     public function create($inputs = []);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
-    public function transform_bank(AccountMasterBank $accountMasterBank);
-    public function transform_bank_accounts(AccountsBank $accountsBank);
+    // public function transform_bank(AccountMasterBank $accountMasterBank);
+    // public function transform_bank_accounts(AccountsBank $accountsBank);
+    // public function transform_bank_branch( AccountMasterBankBranch $accountMasterBankBranch );
     public function transform_payment_type(AccountPaymentType $accountPaymentType);
     public function transform_company_chart_of_account(AccountChartAccount $accountChartAccount);
     public function transform_account_type(AccountsType $accountsType);

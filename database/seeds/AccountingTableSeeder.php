@@ -1,9 +1,9 @@
 <?php
 
-use App\Accounting\Models\Banks\AccountBankAccountType;
+use App\Finance\Models\Banks\AccountBankAccountType;
 use App\Accounting\Models\COA\AccountsType;
 use Illuminate\Database\Seeder;
-use App\Accounting\Models\Banks\AccountMasterBank;
+use App\Finance\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\COA\AccountsNature;
 use App\Accounting\Models\COA\AccountsNatureType;
@@ -31,16 +31,14 @@ class AccountingTableSeeder extends Seeder
         AccountBankAccountType::create(['name'=>'Savings']);
         AccountBankAccountType::create(['name'=>'Trust']);
         //Banks
-        $kcb = AccountMasterBank::create(['name'=>'Kenya Commercial Bank(KCB)']);
-        $coop = AccountMasterBank::create(['name'=>'Cooperative Bank']);
-        $barc = AccountMasterBank::create(['name'=>'Barclays Bank']);
+        $kcb = AccountMasterBank::create(['name'=>'KCB','description'=>'Kenya Commercial Bank(KCB)']);
+        $coop = AccountMasterBank::create(['name'=>'Cooperative','description'=>'Cooperative Bank']);
+        $barc = AccountMasterBank::create(['name'=>'Barclays','description'=>'Barclays Bank']);
         //Branches
         $kcb_moi = $kcb->branches()->create(['name'=>'Moi Avenue','code'=>'017']);
         $barc_kericho = $barc->branches()->create(['name'=>'KERICHO','code'=>'03007']);
         $barc_waiyaki = $barc->branches()->create(['name'=>'WAIYAKI WAY','code'=>'03020']);
         $coop_kenyata_ave = $coop->branches()->create(['name'=>'KENYATTA AVENUE','code'=>'11054']);
-
-
         $helper = new HelperFunctions();
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         $asset = AccountsNature::create(['name'=>'Assets']);

@@ -15,8 +15,8 @@ class CreateAccountMasterBanksTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_master_banks');
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('account_master_banks', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_master_banks');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->create('account_master_banks', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->index();
             $table->string('description')->nullable();
@@ -39,6 +39,6 @@ class CreateAccountMasterBanksTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_master_banks');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_master_banks');
     }
 }

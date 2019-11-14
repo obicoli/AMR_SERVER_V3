@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Accounting\Http\Controllers\Api\Banking;
+namespace App\Finance\Http\Controllers\Api\Banking;
 
-use App\Accounting\Models\Banks\AccountMasterBank;
+use App\Finance\Models\Banks\AccountMasterBank;
 //use App\Accounting\Repositories\AccountingRepository as AppAccountingRepository;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -15,7 +15,8 @@ use App\Accounting\Repositories\AccountingRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 // use App\Models\Account\Banks\AccountsBankBranch;
-use App\Accounting\Models\Banks\AccountMasterBankBranch;
+use App\Finance\Models\Banks\AccountMasterBankBranch;
+use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Repositories\FinanceRepository;
 use App\Models\Module\Module;
 use Illuminate\Support\Facades\Log;
@@ -34,6 +35,8 @@ class BanksController extends Controller
         $this->accountsBanks = new FinanceRepository($accountsBanks);
         $this->response_type = Config::get('response.http');
         $this->helper = new HelperFunctions();
+        // $this->practice = new PracticeRepository(new Practice());
+        // $this->practiceBank = new AccountingRepository(new PracticeBank());
         $this->accountsBankBranch = new FinanceRepository(new AccountMasterBankBranch());
     }
 

@@ -3,25 +3,22 @@
 namespace App\Accounting\Http\Controllers\Api\Banking;
 
 use App\Accounting\Models\Banks\AccountMasterBank;
-//use App\Accounting\Repositories\AccountingRepository as AppAccountingRepository;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Config;
 use App\helpers\HelperFunctions;
-use App\Repositories\Practice\PracticeRepository;
-use App\Models\Practice\Practice;
 
 use App\Accounting\Repositories\AccountingRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 // use App\Models\Account\Banks\AccountsBankBranch;
 use App\Accounting\Models\Banks\AccountMasterBankBranch;
-use App\Finance\Repositories\FinanceRepository;
 use App\Models\Module\Module;
 use Illuminate\Support\Facades\Log;
 
-class BanksController extends Controller
+class BanksBranchController extends Controller
 {
+
     protected $accountsBanks;
     protected $accountsBankBranch;
     protected $response_type;
@@ -31,18 +28,18 @@ class BanksController extends Controller
 
     public function __construct(AccountMasterBank $accountsBanks)
     {
-        $this->accountsBanks = new FinanceRepository($accountsBanks);
+        $this->accountsBanks = new AccountingRepository($accountsBanks);
         $this->response_type = Config::get('response.http');
         $this->helper = new HelperFunctions();
-        $this->accountsBankBranch = new FinanceRepository(new AccountMasterBankBranch());
+        $this->accountsBankBranch = new AccountingRepository(new AccountMasterBankBranch());
     }
 
     public function index(Request $request){
         $http_resp = $this->response_type['200'];
-        $banks = $this->accountsBanks->all();
+        $banks = $this->accountsBankBranch->all();
         $results = array();
         foreach($banks as $bank){
-            array_push($results, $this->accountsBanks->transform_bank($bank));
+            array_push($results, $this->accountsBanks->transform_bank_branch($bank));
         }
         $http_resp['results'] = $results;
         return response()->json($http_resp);
@@ -56,9 +53,9 @@ class BanksController extends Controller
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
 
-            $bank = $this->accountsBanks->findByUuid($uuid);
+            $bank = $this->accountsBankBranch->findByUuid($uuid);
             $bank->delete();
-            $http_resp['description'] = "Bank successful deleted!";
+            $http_resp['description'] = "Branch successful deleted!";
 
         }catch(\Exception $e){
             Log::info($e);
@@ -76,9 +73,8 @@ class BanksController extends Controller
         $rule = [
             'name'=>'required',
             'code'=>'required',
-            'description'=>'required|max:255',
-            'comments' => 'sometimes|required|max:255',
-            'address' => 'sometimes|required|max:255',
+            'address'=>'required|max:255',
+            'bank_id' => 'required',
         ];
         $validator = Validator::make($request->all(),$rule, $this->helper->messages());
         if ($validator->fails()){
@@ -88,8 +84,22 @@ class BanksController extends Controller
         }
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
-            $bank = $this->accountsBanks->create($request->all());
-            $http_resp['description'] = "Bank successful created!";
+            $bank = $this->accountsBanks->findByUuid($request->bank_id);
+            if($bank->branches()->where('name',$request->name)->get()->first()){
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->response_type['422'];
+                $http_resp['errors'] = ["Branch name already in use!"];
+                return response()->json($http_resp,422);
+            }
+            if($bank->branches()->where('code',$request->code)->get()->first()){
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->response_type['422'];
+                $http_resp['errors'] = ["Branch code already in use!"];
+                return response()->json($http_resp,422);
+            }
+            $branch = $bank->branches()->create($request->except(['bank','bank_id']));
+            $http_resp['description'] = "Branch successful created!";
+
         }catch(\Exception $e){
             Log::info($e);
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
@@ -105,9 +115,8 @@ class BanksController extends Controller
         $rule = [
             'name'=>'required',
             'code'=>'required',
-            'description'=>'required|max:255',
-            'comments' => 'sometimes|required|max:255',
-            'address' => 'sometimes|required|max:255',
+            'bank_id'=>'required',
+            'address' => 'required',
         ];
         $validator = Validator::make($request->all(),$rule, $this->helper->messages());
         if ($validator->fails()){
@@ -117,9 +126,12 @@ class BanksController extends Controller
         }
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
-            $bank = $this->accountsBanks->findByUuid($uuid);
-            $bank->update($request->except(['id']));
-            $http_resp['description'] = "Bank successful updated!";
+            $bank = $this->accountsBanks->findByUuid($request->bank_id);
+            $bank_branch = $this->accountsBankBranch->findByUuid($uuid);
+            $inputs = $request->all();
+            $inputs['bank_id'] = $bank->id;
+            $bank_branch->update($inputs);
+            $http_resp['description'] = "Branch successful updated!";
         }catch(\Exception $e){
             Log::info($e);
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
@@ -129,5 +141,5 @@ class BanksController extends Controller
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
     }
-
+    
 }

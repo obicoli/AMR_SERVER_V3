@@ -15,12 +15,13 @@ class CreateAccountMasterBankBranchesTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_master_bank_branches');
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('account_master_bank_branches', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_master_bank_branches');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->create('account_master_bank_branches', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->nullable();
             $table->string('code')->nullable();
-            $table->unsignedInteger('bank_id');
+            $table->text('address')->nullable();
+            $table->unsignedInteger('bank_id')->index();
             $table->softDeletes();
             $table->string('uuid');
             Accountable::columns($table);
@@ -35,6 +36,6 @@ class CreateAccountMasterBankBranchesTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('account_master_bank_branches');
+        Schema::connection(Module::MYSQL_FINANCE_DB_CONN)->dropIfExists('account_master_bank_branches');
     }
 }
