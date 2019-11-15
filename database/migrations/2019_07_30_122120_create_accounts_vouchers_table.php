@@ -18,10 +18,10 @@ class CreateAccountsVouchersTable extends Migration
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_vouchers');
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('accounts_vouchers', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('credited')->index();
-            $table->unsignedInteger('debited')->index();
-            $table->unsignedInteger('credited_parent')->index()->nullable();
-            $table->unsignedInteger('debited_parent')->index()->nullable();
+            $table->string('credited')->index();
+            $table->string('debited')->index();
+            $table->string('credited_parent')->index()->nullable();
+            $table->string('debited_parent')->index()->nullable();
             $table->float('amount',16,2)->default(00.00);
             $table->string('notes')->nullable();
             $table->timestamp('voucher_date')->default(DB::raw('CURRENT_TIMESTAMP'));

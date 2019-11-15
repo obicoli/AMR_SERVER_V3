@@ -22,6 +22,7 @@ class AccountsBank extends Model
         'account_type_id',
         'bank_id',
         'branch_id',
+        'description',
         'unique_code' //This is a flag link any transaction that happens to this account
     ];
 

@@ -624,7 +624,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
                 Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@update");
                 Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@index");
                 Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@show");
-                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@delete");
+                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksAccountsController@destroy");
             });
             Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BanksController@create");
             Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksController@update");

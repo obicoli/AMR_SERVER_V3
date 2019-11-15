@@ -18,7 +18,7 @@ class CreateAccountsCoasTable extends Migration
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_coas');
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('accounts_coas', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('code')->unique();
+            $table->string('code')->unique();
             $table->string('name')->index();
             $table->boolean('sys_default')->default(false); //This show is a default chart of account like: Sales,Inventory,Cash
             $table->boolean('is_special')->default(false); //This show this account is special e.g Sales is special , Cash Sale&Credit Sales is not special
