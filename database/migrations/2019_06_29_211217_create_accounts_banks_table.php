@@ -20,7 +20,7 @@ class CreateAccountsBanksTable extends Migration
             $table->increments('id');
             $table->string('account_name')->nullable();
             $table->string('account_number')->nullable();
-            $table->string('unique_code');
+            $table->string('unique_code')->nullable();
             $table->float('balance',32,2)->default(00.00)->index();
             $table->boolean('status')->default(true)->index();
             $table->boolean('is_default')->default(false)->index();

@@ -88,6 +88,7 @@ class BanksAccountsController extends Controller
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         try{
+
             $company = $this->practices->find($request->user()->company_id);
             $bank = $this->banks->findByUuid($request->bank_id);
             $bank_branch = $this->bank_branches->findByUuid($request->branch_id);
@@ -122,6 +123,16 @@ class BanksAccountsController extends Controller
             */
             //(A). Create new bank account
             $new_bank_account = $company->bank_accounts()->create($inputs);
+            if($request->is_default){
+                //The newly created bank should be the operating bank i.e Default
+                $current_default = $company->bank_accounts()->where('is_default',true)->get()->first();
+                if($current_default){
+                    $current_default->is_default = false;
+                    $current_default->save();
+                }
+                $new_bank_account->is_default = true;
+                $new_bank_account->save();
+            }
 
             //(B). CREATING BANKS LEDGER ACCOUNT: 4 Steps
                 //Step 1. Find Default Bank(Bank balances) account
@@ -187,6 +198,7 @@ class BanksAccountsController extends Controller
     }
 
     public function update(Request $request,$uuid){
+        Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'account_name'=>'required',
@@ -213,12 +225,22 @@ class BanksAccountsController extends Controller
             $bank_account_type = $this->bank_account_types->findByUuid($request->account_type_id);
             $bank_account = $this->accountsBank->findByUuid($uuid);
             //
-            $inputs = $request->except(['bank','bank_branch','account_type','balance']);
+            $inputs = $request->except(['bank','bank_branch','account_type','balance','opening_balance']);
             $inputs['bank_id'] = $bank->id;
             $inputs['branch_id'] = $bank_branch->id;
             $inputs['account_type_id'] = $bank_account_type->id;
             $bank_account->update($inputs);
-            $http_resp[''] = "Successful updated bank account!";
+            $http_resp['description'] = "Successful updated bank account!";
+            if($request->is_default){
+                //The newly created bank should be the operating bank i.e Default
+                $current_default = $company->bank_accounts()->where('is_default',true)->get()->first();
+                if($current_default){
+                    $current_default->is_default = false;
+                    $current_default->save();
+                }
+                $bank_account->is_default = true;
+                $bank_account->save();
+            }
             
         }catch(\Exception $e){
 
@@ -234,21 +256,43 @@ class BanksAccountsController extends Controller
         return response()->json($http_resp);
     }
 
-    public function show($uuid){
+    public function show(Request $request, $uuid){
+
         $http_resp = $this->http_response['200'];
         $bank_account = $this->accountsBank->findByUuid($uuid);
-        $http_resp['results'] = $this->accountsBank->transform_bank_accounts($bank_account);
+        $transactions = null;
+        if($request->has('filters')){
+            $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
+        }else{ //Get default filter which is the current month
+            $default_filters = $this->helper->get_default_filter();
+            $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
+        }
+        $paged_data = $this->helper->paginator($transactions);
+        $transformed_account = $this->accountsBank->transform_bank_accounts($bank_account);
+        $transformed_account['transaction'] = $paged_data;
+        $http_resp['results'] = $transformed_account;
         return response()->json($http_resp);
+        
     }
 
-    public function destroy($uuid){
+    public function destroy(Request $request, $uuid){
         $http_resp = $this->http_response['200'];
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         try{
+
             $bank_account = $this->accountsBank->findByUuid($uuid);
+            if($bank_account->is_default){
+                $company = $this->practices->find($request->user()->company_id);
+                $next_default = $company->bank_accounts()->where('id','!=',$bank_account->id)->get()->first();
+                if($next_default){
+                    $next_default->is_default = true;
+                    $next_default->save();
+                }
+            }
             $this->accountsBank->delete($bank_account->id);
             $http_resp["description"] = "Bank account deleted successful!";
+
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
             Log::info($e);

@@ -36,4 +36,6 @@ class AccountsBank extends Model
 
     public function ledger_accounts(){ return $this->belongsTo(AccountsCoa::class,'ledger_account_id','id'); }
 
+    public function bank_transactions(){ return $this->hasMany(BankTransaction::class,'bank_account_id','id'); }
+
 }

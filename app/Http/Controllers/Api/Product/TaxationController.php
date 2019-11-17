@@ -50,6 +50,7 @@ class TaxationController extends Controller
             $temp_data['sales_rate'] = $taxe->sales_rate;
             $temp_data['amount'] = $taxe->amount;
             $temp_data['status'] = $taxe->status;
+            $temp_data['display_as'] = $taxe->name.'('.$taxe->sales_rate.'%)';
             array_push($results,$temp_data);
         }
         $http_resp['results'] = $results;

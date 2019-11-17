@@ -50,6 +50,16 @@ use Illuminate\Support\Facades\Log;
 
 class HelperFunctions
 {
+    public function get_default_filter(){
+
+        $first = date("Y-m-d", strtotime("first day of this month"));
+        $last = date("Y-m-d", strtotime("last day of this month"));
+        return [
+            'start'=>$first,
+            'last'=>$last,
+        ];
+    }
+
     public function get_default_date_range(){
 
         $first = date("j M Y", strtotime("first day of this month"));
@@ -857,7 +867,7 @@ class HelperFunctions
                 'from' => $data->firstItem(),
                 'to' => $data->lastItem()
             ],
-            'data' => null
+            'data' => []
         ];
     }
 

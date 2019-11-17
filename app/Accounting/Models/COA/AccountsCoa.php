@@ -38,6 +38,14 @@ class AccountsCoa extends Model
         WARNING! DO NOT EDIT/CHANGE THE ACCOUNT CODE CONSTANTS LISTED ABOVE
     */
 
+    const AC_TYPE_CUSTOMER = "Customer";
+    const AC_TYPE_ACCOUNT = "Account";
+    const AC_TYPE_SUPPLIER = "Supplier";
+    const AC_TYPE_TRANSFER = "Transfer";
+    const AC_TYPE_VAT = "VAT";
+
+
+
     const COST_OF_GOODS = "Cost of goods";
     const SALARY = "Salary";
     const CASH = "Cash";

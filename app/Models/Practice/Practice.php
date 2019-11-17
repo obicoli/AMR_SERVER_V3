@@ -12,6 +12,7 @@ use App\Contracts\AccountableInterface;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Quote\Estimate;
+use App\Finance\Models\Banks\BankTransaction;
 use App\Hrs\Models\Employee\HrsEmployee;
 use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Inventory\PracticeAccountHolder;
@@ -142,6 +143,10 @@ class Practice extends Model implements AccountableInterface
     public function purchase_orders(){ return $this->morphMany(PurchaseOrder::class,'owning','owning_type','owning_id'); }
     public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
     //Supplier Integration ends here
+
+    //Banking Integration Starts here
+    public function bank_transactions(){ return $this->morphMany(BankTransaction::class,'owning','owning_type','owning_id'); }
+    //Banking Integration Ends Here
 
     //Assets: 
     public function vehicles(){ return $this->morphMany(Vehicle::class,'owning','owning_type','owning_id'); }

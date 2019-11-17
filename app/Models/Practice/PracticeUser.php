@@ -2,6 +2,7 @@
 namespace App\Models\Practice;
 
 use App\Customer\Models\Quote\EstimateStatus;
+use App\Finance\Models\Banks\ReconciledTransactionState;
 use App\Models\His\Rtc\HisRtcUserTrack;
 use App\Models\Module\Module;
 use App\Models\Product\Inventory\ProductRequisitionMovement;
@@ -76,6 +77,8 @@ class PracticeUser extends Model
     //PO
     public function po_status(){ return $this->morphMany(PurchaseOrderStatus::class,'responsible','responsible_type','responsible_id'); }
     public function bill_status(){ return $this->morphMany(SupplierBillStatus::class,'responsible','responsible_type','responsible_id'); }
+    //Banking/Finance Integration
+    public function reconciled_transaction_state(){ return $this->morphMany(ReconciledTransactionState::class,'responsible','responsible_type','responsible_id'); }
 
 
 }

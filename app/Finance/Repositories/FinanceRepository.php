@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Finance\Models\Banks\AccountMasterBank;
 use App\Finance\Models\Banks\AccountMasterBankBranch;
 use App\Finance\Models\Banks\AccountsBank;
+use App\Finance\Models\Banks\BankReconciliation;
+use App\Finance\Models\Banks\BankTransaction;
 use App\helpers\HelperFunctions;
 
 class FinanceRepository implements FinanceRepositoryInterface
@@ -62,7 +64,7 @@ class FinanceRepository implements FinanceRepositoryInterface
         $bank['id'] = $banker->uuid;
         $bank['name'] = $banker->name;
         $banker_branch = $accountsBank->bank_branch()->get()->first();
-        $bank_branch['id'] = $banker_branch->id;
+        $bank_branch['id'] = $banker_branch->uuid;
         $bank_branch['code'] = $banker_branch->code;
         $bank_branch['name'] = $banker_branch->name;
         return [
@@ -103,6 +105,20 @@ class FinanceRepository implements FinanceRepositoryInterface
             'bank' => $this->transform_bank($bank),
         ];
 
+    }
+
+    public function transform_bank_transaction( BankTransaction $bankTransaction ){
+
+        return [
+            'id'=>$bankTransaction->uuid,
+        ];
+
+    }
+
+    public function transform_bank_reconciliation( BankReconciliation $bankReconciliation ){
+        return [
+            'id'=>$bankReconciliation->uuid,
+        ];
     }
     
 }

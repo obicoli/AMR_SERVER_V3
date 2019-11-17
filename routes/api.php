@@ -605,6 +605,20 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     Route::group( ['prefix'=>'finance' ], function (){
         Route::group( ['prefix'=>'banks' ], function (){
+            Route::group( ['prefix'=>'reconciliations' ], function (){
+                Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@create");
+                Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@update");
+                Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@index");
+                Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@show");
+                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@destroy");
+            });
+            Route::group( ['prefix'=>'transactions' ], function (){
+                Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BankTransactionController@create");
+                Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankTransactionController@update");
+                Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BankTransactionController@index");
+                Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankTransactionController@show");
+                Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankTransactionController@destroy");
+            });
             Route::group( ['prefix'=>'branches' ], function (){
                 Route::post('/', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@create");
                 Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BanksBranchController@update");

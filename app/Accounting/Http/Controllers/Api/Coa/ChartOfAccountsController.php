@@ -2,8 +2,8 @@
 
 namespace App\Accounting\Http\Controllers\Api\Coa;
 
-use App\Accounting\Models\Banks\AccountBankAccountType;
-use App\Accounting\Models\Banks\AccountMasterBank;
+// use App\Accounting\Models\Banks\AccountBankAccountType;
+// use App\Accounting\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\COA\AccountsType;
@@ -11,6 +11,8 @@ use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Accounting\Repositories\AccountingRepository;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
+use App\Finance\Models\Banks\AccountBankAccountType;
+use App\Finance\Models\Banks\AccountMasterBank;
 use App\helpers\HelperFunctions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;

@@ -10,6 +10,7 @@ use App\Accounting\Models\COA\AccountsNatureType;
 use App\helpers\HelperFunctions;
 use App\Models\Practice\Practice;
 use App\Models\Hospital\Hospital;
+use App\Models\Product\ProductTaxation;
 
 // use App\Models\Account\Banks\AccountsBank;
 // use App\Models\Account\Banks\AccountsBankBranch;
@@ -24,6 +25,20 @@ class AccountingTableSeeder extends Seeder
      */
     public function run()
     {
+        //Government Tax Rates
+        $compana = Practice::find(1);
+        $parent_owner = $compana->owner()->get()->first();
+        $manual_vat = $parent_owner->product_taxations()->create(['name'=>'Manual VAT','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
+        $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Manual VAT(capital goods)','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
+        $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
+        $exept = $parent_owner->product_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
+        $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Standard Rated','agent_name'=>'KRA','purchase_rate'=>15,'sales_rate'=>15]);
+
+        // $parent_owner->product_taxations()->save($manual_vat);
+        // $parent_owner->product_taxations()->save($capital_goods);
+        // $parent_owner->product_taxations()->save($zero_rated);
+        // $parent_owner->product_taxations()->save($exept);
+        // $parent_owner->product_taxations()->save($standard_rated);
         //Banking
         //Account type
         AccountBankAccountType::create(['name'=>'Credit']);
@@ -232,6 +247,7 @@ class AccountingTableSeeder extends Seeder
         $other_expense->default_accounts()->create(['code'=>1204,'sys_default'=>true,'name'=>"Other Expense"]);
         $other_expense->default_accounts()->create(['code'=>1205,'sys_default'=>true,'name'=>"Penalties and settlements"]);
         //END==============================================================
+
 
         $coas = AccountsCoa::all();
         $facilities = Practice::all();
