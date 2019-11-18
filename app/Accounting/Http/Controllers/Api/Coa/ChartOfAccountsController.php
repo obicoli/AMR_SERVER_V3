@@ -98,7 +98,7 @@ class ChartOfAccountsController extends Controller
                 ->get()
                 ->first();
             if(!$company_coa){
-                //Create Chart of Account in default table if is Not a sub_account
+                //Create Chart of Account in default table() if is Not a sub_account
                 $default_inputs = $request->all();
                 $default_inputs['accounts_type_id'] = $account_type->id;
                 $default_inputs['code'] = $this->helper->getAccountNumber();
@@ -395,7 +395,6 @@ class ChartOfAccountsController extends Controller
 
         $bankers = AccountMasterBank::all()->sortBy('name');
         foreach($bankers as $banker){
-
             $branches = array();
             $temp_bank['id'] = $banker->uuid;
             $temp_bank['name'] = $banker->name;

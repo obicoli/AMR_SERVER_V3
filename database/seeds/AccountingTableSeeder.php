@@ -267,7 +267,7 @@ class AccountingTableSeeder extends Seeder
                 $inputs2['name'] = $coa->name;
                 $inputs2['code'] = $coa->code.'0000'.$facility->id;
                 $inputs2['accounts_type_id'] = $coa->accounts_type_id;
-                $inputs2['default_code'] = $coa->code;
+                $inputs2['default_code'] = $coa->code; //This default_code links this account to "System Default COA"
                 $inputs2['is_special'] = true;
                 //Create this company default&special account in debitable,creditable table
                 $debitable_creditable_ac = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account

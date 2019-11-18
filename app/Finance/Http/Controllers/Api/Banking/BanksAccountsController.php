@@ -37,6 +37,7 @@ class BanksAccountsController extends Controller
     // protected $accountTypes;
     protected $accountsCoa;
     protected $accountingVouchers;
+    protected $accountChartAccount;
     // protected $customers;
 
     public function __construct(AccountsBank $accountsBank)
@@ -52,6 +53,7 @@ class BanksAccountsController extends Controller
         $this->accountsCoa = new AccountingRepository( new AccountsCoa() );
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
         // $this->customers = new CustomerRepository(new Customer());
+        $this->accountChartAccount = new AccountingRepository( new AccountChartAccount());
     }
 
     public function index(Request $request){
@@ -117,7 +119,7 @@ class BanksAccountsController extends Controller
             $inputs['account_type_id'] = $bank_account_type->id;
             /*
                 1. Create new bank account
-                2. Create Bank's Ledger account(Is a current assets Ledger Account)
+                2. Create Bank's Ledger account(Is a current assets Ledger Account) and Should be a sub account of "Bank
                 3. If Opening Balance is provided
                     DEBIT "Bank's Ledger account" & CREDIT "Owner's Equity"
             */
@@ -132,35 +134,60 @@ class BanksAccountsController extends Controller
                 }
                 $new_bank_account->is_default = true;
                 $new_bank_account->save();
+            }else{//Make it default if non default bank account
+                $current_default = $company->bank_accounts()->where('is_default',true)->get()->first();
+                if(!$current_default){
+                    $new_bank_account->is_default = true;
+                    $new_bank_account->save();
+                }
             }
 
-            //(B). CREATING BANKS LEDGER ACCOUNT: 4 Steps
+            if($request->is_sub_account){
+                //Get the system COA called "Bank"
+                $system_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
+                //Get Company Parent COA called "Bank"
+                $main_parent = $this->accountChartAccount->findByDefaultCode(AccountsCoa::AC_BANK_CODE); //Will be replaced by "User Specified Main Account"
+                $default_coa = $main_parent->coas()->get()->first();
+                $default_inputs['accounts_type_id'] = $main_parent->accounts_type_id;
+                $default_inputs['code'] = $this->helper->getAccountNumber();
+                $default_inputs['name'] = $request->account_name;
+                $default_inputs['default_coa_id'] = $default_coa->id;
+                //$default_inputs['code'] = $this->helper->getAccountNumber();
+                $default_inputs['is_sub_account'] = true;
+                $default_inputs['default_code'] = $main_parent->default_code;
+                $custom_chart_of_coa = $this->accountChartAccount->create($default_inputs);
+                $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
+                $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($new_bank_account);
+            }else{ //Create as the Main Account
+
+                //(B). CREATING BANKS LEDGER ACCOUNT: 4 Steps
                 //Step 1. Find Default Bank(Bank balances) account
                 $default_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
                 //Step 2. Create Bank's Legder Account in AccountsCoa
-                    $inpos['name'] = $request->account_name;
-                    //$inpos['code'] = $default_bank_coa->code.'0000'.$facility->id;
-                    $inpos['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
-                    $inpos['accounts_type_id'] = $default_bank_coa->accounts_type_id;
-                    $inpos['sys_default'] = true;
-                    $inpos['is_special'] = false;
-                    $default_account = $this->accountsCoa->create($inpos);
-                    //Link above account to company
-                    $default_account = $company->coas()->save($default_account);
+                $inpos['name'] = $request->account_name;
+                //$inpos['code'] = $default_bank_coa->code.'0000'.$facility->id;
+                $inpos['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
+                $inpos['accounts_type_id'] = $default_bank_coa->accounts_type_id;
+                $inpos['sys_default'] = true;
+                $inpos['is_special'] = false;
+                $default_account = $this->accountsCoa->create($inpos);
+                //Link above account to company
+                $default_account = $company->coas()->save($default_account);
                 //Step 3. Create this company default&special account in debitable,creditable table
-                    $inputs2['name'] = $request->account_name;
-                    $inputs2['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
-                    $inputs2['accounts_type_id'] = $default_bank_coa->accounts_type_id;
-                    $inputs2['default_code'] = $default_bank_coa->code;
-                    $inputs2['is_special'] = true;
-                    $debitable_creditable_ac = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
-                    //Link above debitable_creditable_ac account to a company
-                    $debitable_creditable_ac = $company->chart_of_accounts()->save($debitable_creditable_ac);
+                $inputs2['name'] = $request->account_name;
+                $inputs2['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
+                $inputs2['accounts_type_id'] = $default_bank_coa->accounts_type_id;
+                $inputs2['default_code'] = $default_bank_coa->code;
+                $inputs2['is_special'] = true;
+                $custom_chart_of_coa = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
+                //Link above debitable_creditable_ac account to a company
+                $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
                 //Step 4. Link bank account to Ledger
-                    $bank_ledger_ac = $default_account->bank_accounts()->save($new_bank_account);
+                $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($new_bank_account);
+            }
+
             //(C) OPENING BALANCES
             if($request->has('opening_balance') && $request->opening_balance>0){
-
                 $new_bank_account->balance = $new_bank_account->balance + $request->opening_balance;
                 $new_bank_account->save();
                 //DEBIT "Bank's Ledger account" & CREDIT "Owner's Equity"
@@ -178,20 +205,17 @@ class BanksAccountsController extends Controller
                 }
                 $transaction_id = $this->helper->getToken(10);
                 $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
-                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debitable_creditable_ac->code,$custom_op_bal_equity->code,$opening_balance,$as_at,AccountsCoa::TRANS_NAME_OPEN_BALANCE,$transaction_id);
+                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_chart_of_coa->code,$custom_op_bal_equity->code,$opening_balance,$as_at,AccountsCoa::TRANS_NAME_OPEN_BALANCE,$transaction_id);
                 $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_DEPOSIT,'trans_name'=>AccountsCoa::TRANS_NAME_OPEN_BALANCE]);
             }
 
         }catch(\Exception $e){
-
             $http_resp = $this->http_response['500'];
             Log::info($e);
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
             return response()->json($http_resp,500);
-
         }
-
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
         return response()->json($http_resp);

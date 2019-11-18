@@ -43,6 +43,10 @@ class FinanceRepository implements FinanceRepositoryInterface
         return $this->model->find($id)->delete();
     }
 
+    public function update(array $arr, $id){
+        return $this->model->find($id)->update($arr);
+    }
+
     public function transform_bank_account_types(AccountBankAccountType $accountBankAccountType){
 
         if(!$accountBankAccountType){

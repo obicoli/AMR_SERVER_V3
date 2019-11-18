@@ -41,6 +41,9 @@ class AccountingRepository implements AccountingRepositoryInterface
     public function findByCode($code){
         return $this->model->all()->where('code',$code)->first();
     }
+    public function findByDefaultCode($code){
+        return $this->model->all()->where('default_code',$code)->first();
+    }
     public function create($inputs = []){
         return $this->model->create($inputs);
     }

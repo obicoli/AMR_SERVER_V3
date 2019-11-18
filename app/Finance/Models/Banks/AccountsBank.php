@@ -2,6 +2,7 @@
 
 namespace App\Finance\Models\Banks;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Models\Module\Module;
 use Illuminate\Database\Eloquent\Model;
@@ -34,7 +35,9 @@ class AccountsBank extends Model
 
     public function account_types(){ return $this->belongsTo(AccountBankAccountType::class,'account_type_id'); }
 
-    public function ledger_accounts(){ return $this->belongsTo(AccountsCoa::class,'ledger_account_id','id'); }
+    //public function ledger_accounts(){ return $this->belongsTo(AccountsCoa::class,'ledger_account_id','id'); }
+
+    public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
 
     public function bank_transactions(){ return $this->hasMany(BankTransaction::class,'bank_account_id','id'); }
 

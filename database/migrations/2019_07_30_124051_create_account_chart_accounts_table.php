@@ -22,7 +22,7 @@ class CreateAccountChartAccountsTable extends Migration
             $table->string('code')->unique();
             $table->string('status')->default('Active');
             $table->string('notes')->nullable();
-            $table->string('default_code')->nullable();
+            $table->string('default_code')->nullable(); //This column link this coa to default system coa
             $table->boolean('is_sub_account')->default(false);
             $table->boolean('is_special')->default(false);
             $table->unsignedInteger('accounts_type_id')->index()->nullable();

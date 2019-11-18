@@ -17,6 +17,7 @@ interface FinanceRepositoryInterface
     public function findByCode($code);
     public function create($inputs = []);
     public function delete($id);
+    public function update(array $arr, $id);
     public function transform_bank_account_types(AccountBankAccountType $accountBankAccountType);
     public function transform_bank(AccountMasterBank $accountMasterBank);
     public function transform_bank_accounts(AccountsBank $accountsBank);

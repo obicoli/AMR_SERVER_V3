@@ -220,12 +220,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         //     Route::delete('/{uuid}', "Api\Practice\PracticeRoleController@delete");
         // });
 
-        Route::group( ['prefix'=>'finance' ], function (){
-            Route::get('/', "Api\Practice\PracticeFinanceController@index");
-            Route::post('/', "Api\Practice\PracticeFinanceController@create");
-            Route::post('/{uuid}', "Api\Practice\PracticeFinanceController@update");
-            Route::delete('/{uuid}', "Api\Practice\PracticeFinanceController@delete");
-        });
+        // Route::group( ['prefix'=>'finance' ], function (){
+        //     Route::get('/', "Api\Practice\PracticeFinanceController@index");
+        //     Route::post('/', "Api\Practice\PracticeFinanceController@create");
+        //     Route::post('/{uuid}', "Api\Practice\PracticeFinanceController@update");
+        //     Route::delete('/{uuid}', "Api\Practice\PracticeFinanceController@delete");
+        // });
 
         Route::group( ['prefix'=>'manufacturers' ], function (){
             Route::get('/', "Api\Practice\PracticeManufacturerController@index");

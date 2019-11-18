@@ -3,6 +3,7 @@
 namespace App\Accounting\Models\COA;
 
 use App\Accounting\Models\Voucher\AccountsVoucher;
+use App\Finance\Models\Banks\AccountsBank;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\UuidTrait;
@@ -34,5 +35,6 @@ class AccountChartAccount extends Model
 
     public function credited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited','code'); }
     public function debited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'debited','code'); }
+    public function bank_accounts(){ return $this->hasMany(AccountsBank::class,'ledger_account_id','id'); }
 
 }
