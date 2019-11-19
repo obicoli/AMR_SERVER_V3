@@ -2,6 +2,7 @@
 
 namespace App\Finance\Repositories;
 
+use App\Accounting\Models\COA\AccountsCoa;
 use App\Finance\Models\Banks\AccountBankAccountType;
 use Illuminate\Database\Eloquent\Model;
 use App\Finance\Models\Banks\AccountMasterBank;
@@ -74,6 +75,7 @@ class FinanceRepository implements FinanceRepositoryInterface
         return [
             'id'=>$accountsBank->uuid,
             'account_name'=>$accountsBank->account_name,
+            'current_date'=>date("Y-m-d").'T12',
             'account_number'=>$accountsBank->account_number,
             'balance'=>$accountsBank->balance,
             'status'=>$accountsBank->status,
@@ -111,10 +113,45 @@ class FinanceRepository implements FinanceRepositoryInterface
 
     }
 
-    public function transform_bank_transaction( BankTransaction $bankTransaction ){
+    public function transform_bank_transaction( BankTransaction $bankTransaction, Model $company ){
+
+        //Get Support Document(Which has account Holder Number)
+        $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+        //User Support Document to Find Account Holder
+        $accountHolder = $supportDoc->account_holders()->get()->first();
+        //Get Supplier,or Customer from AccountHolder
+        $account_owner = $accountHolder->owner()->get()->first();
+        $selection['id'] = $account_owner->uuid;
+        $selection['name'] = $account_owner->display_as;
+        $selections = array();
+        if( $bankTransaction->type == AccountsCoa::AC_TYPE_SUPPLIER ){
+            $suppliers = $company->vendors()->get();
+            foreach($suppliers as $suppl){
+                $temp_suppl['id'] = $suppl->uuid;
+                $temp_suppl['name'] = $suppl->display_as;
+                array_push($selections,$temp_suppl);
+            }
+        }
+
+        $vats['id'] = "id";
+        $vats['name'] = "VAT";
+        $vats['rate'] = 0;
+        $vats['amount'] = 0;
 
         return [
             'id'=>$bankTransaction->uuid,
+            'payee'=>$bankTransaction->payee,
+            'transaction_date'=>$bankTransaction->transaction_date,
+            'description'=>$bankTransaction->description,
+            'reference'=>$bankTransaction->reference,
+            'discount'=>$bankTransaction->discount,
+            'comment'=>$bankTransaction->comment,
+            'type'=>$bankTransaction->type,
+            'spent'=>$bankTransaction->spent,
+            'received'=>$bankTransaction->received,
+            'selection'=>$selection,
+            'selections'=>$selections,
+            'vat'=>$vats,
         ];
 
     }

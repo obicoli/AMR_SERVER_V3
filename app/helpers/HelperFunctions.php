@@ -1131,7 +1131,7 @@ class HelperFunctions
         return $result;
     }
 
-    public function getToken($length)
+    public function getToken($length,$prefix=null)
     {
         // TODO: Implement getToken() method.
         $token = "";
@@ -1141,6 +1141,9 @@ class HelperFunctions
         $max = strlen($codeAlphabet); // edited
         for ($i=0; $i < $length; $i++) {
             $token .= $codeAlphabet[$this->crypto_rand_secure(0, $max-1)];
+        }
+        if($prefix){
+            return $prefix.''.$token;
         }
         return $token;
     }

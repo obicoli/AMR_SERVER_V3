@@ -8,6 +8,7 @@ use App\Finance\Models\Banks\AccountMasterBankBranch;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankReconciliation;
 use App\Finance\Models\Banks\BankTransaction;
+use Illuminate\Database\Eloquent\Model;
 
 interface FinanceRepositoryInterface 
 {
@@ -22,7 +23,7 @@ interface FinanceRepositoryInterface
     public function transform_bank(AccountMasterBank $accountMasterBank);
     public function transform_bank_accounts(AccountsBank $accountsBank);
     public function transform_bank_branch( AccountMasterBankBranch $accountMasterBankBranch );
-    public function transform_bank_transaction( BankTransaction $bankTransaction );
+    public function transform_bank_transaction( BankTransaction $bankTransaction, Model $company );
     public function transform_bank_reconciliation( BankReconciliation $bankReconciliation );
 
 }

@@ -209,6 +209,12 @@ class AccountingRepository implements AccountingRepositoryInterface
 
     public function accounts_double_entry(Model $company ,$debited_code, $credited_code,$amount,$trans_date,$notes,$transaction_id){
         //Create a double entry transaction
+        /*
+            When using this function to perform double entry
+            1. Must Provide Company model
+            2. Debited Account Code Should come first
+            3. Then followed by Credited Account Code
+        */
         $credited_parent = 0;
         $debited_parent = 0;
         $cr_ac = AccountChartAccount::where('code',$credited_code)->get()->first();

@@ -146,7 +146,8 @@ class BanksAccountsController extends Controller
                 //Get the system COA called "Bank"
                 $system_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
                 //Get Company Parent COA called "Bank"
-                $main_parent = $this->accountChartAccount->findByDefaultCode(AccountsCoa::AC_BANK_CODE); //Will be replaced by "User Specified Main Account"
+                //$main_parent = $this->accountChartAccount->findByDefaultCode(AccountsCoa::AC_BANK_CODE); //Will be replaced by "User Specified Main Account"
+                $main_parent = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_BANK_CODE)->get()->first();
                 $default_coa = $main_parent->coas()->get()->first();
                 $default_inputs['accounts_type_id'] = $main_parent->accounts_type_id;
                 $default_inputs['code'] = $this->helper->getAccountNumber();
@@ -285,13 +286,20 @@ class BanksAccountsController extends Controller
         $http_resp = $this->http_response['200'];
         $bank_account = $this->accountsBank->findByUuid($uuid);
         $transactions = null;
+        $company = $this->practices->find($request->user()->company_id);
         if($request->has('filters')){
             $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
         }else{ //Get default filter which is the current month
             $default_filters = $this->helper->get_default_filter();
             $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
         }
+
         $paged_data = $this->helper->paginator($transactions);
+        Log::info($transactions);
+        foreach ($transactions as $transaction) {
+            array_push($paged_data['data'],$this->accountsBank->transform_bank_transaction($transaction,$company));
+        }
+        
         $transformed_account = $this->accountsBank->transform_bank_accounts($bank_account);
         $transformed_account['transaction'] = $paged_data;
         $http_resp['results'] = $transformed_account;

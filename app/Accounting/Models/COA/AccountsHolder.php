@@ -23,7 +23,7 @@ class AccountsHolder extends Model
         'balance',
         'account_number'
     ];
-    public function owner(){return $this->morphTo('owner','owner_type','owner_id');}
+    public function owner(){return $this->morphTo('owner','owner_type','owner_id');} //This Owner Can be Customer,Supplier etc
     public function supports(){ return $this->hasMany(AccountsSupport::class,'account_number','account_number'); }
     
 }

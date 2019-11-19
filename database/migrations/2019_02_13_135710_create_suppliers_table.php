@@ -21,6 +21,7 @@ class CreateSuppliersTable extends Migration
             $table->string("salutation")->nullable()->index();
             $table->string("first_name")->nullable()->index();
             $table->string("last_name")->nullable()->index();
+            $table->string('display_as');
             $table->text("notes")->nullable();
             $table->string("logo")->nullable();
             $table->float("longitude")->default(1);

@@ -3,7 +3,7 @@
 namespace App\Models\Practice;
 
 use App\Finance\Models\Banks\AccountsBank;
-use App\Accounting\Models\COA\AccountChartAccount as AppAccountChartAccount;
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsVoucher;
@@ -51,7 +51,6 @@ use App\Models\Product\Inventory\ProductStock;
 use App\Models\Inventory\ProductStockMovement;
 use App\Models\Product\Store\ProductStore;
 use App\Models\Account\Payments\AccountPaymentTransaction;
-use App\Models\Account\COA\AccountChartAccount;
 use App\Models\Product\Purchase\ProductPo;
 use App\Models\Account\Vendors\AccountVendor;
 use App\Models\His\Rtc\HisRtcUserTrack;
@@ -127,7 +126,7 @@ class Practice extends Model implements AccountableInterface
     //Accounting Integration=================================================
     public function coas(){ return $this->morphMany(AccountsCoa::class,'owning','owning_type','owning_id'); }
     public function accounts_payment_methods(){ return $this->morphMany(AccountPaymentType::class,'owning','owning_type','owning_id'); }
-    public function chart_of_accounts(){ return $this->morphMany(AppAccountChartAccount::class,'owning','owning_type','owning_id'); }
+    public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owning','owning_type','owning_id'); }
     public function vouchers(){ return $this->morphMany(AccountsVoucher::class,'owner','owner_type','owner_id'); }
     public function bank_accounts(){ return $this->morphMany(AccountsBank::class,'owner','owner_type','owner_id'); }
     //Accounting Integration Ends============================================

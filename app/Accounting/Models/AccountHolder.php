@@ -3,6 +3,7 @@
 namespace App\Accounting\Models;
 
 use App\Accounting\Models\COA\AccountsHolder;
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Models\Module\Module;
 use App\Traits\UuidTrait;
 use Carbon\Carbon;
@@ -33,7 +34,7 @@ class AccountHolder extends Model
     protected $fillable = [
         "name", "bonus", "main", "balance"
     ];
-
     public function owner(){ return $this->morphTo();}
+    public function support_documents(){ return $this->hasMany(AccountsSupport::class,'account_number','account_number'); }
 
 }

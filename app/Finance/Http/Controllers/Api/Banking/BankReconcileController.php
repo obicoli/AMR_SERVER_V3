@@ -21,7 +21,14 @@ class BankReconcileController extends Controller
     public function index(Request $request){}
     public function create(Request $request){}
     public function show($uuid){
-        
+        /*
+            The common reasons for a difference between the bank balance and the general ledger book balance are:
+                Outstanding checks (checks written but not yet clearing the bank)
+                Deposits in transit (company receipts that are not yet deposited in the bank)
+                Bank service charges and other bank fees
+                Check printing charges
+                Errors in entering amounts in the company's general ledger
+        */
     }
     public function update(Request $request,$uuid){}
     public function destroy($uuid){}

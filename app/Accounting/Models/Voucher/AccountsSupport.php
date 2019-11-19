@@ -2,6 +2,7 @@
 
 namespace App\Accounting\Models\Voucher;
 
+use App\Accounting\Models\AccountHolder;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
@@ -20,7 +21,15 @@ class AccountsSupport extends Model
         'voucher_id',
         'account_number',
     ];
-    
+
+    public function transactionable(){ 
+        /*
+            This transactions involves:
+            Bank Transaction, Invoices
+        */
+        return $this->morphTo();
+    }
     public function vouchers(){ return $this->belongsTo(AccountsVoucher::class,'voucher_id'); }
+    public function account_holders(){ return $this->belongsTo(AccountHolder::class,'account_number','account_number'); }
 
 }

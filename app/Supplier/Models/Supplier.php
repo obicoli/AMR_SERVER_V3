@@ -9,6 +9,7 @@ use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Accounting\Models\COA\AccountsHolder;
+use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Localization\Country;
 
 class Supplier extends Model
@@ -28,9 +29,11 @@ class Supplier extends Model
         'business_id',
         'tax_reg_number',
         'company_id',
-        'currency_id'
+        'currency_id',
+        'display_as'
     ];
 
+    public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
     public function account_holders(){ return $this->morphMany(AccountsHolder::class, 'owner','owner_type','owner_id'); }
     public function addresses(){ return $this->hasMany(SupplierAddress::class,'supplier_id'); }
     public function currencies(){ return $this->belongsTo(Country::class,'currency_id'); }

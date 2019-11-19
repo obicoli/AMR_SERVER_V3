@@ -72,6 +72,7 @@ class VendorController extends Controller
             'shipping'=>'required',
             'currency'=>'required',
             'company'=>'required',
+            'display_as'=>'required'
         ];
         //Log::info($request);
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
@@ -180,7 +181,7 @@ class VendorController extends Controller
                 $other_expense = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OTHER_EXPENSE)->get()->first();
                 //Get company Accounts Payables
                 $account_payables = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
-                $transaction_id = $this->helper->getToken(10);
+                $transaction_id = $this->helper->getToken(10,'OPB');
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$other_expense->code,$account_payables->code,$request->balance,$request->as_of,AccountsCoa::TRANS_TYPE_OPENING_BALANCE,$transaction_id);
                 $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_OPENING_BALANCE,'trans_name'=>$new_vendor->salutation.' '.$new_vendor->first_name,'account_number'=>$vendor_account->account_number]);
                 $http_resp['results'] = $this->suppliers->transform_supplier($new_vendor);

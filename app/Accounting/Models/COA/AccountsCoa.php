@@ -29,6 +29,7 @@ class AccountsCoa extends Model
     const AC_BANK_CODE = 201; //DO NOT EDIT OR CHANGE
     const AC_INVENTORY_CODE = 107; //DO NOT EDIT OR CHANGE
     const AC_PAYABLE_CODE = 301; //DO NOT EDIT OR CHANGE
+    const AC_DISCOUNT_RECEIVED_REFUND_CODE = 901; //DO NOT EDIT OR CHANGE
     const AC_RECEIVABLE_CODE = 102; //DO NOT EDIT OR CHANGE
     const AC_SALES_CODE = 906; //DO NOT EDIT OR CHANGE
     const AC_COST_OF_SALES_CODE = 1004; //DO NOT EDIT OR CHANGE
@@ -58,7 +59,12 @@ class AccountsCoa extends Model
     const TRANS_TYPE_DEPOSIT = "Deposit";
     const TRANS_TYPE_INVOICE = "Invoice";
     const TRANS_TYPE_BILL = "Bill";
+    const TRANS_TYPE_DISCOUNT_RECEIVED = "Discount Received";
+    const TRANS_TYPE_DISCOUNT_ALLOWED = "Discount Allowed";
+    const TRANS_TYPE_SUPPLIER_PAYMENT = "Supplier Payment";
+    const TRANS_TYPE_CUSTOMER_RECEIPT = "Customer Receipt";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
+
     const TRANS_NAME_OPEN_BALANCE = "Opening Balance";
     const TRANS_NAME_JOURNAL_ENTRY = "Journal Entry";
     const TRANS_TYPE_START = "START";
