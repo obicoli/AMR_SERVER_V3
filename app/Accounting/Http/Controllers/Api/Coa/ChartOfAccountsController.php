@@ -51,18 +51,26 @@ class ChartOfAccountsController extends Controller
         $this->suppliers = new SupplierRepository( new Supplier() );
     }
 
+    public function show($uuid){
+        $http_resp = $this->http_response['200'];
+        $coa = $this->accountChartAccount->findByUuid($uuid);
+        $http_resp['results'] = $this->accountChartAccount->transform_company_chart_of_account($coa);
+        return response()->json($http_resp);
+    }
+
     public function index(Request $request){
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        //Get Chart of Accounts under this company
-        $company_chart_of_accounts = $company->chart_of_accounts()->get()->sortBy('accounts_type_id');
+        //Get Chart of Accounts under this company //
+        // $company_chart_of_accounts = $company->chart_of_accounts()->get()->sortBy('accounts_type_id');
+        $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(10);
+        $paged_data = $this->helper->paginator($company_chart_of_accounts);
         foreach ($company_chart_of_accounts as $company_chart_of_account) {
-            array_push($results,$this->accountChartAccount->transform_company_chart_of_account($company_chart_of_account));
+            array_push($paged_data['data'],$this->accountChartAccount->transform_company_chart_of_account($company_chart_of_account));
         }
-        $temp_data['as_at'] = $this->helper->format_mysql_date( date('Y-m-d H:i:s'),'D jS M Y h:i A' );
-        $temp_data['data'] = $results;
-        $http_resp['results'] = $temp_data;
+        $paged_data['as_at'] = $this->helper->format_mysql_date( date('Y-m-d H:i:s'),'D jS M Y h:i A' );
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 

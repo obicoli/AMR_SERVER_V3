@@ -589,6 +589,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@index");
             Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
             Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
+            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@show");
         });
         //Accounting Reports
         Route::group( ['prefix'=>'accounts' ], function (){
