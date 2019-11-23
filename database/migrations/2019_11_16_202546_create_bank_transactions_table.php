@@ -27,9 +27,9 @@ class CreateBankTransactionsTable extends Migration
             $table->unsignedInteger('transactionable_id')->nullable();//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->string('transactionable_type')->nullable();//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->string('transaction_date');
-            $table->float('spent',16,2)->default(00.00)->index();
-            $table->float('received',16,2)->default(00.00)->index();
-            $table->float('discount',16,2)->default(00.00)->index();
+            $table->float('spent',16,2)->default(00.00)->nullable()->index();
+            $table->float('received',16,2)->default(00.00)->nullable()->index();
+            $table->float('discount',16,2)->default(00.00)->nullable()->index();
             $table->string('comment')->nullable();
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch level: Facility created this
             $table->string('owning_type')->nullable()->index(); //Facility,Branch level: Facility created this

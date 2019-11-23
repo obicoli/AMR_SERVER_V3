@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Account\Coa\AccountChartAccount;
 use App\Models\Module\Module;
 
 class AccountsSupport extends Model
@@ -20,12 +19,16 @@ class AccountsSupport extends Model
         'trans_name',
         'voucher_id',
         'account_number',
+        'reference_number'
     ];
 
     public function transactionable(){ 
         /*
             This transactions involves:
             Bank Transaction, Invoices
+            Supplier: If Transaction is Supplier Opening Balance
+            Customer: If Transaction is Customer Opening Balance
+            Account: If Transaction is Account Opening Balance
         */
         return $this->morphTo();
     }

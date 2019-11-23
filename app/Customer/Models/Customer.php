@@ -4,6 +4,7 @@ namespace App\Customer\Models;
 
 use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\Payments\AccountPaymentType;
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Quote\Estimate;
 use App\Models\Module\Module;
 use App\Supplier\Models\PurchaseOrder;
@@ -19,7 +20,6 @@ class Customer extends Model
     protected $table = "customers";
 
     protected $fillable = [
-        'vendor_type',
         'city',
         'notes',
         'status',
@@ -37,9 +37,26 @@ class Customer extends Model
         'latitude',
         'address',
         'prefered_payment_id',
-        'customer_terms_id',
+        'payment_term_id',
         'business_id',
-        'title'
+        'title',
+
+        'cash_sale_customer',
+        'display_as',
+        'credit_limit',
+        'company_id',
+        'accept_electronic_invoices',
+        'old_invoice_receipt_auto_locate',
+        'currency_id',
+        'legal_name',
+        'salutation',
+        'old_invoice_receipt_auto_locate',
+        'accept_electronic_invoices',
+        'cash_sale_customer',
+        'document_sending_by',
+        'default_discount',
+        'default_price_id',
+        'default_vat_id'
     ];
 
     public function owning(){ return $this->morphTo();} //Branch level
@@ -48,5 +65,9 @@ class Customer extends Model
     public function account_holders(){ return $this->morphMany(AccountsHolder::class, 'owner','owner_type','owner_id'); }
     public function estimates(){ return $this->morphMany(Estimate::class, 'customer','customer_type','customer_id'); }
     public function purchase_order_shipping(){ return $this->morphMany(PurchaseOrder::class,'shipable','shipable_type','shipable_id'); }
+    public function addresses(){ return $this->hasMany(CustomerAddress::class,'customer_id'); }
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
 
 }

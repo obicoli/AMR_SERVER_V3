@@ -21,6 +21,7 @@ class CreateAccountHoldersTable extends Migration
             $table->string('uuid')->nullable();
             $table->unsignedInteger("owner_id");
             $table->string("owner_type");
+            $table->unsignedInteger("practice_id");
             $table->string("account_type");
             $table->string("account_number")->unique()->index();
             $table->string("name")->nullable();

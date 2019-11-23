@@ -40,7 +40,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
         return $this->model->create($inputs);
     }
 
-    public function transform_customer(Customer $customer){
+    public function transform_customer(Customer $customer, $detailed=null){
 
         $customer_term = $customer->customer_terms()->get()->first();
         $term = [];
@@ -49,9 +49,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
         }
 
         $balance = 0;
-
         $customer_account = $customer->account_holders()->get()->first();
-
         if($customer_account){
             $balance = $customer_account->balance;
         }
@@ -59,11 +57,11 @@ class CustomerRepository implements CustomerRepositoryInterface{
         return [
             'id'=>$customer->uuid,
             'first_name'=>$customer->first_name,
-            'other_name'=>$customer->other_name,
-            'middle_name'=>$customer->middle_name,
-            'title'=>$customer->title,
-            'display_as'=>$customer->title." ".$customer->first_name." | ".$customer->email." | ".$customer->company,
-            'company'=>$customer->company,
+            'last_name'=>$customer->last_name,
+            'legal_name'=>$customer->legal_name,
+            'salutation'=>$customer->salutation,
+            'display_as'=>$customer->legal_name,
+            //'company'=>$customer->company,
             'postal_code'=>$customer->postal_code,
             'country'=>$customer->country,
             'email'=>$customer->email,

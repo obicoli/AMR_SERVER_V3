@@ -54,7 +54,11 @@ class ChartOfAccountsController extends Controller
     public function show($uuid){
         $http_resp = $this->http_response['200'];
         $coa = $this->accountChartAccount->findByUuid($uuid);
-        $http_resp['results'] = $this->accountChartAccount->transform_company_chart_of_account($coa);
+        $default_filter = $this->helper->get_default_filter();
+        $filters['date_range'] = $default_filter['start'].' to '.$default_filter['end'];
+        $results['filters'] = $filters;
+        $results['data'] = $this->accountChartAccount->transform_company_chart_of_account($coa,"detailed");
+        $http_resp['results'] = $results;
         return response()->json($http_resp);
     }
 

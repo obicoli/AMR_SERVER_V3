@@ -3,6 +3,8 @@
 namespace App\Finance\Repositories;
 
 use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Repositories\AccountingRepository;
+use App\Customer\Repositories\CustomerRepository;
 use App\Finance\Models\Banks\AccountBankAccountType;
 use Illuminate\Database\Eloquent\Model;
 use App\Finance\Models\Banks\AccountMasterBank;
@@ -11,17 +13,22 @@ use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankReconciliation;
 use App\Finance\Models\Banks\BankTransaction;
 use App\helpers\HelperFunctions;
+use App\Models\Account\Customer\Customer;
 
 class FinanceRepository implements FinanceRepositoryInterface
 {
 
     protected $model;
     protected $helpers;
+    protected $customerRepository;
+    protected $accountingRepository;
 
     public function __construct( Model $model )
     {
         $this->model = $model;
         $this->helpers = new HelperFunctions();
+        $this->customerRepository = new CustomerRepository(new Customer());
+        $this->accountingRepository = new AccountingRepository(new AccountsCoa());
     }
 
     public function all(){
@@ -117,6 +124,7 @@ class FinanceRepository implements FinanceRepositoryInterface
 
         //Get Support Document(Which has account Holder Number)
         $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+        $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
         //User Support Document to Find Account Holder
         $accountHolder = $supportDoc->account_holders()->get()->first();
         //Get Supplier,or Customer from AccountHolder
@@ -124,6 +132,9 @@ class FinanceRepository implements FinanceRepositoryInterface
         $selection['id'] = $account_owner->uuid;
         $selection['name'] = $account_owner->display_as;
         $selections = array();
+        $customer = null;
+        $amount = 0;
+        $account_number = $accountHolder->account_number;
         if( $bankTransaction->type == AccountsCoa::AC_TYPE_SUPPLIER ){
             $suppliers = $company->vendors()->get();
             foreach($suppliers as $suppl){
@@ -131,6 +142,13 @@ class FinanceRepository implements FinanceRepositoryInterface
                 $temp_suppl['name'] = $suppl->display_as;
                 array_push($selections,$temp_suppl);
             }
+            $amount = $bankTransaction->spent;
+        }else if( $bankTransaction->type == AccountsCoa::AC_TYPE_CUSTOMER ){
+            $selection['id'] = $account_owner->uuid;
+            $selection['name'] = $account_owner->legal_name;
+            $custome = $accountHolder->owner()->get()->first();
+            $customer = $this->customerRepository->transform_customer($custome);
+            $amount = $bankTransaction->received;
         }
 
         $vats['id'] = "id";
@@ -141,7 +159,8 @@ class FinanceRepository implements FinanceRepositoryInterface
         return [
             'id'=>$bankTransaction->uuid,
             'payee'=>$bankTransaction->payee,
-            'transaction_date'=>$bankTransaction->transaction_date,
+            //'transaction_date'=>$bankTransaction->transaction_date,
+            'transaction_date'=>date("Y-m-d", \strtotime($bankTransaction->created_at)),
             'description'=>$bankTransaction->description,
             'reference'=>$bankTransaction->reference,
             'discount'=>$bankTransaction->discount,
@@ -149,8 +168,12 @@ class FinanceRepository implements FinanceRepositoryInterface
             'type'=>$bankTransaction->type,
             'spent'=>$bankTransaction->spent,
             'received'=>$bankTransaction->received,
+            'amount'=>$amount,
             'selection'=>$selection,
             'selections'=>$selections,
+            'customer' => $customer,
+            'double_entry' => $double_entry,
+            'account_number'=>$account_number,
             'vat'=>$vats,
         ];
 

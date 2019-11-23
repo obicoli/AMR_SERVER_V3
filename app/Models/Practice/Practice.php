@@ -2,6 +2,7 @@
 
 namespace App\Models\Practice;
 
+use App\Accounting\Models\AccountHolder;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
@@ -129,6 +130,7 @@ class Practice extends Model implements AccountableInterface
     public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owning','owning_type','owning_id'); }
     public function vouchers(){ return $this->morphMany(AccountsVoucher::class,'owner','owner_type','owner_id'); }
     public function bank_accounts(){ return $this->morphMany(AccountsBank::class,'owner','owner_type','owner_id'); }
+    public function account_holders(){ return $this->hasMany(AccountHolder::class,'practice_id'); }
     //Accounting Integration Ends============================================
 
     //Customer Integration===========Starts=============

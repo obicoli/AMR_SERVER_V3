@@ -13,7 +13,7 @@ interface CustomerRepositoryInterface{
     public function find($id);
     public function findByUuid($uuid);
     public function create($inputs = []);
-    public function transform_customer(Customer $customer);
+    public function transform_customer(Customer $customer,$detailed=null);
     public function transform_term(CustomerTerms $customerTerms);
     public function transform_estimate(Estimate $estimate);
     public function company_terms_initialization(Model $company);

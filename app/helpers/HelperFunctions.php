@@ -50,13 +50,16 @@ use Illuminate\Support\Facades\Log;
 
 class HelperFunctions
 {
-    public function get_default_filter(){
+    public function get_default_filter(Model $company=null){
 
-        $first = date("Y-m-d", strtotime("first day of this month"));
-        $last = date("Y-m-d", strtotime("last day of this month"));
+        $first = date("Y-m-d H:i:s", strtotime("first day of this month"));
+        $last = date("Y-m-d H:i:s", strtotime("last day of this month"));
+        $today = date("Y-m-d");
         return [
             'start'=>$first,
             'last'=>$last,
+            'end'=>$last,
+            'today'=>$today
         ];
     }
 

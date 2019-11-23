@@ -70,6 +70,7 @@ class BanksAccountsController extends Controller
 
     public function create(Request $request){
 
+        Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'account_name'=>'required',
@@ -204,10 +205,23 @@ class BanksAccountsController extends Controller
                     $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
                     return response()->json($http_resp,422);
                 }
+
                 $transaction_id = $this->helper->getToken(10);
                 $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
-                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_chart_of_coa->code,$custom_op_bal_equity->code,$opening_balance,$as_at,AccountsCoa::TRANS_NAME_OPEN_BALANCE,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_DEPOSIT,'trans_name'=>AccountsCoa::TRANS_NAME_OPEN_BALANCE]);
+                
+                $debited_ac = $custom_chart_of_coa->code;
+                $credited_ac = $custom_op_bal_equity->code;
+                $amount = $opening_balance;
+                $as_at = $request->as_at;
+                $trans_type = AccountsCoa::TRANS_TYPE_ACCOUNT_OPENING_BALANCE;
+                $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
+                $trans_name = $trans_type;
+                $account_number = $new_bank_account->account_number;
+                //$ac_number = $vendor_account->account_number;
+                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
+                    'reference_number'=>$reference_number,'account_number'=>$account_number]);
+                $support_doc = $new_bank_account->double_entry_support_document()->save($support_doc);
             }
 
         }catch(\Exception $e){

@@ -4,6 +4,7 @@ namespace App\Finance\Models\Banks;
 
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Models\Module\Module;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -40,5 +41,9 @@ class AccountsBank extends Model
     public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
 
     public function bank_transactions(){ return $this->hasMany(BankTransaction::class,'bank_account_id','id'); }
+
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
 
 }

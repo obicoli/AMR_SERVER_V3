@@ -4,7 +4,7 @@ namespace App\Supplier\Http\Controllers\Api\Vendor;
 
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Voucher\AccountsVoucher;
-use App\Accounting\Repositories\AccountingRepository as AppAccountingRepository;
+use App\Accounting\Repositories\AccountingRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Practice\Practice;
@@ -39,8 +39,8 @@ class VendorController extends Controller
         $this->helper = new HelperFunctions();
         $this->practices = new PracticeRepository( new Practice() );
         $this->suppliers = new SupplierRepository( new Supplier() );
-        $this->accountingVouchers = new AppAccountingRepository(new AccountsVoucher());
-        $this->countries = new AppAccountingRepository( new Country() );
+        $this->accountingVouchers = new AccountingRepository(new AccountsVoucher());
+        $this->countries = new AccountingRepository( new Country() );
         $this->paymentTerms = new SupplierRepository( new SupplierTerms() );
         $this->supplierCompanies = new SupplierRepository( new SupplierCompany() );
     }
@@ -141,7 +141,7 @@ class VendorController extends Controller
             $ac_inputs['balance'] = 0;
             $vendor_account = $new_vendor->account_holders()->create($ac_inputs);
             //Attach addresses to this account
-            Log::info($request);
+            //Log::info($request);
             $bil_add = $request->billing;
             $ship_add = $request->shipping;
             if( $request->billing['country'] ){
@@ -159,6 +159,7 @@ class VendorController extends Controller
             }
             //Check if opening balance is given and save
             if($request->balance){
+
                 $rule2 = [
                     'as_of'=>'required',
                 ];
@@ -178,12 +179,22 @@ class VendorController extends Controller
                     3. RULE: Asset & Expense have normal Debit Balance, Liability & Equity & Revenue have normal Credit Balance
                 */
                 //Get company Other Expense Account
+                $account_payables = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
                 $other_expense = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OTHER_EXPENSE)->get()->first();
                 //Get company Accounts Payables
-                $account_payables = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
-                $transaction_id = $this->helper->getToken(10,'OPB');
-                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$other_expense->code,$account_payables->code,$request->balance,$request->as_of,AccountsCoa::TRANS_TYPE_OPENING_BALANCE,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_OPENING_BALANCE,'trans_name'=>$new_vendor->salutation.' '.$new_vendor->first_name,'account_number'=>$vendor_account->account_number]);
+                $debited_ac = $other_expense->code;
+                $credited_ac = $account_payables->code;
+                $amount = $request->balance;
+                $as_at = $request->as_of;
+                $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE;
+                $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
+                $trans_name = $new_vendor->salutation.' '.$new_vendor->first_name.' '>$reference_number;
+                $ac_number = $vendor_account->account_number;
+                //
+                $transaction_id = $this->helper->getToken(10,'SOBP');
+                $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_type,$transaction_id);
+                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$ac_number,'reference_number'=>$reference_number]);
+                $support_doc = $new_vendor->double_entry_support_document()->save($support_doc);
                 $http_resp['results'] = $this->suppliers->transform_supplier($new_vendor);
             }
             //

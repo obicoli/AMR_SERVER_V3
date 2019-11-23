@@ -17,16 +17,21 @@ use App\Models\Module\Module;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Accounting\Models\Payments\AccountPaymentType;
+use App\Accounting\Models\Voucher\AccountsSupport;
+use App\Customer\Models\Customer;
+use App\Customer\Repositories\CustomerRepository;
 
 class AccountingRepository implements AccountingRepositoryInterface
 {
     protected $model;
     protected $helpers;
+    protected $customerRepository;
 
     public function __construct( Model $model )
     {
         $this->model = $model;
         $this->helpers = new HelperFunctions();
+        $this->customerRepository = new CustomerRepository(new Customer());
     }
 
     public function all(){
@@ -78,7 +83,32 @@ class AccountingRepository implements AccountingRepositoryInterface
             'date_range'=>$date_range,
             'transactions' => $transactions,
         ];
+    }
 
+    public function calculate_account_balance(AccountChartAccount $accountChartAccount, $filters=[] ){
+        /*
+         Calculate asset and expense account balances. These types of accounts
+         have debit balances. To calculate the balance in these types, start
+          with the beginning debit balance in the account. Add any additional 
+          debits made to the account and subtract any credit postings. This calculation
+           represents the current balance in the account.
+        */
+        $debited_total = $accountChartAccount->debited_vouchers()->sum('amount');
+        $credited_total = $accountChartAccount->credited_vouchers()->sum('amount');
+        $account_type = $accountChartAccount->account_types()->get()->first();
+        $account_nature = $account_type->accounts_natures()->get()->first();
+        if( $account_nature->name == AccountsCoa::ASSETS || $account_nature->name == AccountsCoa::EXPENSE ){
+            return $debited_total - $credited_total;
+        }else{
+            return $credited_total - $debited_total;
+        }
+        /*
+            Calculate liability, equity and revenue account balances. 
+            Because these accounts have credit balances, to calculate the 
+            current balance, start with the beginning credit amount. Add any 
+            credit posting made to the account and subtract any debit postings.
+            After completing this, you have calculated the current balance of an account.
+        */
     }
 
     // public function transform_bank_accounts(AccountsBank $accountsBank){
@@ -142,25 +172,31 @@ class AccountingRepository implements AccountingRepositoryInterface
     //     return $this->model->all()->where('sys_default',true);//->sortBy(name);
     // }
 
-    public function transform_company_chart_of_account(AccountChartAccount $accountChartAccount){
+    public function transform_company_chart_of_account(AccountChartAccount $accountChartAccount, $detailed_report=null, $filters=[]){
         //Get details from system default Chart of Accounts
         $default_coa = $accountChartAccount->coas()->get()->first();
         //Get Account Type
         $account_type = $default_coa->account_types()->get()->first();
-        $total_debited = $accountChartAccount->debited_vouchers()->sum('amount');
-        $total_credited = $accountChartAccount->credited_vouchers()->sum('amount');
-        $bal['state'] = 0;
-        $bal['balance'] = 0;
-        if( $total_debited == $total_credited ){
-            $bal['state'] = 0;
-            $bal['balance'] = 0;
-        }elseif( ($total_debited - $total_credited) > 0 ){
-            $bal['state'] = 1;
-            $bal['balance'] = $total_debited - $total_credited;
-        }else{
-            $bal['state'] = -1;
-            $bal['balance'] = $total_credited - $total_debited;
+        $balance = $this->calculate_account_balance($accountChartAccount);
+        $company = $accountChartAccount->owning()->get()->first();
+        $transactions = [];
+        if($detailed_report){
+            if( sizeof($filters) ){
+            }else{
+                $filters = $this->helpers->get_default_filter();
+                $double_entries = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)
+                    ->table('accounts_vouchers')
+                    ->where('credited', $accountChartAccount->code)
+                    ->orWhere('debited', $accountChartAccount->code)
+                    ->whereBetween('created_at', [$filters['start'], $filters['end']])
+                    ->get();
+                foreach( $double_entries as $double_entry ){
+                    $double_entr = AccountsVoucher::find($double_entry->id);
+                    array_push($transactions,$this->transform_journal_entry($double_entr,AccountsCoa::ACCOUNT_TRANSACTION_REPORT,$company));
+                }
+            }
         }
+
         return [
             'id'=>$accountChartAccount->uuid,
             'name' => $accountChartAccount->name,
@@ -169,12 +205,14 @@ class AccountingRepository implements AccountingRepositoryInterface
             'is_sub_account' => $accountChartAccount->is_sub_account,
             'is_special' => $accountChartAccount->is_special,
             'description' => $accountChartAccount->description,
-            'balance_obj' => $bal,
+            'balance' => $balance,
+            'filters' => $filters,
             'default_coa' => $this->transform_default_coa($default_coa),
             'account_type' => $this->transform_account_type($account_type),
             'tax_rate' => '',
             'status' => $accountChartAccount->status,
             'notes' => $accountChartAccount->notes,
+            'transactions' => $transactions,
         ];
     }
 
@@ -204,6 +242,17 @@ class AccountingRepository implements AccountingRepositoryInterface
             'name'=>$accountsCoa->name,
             'code'=>$accountsCoa->code,
             'account_type' => $this->transform_account_type($account_type)
+        ];
+    }
+
+    public function transform_support_document(AccountsSupport $accountsSupport,Model $company=null){
+        
+        //$transactionable = $accountsSupport->transactionable()->get()->first();
+        return [
+            'id' => $accountsSupport->uuid,
+            'trans_type' => $accountsSupport->trans_type,
+            'trans_name' => $accountsSupport->trans_name,
+            'reference_number' => $accountsSupport->reference_number,
         ];
     }
 
@@ -267,7 +316,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         /*
         ASSET and EXPENSE accounts have normal debit balances. This means that
          when the account increases, the amount is posted as a debit. When the
-          balance decreases, a credit is posted. Liability, equity and revenue
+          balance decreases, a credit is posted. LIABILITY, EQUITY and REVENUE
            accounts have normal credit balances. When these accounts increase,
             a credit is posted. When they decrease, a debit is posted.
         */
@@ -527,7 +576,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         return $report;
     }
 
-    public function transform_journal_entry(AccountsVoucher $accountsVoucher, $journal_type=AccountsCoa::BALANCE_DEBIT){
+    public function transform_journal_entry(AccountsVoucher $accountsVoucher, $journal_type=AccountsCoa::BALANCE_DEBIT,Model $company=null){
 
         $transaction_type = "";
         $transaction_name = "";
@@ -540,6 +589,7 @@ class AccountingRepository implements AccountingRepositoryInterface
             $transaction_name = $support_document->trans_name;
         }
         switch ($journal_type) {
+
             case AccountsCoa::BALANCE_CREDIT :
                 $debit_account = $accountsVoucher->credited()->get()->first(); //default system account
                 $account_type = $debit_account->account_types()->get()->first();
@@ -560,7 +610,38 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $debit['is_sub_account'] = $debit_account->is_sub_account;
                 $debit['account_nature'] = $this->transform_account_nature($account_nature);
                 break;
-            
+            case AccountsCoa::ACCOUNT_TRANSACTION_REPORT: //This transform Double Entry Based on selected "Chart of Account" & Give "Account Transactional Report" Inputs
+                
+                $trans_with['id'] = '';
+                $trans_with['name'] = '';
+                $support_type = $support_document->trans_type;
+                $transactionable = $support_document->transactionable()->get()->first();
+                if($support_type==AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE){
+                    $trans_with['id'] = $transactionable->id;
+                    $trans_with['name'] = $transactionable->legal_name;
+                }elseif($support_type == AccountsCoa::TRANS_TYPE_ACCOUNT_OPENING_BALANCE){
+                    $trans_with['id'] = $transactionable->id;
+                    $trans_with['name'] = $transactionable->account_name;
+                }elseif( $support_type == AccountsCoa::TRANS_TYPE_CUSTOMER_RECEIPT || $support_type==AccountsCoa::TRANS_TYPE_DISCOUNT_ALLOWED ){
+                    $customer_account = $support_document->account_holders()->get()->first();
+                    $customer = $customer_account->owner()->get()->first();
+                    $trans_with['id'] = $customer->id;
+                    $trans_with['name'] = $customer->legal_name;
+                    $trans_with['customer'] = $this->customerRepository->transform_customer($customer);
+                }
+
+                $double_entry['debited'] = $accountsVoucher->debited;
+                $double_entry['credited'] = $accountsVoucher->credited;
+                $double_entry['amount'] = $accountsVoucher->amount;
+
+                $debit['id'] = $accountsVoucher->uuid;
+                $debit['notes'] = $accountsVoucher->notes;
+                $debit['amount'] = $accountsVoucher->amount;
+                $debit['trans_with'] = $trans_with;
+                $debit['double_entry'] = $double_entry;
+                $debit['support_document'] = $this->transform_support_document($support_document);
+                $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,$company->date_format);
+                break;
             default:
                 $debit_account = $accountsVoucher->debited()->get()->first(); //default system account
                 //Log::info($debit_account);

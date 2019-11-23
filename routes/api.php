@@ -649,17 +649,17 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
     });
 
-    Route::group( ['prefix'=>'supplier' ], function (){
+    // Route::group( ['prefix'=>'supplier' ], function (){
 
-        Route::group( ['prefix'=>'vendors' ], function (){
-            Route::get('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@index");
-            Route::post('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@create");
-            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@update");
-            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@show");
-            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@delete");
-        });
+    //     Route::group( ['prefix'=>'vendors' ], function (){
+    //         Route::get('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@index");
+    //         Route::post('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@create");
+    //         Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@update");
+    //         Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@show");
+    //         Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@delete");
+    //     });
         
-    });
+    // });
 
     Route::group( ['prefix'=>'customers' ], function (){
 
@@ -671,12 +671,28 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@delete");
         });
 
-        Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@index");
-        Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@create");
-        Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@update");
-        Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@show");
-        Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@delete");
+        Route::group( ['prefix'=>'debtors' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@delete");
+        });
 
+        Route::group( ['prefix'=>'terms' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\TermsController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\TermsController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\TermsController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\TermsController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\TermsController@delete");
+        });
+        Route::get('/dashboard', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@dashboard");
+
+        // Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@index");
+        // Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@create");
+        // Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@update");
+        // Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@show");
+        // Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerController@delete");
     });
 
     Route::group( ['prefix'=>'suppliers' ], function (){
