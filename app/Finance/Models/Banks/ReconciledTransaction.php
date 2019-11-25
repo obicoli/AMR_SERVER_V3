@@ -16,9 +16,11 @@ class ReconciledTransaction extends Model
         'notes',
         'bank_reconciliation_id',
         'bank_transaction_id',
+        'bank_account_id',
     ];
 
     public function bank_transactions(){ return $this->belongsTo(BankTransaction::class,'bank_transaction_id','id'); }
     public function bank_reconciliations(){ return $this->belongsTo(BankReconciliation::class,'bank_reconciliation_id','id'); }
     public function reconciled_transaction_states(){ return $this->hasMany(ReconciledTransactionState::class,'reconciled_transaction_id','id'); }
+    public function bank_accounts(){ return $this->belongsTo(AccountsBank::class,'bank_account_id','id'); }
 }

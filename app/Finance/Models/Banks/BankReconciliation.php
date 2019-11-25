@@ -19,7 +19,10 @@ class BankReconciliation extends Model
         'notes',
         'start_date',
         'end_date',
-        'bank_account_id'
+        'bank_account_id',
+        'statement_date',
+        'status',
+        'reconciled_amount'
     ];
     public function bank_accounts(){ return $this->belongsTo(AccountsBank::class,'bank_account_id','id'); }
     public function reconciled_transactions(){ return $this->hasMany(ReconciledTransaction::class,'bank_reconciliation_id','id'); }

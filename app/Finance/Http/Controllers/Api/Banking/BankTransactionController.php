@@ -54,8 +54,11 @@ class BankTransactionController extends Controller
         //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rules = [
-            'bank_account'=>'required',
-            'transactions'=>'required',
+            'statement_balance'=>'required',
+            'account_balance'=>'required',
+            'start_date'=>'required',
+            'end_date'=>'required',
+            'bank_account_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules,$this->helper->messages());
         if ($validation->fails()){

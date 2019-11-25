@@ -611,6 +611,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
                 Route::post('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@update");
                 Route::get('/', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@index");
                 Route::get('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@show");
+                Route::get('/{uuid}/{bank_uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@show");
                 Route::delete('/{uuid}', "\App\Finance\Http\Controllers\Api\Banking\BankReconcileController@destroy");
             });
             Route::group( ['prefix'=>'transactions' ], function (){

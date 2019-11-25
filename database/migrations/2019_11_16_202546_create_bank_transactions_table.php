@@ -23,9 +23,9 @@ class CreateBankTransactionsTable extends Migration
             $table->string('status')->default('Not Ticked');
             $table->string('description')->nullable();
             $table->string('reference')->nullable();
-            $table->string('type')->nullable(); //this can be: Account,Customer,Supplier,Transfer,VAT
-            $table->unsignedInteger('transactionable_id')->nullable();//This is Supplier,or Customer,Or Account(Polymorphy)
-            $table->string('transactionable_type')->nullable();//This is Supplier,or Customer,Or Account(Polymorphy)
+            $table->string('type'); //this can be: Account,Customer,Supplier,Transfer,VAT
+            $table->unsignedInteger('transactionable_id');//This is Supplier,or Customer,Or Account(Polymorphy)
+            $table->string('transactionable_type');//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->string('transaction_date');
             $table->float('spent',16,2)->default(00.00)->nullable()->index();
             $table->float('received',16,2)->default(00.00)->nullable()->index();

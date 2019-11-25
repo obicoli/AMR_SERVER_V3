@@ -97,6 +97,10 @@ class PracticeRepository implements PracticeRepositoryInterface
         return $user->practices()->get()->first();
     }
 
+    public function findByUserAndCompany(User $user,Practice $practice){
+        return $this->practice->all()->where('user_id',$user->id)->where('practice_id',$practice->id)->first();
+    }
+
     public function findByUuid($uuid)
     {
         // TODO: Implement findByUuid() method.
@@ -195,8 +199,34 @@ class PracticeRepository implements PracticeRepositoryInterface
         $temp_data['mobile'] = $practiceUser->mobile;
         $temp_data['status'] = $practiceUser->status;
         $temp_data['specific_facility'] = $practiceUser->facility;
-        $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
-        $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
+        if($company){
+            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
+            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
+            $parentPract = $this->findParent($company);
+            $practice_main = $parentPract->practices()->where('category','Main')->get()->first();
+            $app_data['id'] = $parentPract->uuid;
+            $app_data['name'] = $parentPract->name;
+            $app_data['address'] = $parentPract->address;
+            $app_data['logo'] = "/assets/img/amref-white.png";
+            $app_data['email'] = $parentPract->email;
+            $app_data['mobile'] = $parentPract->mobile;
+
+            $main_branch['id'] = $practice_main->uuid;
+            $main_branch['name'] = $practice_main->name;
+            $main_branch['address'] = $practice_main->address;
+            $main_branch['logo'] = "/assets/img/amref-white.png";
+            $main_branch['email'] = $practice_main->email;
+            $main_branch['mobile'] = $practice_main->mobile;
+            $main_branch['lat'] = $practice_main->latitude;
+            $main_branch['lgt'] = $practice_main->longitude;
+            $main_branch['category'] = $practice_main->category;
+
+            $main_branch['app_data'] = $app_data;
+
+        }else{
+            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at);
+            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at);
+        }
         $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
         //$temp_data['work_station'] = $this->getWorkPlace($practiceUser);
         // $temp_data['billable'] = $practiceUser->billable;
@@ -207,8 +237,7 @@ class PracticeRepository implements PracticeRepositoryInterface
         //$temp_data['roles'] = $this->getRoles($practiceUser);
         //$temp_data['permissions'] = $this->getPermissions($practiceUser);
         //$practice = $this->find($practiceUser->practice_id);
-        $parentPract = $this->findParent($company);
-        $practice_main = $parentPract->practices()->where('category','Main')->get()->first();
+
         // $main_branch['id'] = $practice_main->uuid;
         // $main_branch['name'] = $practice_main->name;
         // $main_branch['address'] = $practice_main->address;
@@ -219,24 +248,11 @@ class PracticeRepository implements PracticeRepositoryInterface
         // $main_branch['lgt'] = $practice_main->longitude;
         // $main_branch['branch'] = $this->getWorkPlace($practiceUser);
         // $temp_data['facility'] = $main_branch;
-        $main_branch['id'] = $practice_main->uuid;
-        $main_branch['name'] = $practice_main->name;
-        $main_branch['address'] = $practice_main->address;
-        $main_branch['logo'] = "/assets/img/amref-white.png";
-        $main_branch['email'] = $practice_main->email;
-        $main_branch['mobile'] = $practice_main->mobile;
-        $main_branch['lat'] = $practice_main->latitude;
-        $main_branch['lgt'] = $practice_main->longitude;
-        $main_branch['category'] = $practice_main->category;
 
-        $app_data['id'] = $parentPract->uuid;
-        $app_data['name'] = $parentPract->name;
-        $app_data['address'] = $parentPract->address;
-        $app_data['logo'] = "/assets/img/amref-white.png";
-        $app_data['email'] = $parentPract->email;
-        $app_data['mobile'] = $parentPract->mobile;
 
-        $main_branch['app_data'] = $app_data;
+
+
+        
 
         if($source_type=="app"){ //For app Login: User who can access facilities
             if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager" ){//User at Main Branch Level
@@ -250,7 +266,7 @@ class PracticeRepository implements PracticeRepositoryInterface
                 $temp_data['facility'] = $main_branch;
             }else{ //User at Branch Level: Login via APP
                 //$temp_data['facility'] = $this->getWorkPlace($practiceUser);
-                $temp_data['facility'] = $this->transform_($practice,'Purchase Orders & Category');
+                //$temp_data['facility'] = $this->transform_($practice,'Purchase Orders & Category');
             }
         }elseif($source_type=="web"){//For web login
             if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager"){ //general manager

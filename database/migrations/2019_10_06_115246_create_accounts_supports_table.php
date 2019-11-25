@@ -22,8 +22,8 @@ class CreateAccountsSupportsTable extends Migration
             $table->string('account_number')->index(); //This account number connects Support Doc & Double Entry Ledger to the Real Account Holder e.g Supplier, Customer etc
             $table->string('trans_type');//Transactions  type e.g Deposit
             $table->string('trans_name'); //Transaction name e.g Cash Deposit Receipt
-            $table->unsignedInteger('transactionable_id')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
-            $table->string('transactionable_type')->nullable(); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
+            $table->unsignedInteger('transactionable_id'); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
+            $table->string('transactionable_type'); //Exact Link to Transactions: Purchase Order, Purchase, Bank Transactions
             $table->string('uuid');
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->softDeletes();

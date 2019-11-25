@@ -12,7 +12,7 @@ class ReconciledTransactionState extends Model
 {
     use SoftDeletes,UuidTrait,Accountable;
     protected $connection = Module::MYSQL_FINANCE_DB_CONN;
-    protected $table = "bank_transactions";
+    protected $table = "reconciled_transaction_states";
     protected $fillable = [
         'status',
         'notes',

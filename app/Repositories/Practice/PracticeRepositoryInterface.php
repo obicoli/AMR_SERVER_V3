@@ -30,6 +30,7 @@ interface PracticeRepositoryInterface
     public function findOwner(Practice $practice);
     public function findParent(Practice $practice);
     public function findByUser(User $user);
+    public function findByUserAndCompany(User $user,Practice $practice);
     public function findByUuid($uuid);
     public function delete($uuid);
     public function findByMobile($mobile);

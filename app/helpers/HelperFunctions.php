@@ -51,9 +51,8 @@ use Illuminate\Support\Facades\Log;
 class HelperFunctions
 {
     public function get_default_filter(Model $company=null){
-
-        $first = date("Y-m-d H:i:s", strtotime("first day of this month"));
-        $last = date("Y-m-d H:i:s", strtotime("last day of this month"));
+        $first = date("Y-m-d", strtotime("first day of this month"));
+        $last = date("Y-m-d", strtotime("last day of this month"));
         $today = date("Y-m-d");
         return [
             'start'=>$first,
@@ -870,7 +869,8 @@ class HelperFunctions
                 'from' => $data->firstItem(),
                 'to' => $data->lastItem()
             ],
-            'data' => []
+            'data' => [],
+            'filters' => [],
         ];
     }
 
@@ -928,6 +928,8 @@ class HelperFunctions
             'main_account_id.required' => 'Main account is required!',
             'customer_id.required' => 'Customer is required!',
             'initial_stock.required'=> 'Initial stock on hand is required!',
+            'bank_account_id.required'=>'Select a Bank or Credit Card',
+            'transactions.required'=>'Bank transactions missing!',
         ];
     }
 

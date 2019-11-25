@@ -19,6 +19,7 @@ class CreateReconciledTransactionsTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('bank_reconciliation_id')->index();
             $table->unsignedInteger('bank_transaction_id')->index();
+            $table->unsignedInteger('bank_account_id')->index();
             $table->string('notes')->nullable();
             $table->string('uuid');
             $table->softDeletes();

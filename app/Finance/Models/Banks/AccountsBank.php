@@ -42,8 +42,12 @@ class AccountsBank extends Model
 
     public function bank_transactions(){ return $this->hasMany(BankTransaction::class,'bank_account_id','id'); }
 
+    public function bank_reconciliations(){ return $this->hasMany(BankReconciliation::class,'bank_account_id','id'); }
+
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+
+    public function reconciled_transactions(){ return $this->hasMany(ReconciledTransaction::class,'bank_account_id','id'); }
 
 }

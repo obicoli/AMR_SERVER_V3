@@ -13,6 +13,9 @@ use App\Accounting\Repositories\AccountingRepository;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
 use App\Finance\Models\Banks\AccountBankAccountType;
+use App\Finance\Models\Banks\BankReconciliation;
+use App\Finance\Models\Banks\BankTransaction;
+use App\Finance\Models\Banks\ReconciledTransactionState;
 use App\Finance\Repositories\FinanceRepository;
 use App\helpers\HelperFunctions;
 use Illuminate\Http\Request;
@@ -20,6 +23,7 @@ use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeUser;
 use App\Repositories\Practice\PracticeRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +42,10 @@ class BanksAccountsController extends Controller
     protected $accountsCoa;
     protected $accountingVouchers;
     protected $accountChartAccount;
+    protected $bankTransaction;
+    protected $bankReconciliations;
+    protected $bankReconciledTransactionState;
+    protected $companyUser;
     // protected $customers;
 
     public function __construct(AccountsBank $accountsBank)
@@ -54,6 +62,10 @@ class BanksAccountsController extends Controller
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
         // $this->customers = new CustomerRepository(new Customer());
         $this->accountChartAccount = new AccountingRepository( new AccountChartAccount());
+        $this->bankTransaction = new FinanceRepository(new BankTransaction());
+        $this->bankReconciliations = new FinanceRepository( new BankReconciliation() );
+        $this->bankReconciledTransactionState = new FinanceRepository( new ReconciledTransactionState() );
+        $this->companyUser = new PracticeRepository( new PracticeUser());
     }
 
     public function index(Request $request){
@@ -70,7 +82,7 @@ class BanksAccountsController extends Controller
 
     public function create(Request $request){
 
-        Log::info($request);
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'account_name'=>'required',
@@ -93,6 +105,7 @@ class BanksAccountsController extends Controller
         try{
 
             $company = $this->practices->find($request->user()->company_id);
+            $companyUser = $this->companyUser->findByUserAndCompany($request->user(),$company);
             $bank = $this->banks->findByUuid($request->bank_id);
             $bank_branch = $this->bank_branches->findByUuid($request->branch_id);
             $bank_account_type = $this->bank_account_types->findByUuid($request->account_type_id);
@@ -190,6 +203,7 @@ class BanksAccountsController extends Controller
 
             //(C) OPENING BALANCES
             if($request->has('opening_balance') && $request->opening_balance>0){
+
                 $new_bank_account->balance = $new_bank_account->balance + $request->opening_balance;
                 $new_bank_account->save();
                 //DEBIT "Bank's Ledger account" & CREDIT "Owner's Equity"
@@ -208,6 +222,8 @@ class BanksAccountsController extends Controller
 
                 $transaction_id = $this->helper->getToken(10);
                 $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
+
+
                 
                 $debited_ac = $custom_chart_of_coa->code;
                 $credited_ac = $custom_op_bal_equity->code;
@@ -218,10 +234,63 @@ class BanksAccountsController extends Controller
                 $trans_name = $trans_type;
                 $account_number = $new_bank_account->account_number;
                 //$ac_number = $vendor_account->account_number;
+
+                //Create a Bank Transaction(The Type is "Account" )
+                //Link Bank Transaction to Bank Ledger Account(Transactionable:PolyMorphy)
+                //Create a Reconciliation Transaction
+                //Create the Three Status of this Transaction
+                $bank_inputs['transaction_date'] = $as_at;
+                $bank_inputs['type'] = AccountsCoa::AC_TYPE_ACCOUNT;
+                $bank_inputs['reference'] = $reference_number;
+                $bank_inputs['received'] = $amount;
+                $bank_inputs['bank_account_id'] = $new_bank_account->id;
+                $bank_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
+                //$transacted = $this->bankTransaction->create($bank_inputs);
+
+                /*
+                    The Statement Below Perfoms the following:
+                    1. Creates a Bank Transaction
+                    2. Links Bank Transaction to Ledger Account, since Transaction is of Type "Account"
+                */
+                $transacted = $custom_chart_of_coa->bank_transactions()->create($bank_inputs); //NOTE: "$transacted" is a bank_transaction
+
+                /*
+                    Reconciling Above Bank Transaction is Performed by Statements Below
+                */
+                $reco_inputs['account_balance'] = $amount;
+                $reco_inputs['reconciled_amount'] = $amount;
+                $reco_inputs['statement_balance'] = $amount;
+                $reco_inputs['bank_account_id'] = $new_bank_account->id;
+                $reco_inputs['start_date'] = $as_at;
+                $reco_inputs['end_date'] = $as_at;
+                $reco_inputs['notes'] = $reference_number;
+                $reco_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
+                $bank_reconciliation = $this->bankReconciliations->create($reco_inputs);//Create a Reconciliation
+                //Link Above Reconciliation to a Transaction as Below:
+                $reco_inputs['bank_transaction_id'] = $transacted->id;
+                $reconciled_transaction = $bank_reconciliation->reconciled_transactions()->create($reco_inputs);
+                //Create the new next Bank Reconciliation
+                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,$as_at);
+
+                /*
+                    Record The Final Status "Reconciled" for this Transaction: Below Statements Performs this.
+                */
+                $state_inputs['reconciled_transaction_id'] = $reconciled_transaction->id;
+                $state_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
+                $state_inputs['notes'] = $companyUser->first_name." opened a bank account";
+                //$status = $this->bankReconciledTransactionState->create($state_inputs);
+                $status = $companyUser->reconciled_transaction_state()->create($state_inputs);
+
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
-                    'reference_number'=>$reference_number,'account_number'=>$account_number]);
-                $support_doc = $new_bank_account->double_entry_support_document()->save($support_doc);
+
+                $support_doc = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
+                    'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
+                // $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
+                //     'reference_number'=>$reference_number,'account_number'=>$account_number]);
+                //$support_doc = $new_bank_account->double_entry_support_document()->save($support_doc);
+
+            }else{
+                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,date("Y-m-d H:i:s"));
             }
 
         }catch(\Exception $e){
@@ -237,7 +306,7 @@ class BanksAccountsController extends Controller
     }
 
     public function update(Request $request,$uuid){
-        Log::info($request);
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'account_name'=>'required',
@@ -302,14 +371,20 @@ class BanksAccountsController extends Controller
         $transactions = null;
         $company = $this->practices->find($request->user()->company_id);
         if($request->has('filters')){
-            $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
+            $transactions = $bank_account->bank_transactions()
+                ->where('reference','!=',AccountsCoa::TRANS_TYPE_OPENING_BALANCE)
+                ->orderByDesc('created_at')
+                ->paginate(15);
         }else{ //Get default filter which is the current month
             $default_filters = $this->helper->get_default_filter();
-            $transactions = $bank_account->bank_transactions()->orderByDesc('created_at')->paginate(15);
+            $transactions = $bank_account->bank_transactions()
+                ->where('reference','!=',AccountsCoa::TRANS_TYPE_OPENING_BALANCE)
+                ->orderByDesc('created_at')
+                ->paginate(15);
         }
 
         $paged_data = $this->helper->paginator($transactions);
-        Log::info($transactions);
+        //Log::info($transactions);
         foreach ($transactions as $transaction) {
             array_push($paged_data['data'],$this->accountsBank->transform_bank_transaction($transaction,$company));
         }

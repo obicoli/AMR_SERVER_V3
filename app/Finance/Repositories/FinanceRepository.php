@@ -14,6 +14,9 @@ use App\Finance\Models\Banks\BankReconciliation;
 use App\Finance\Models\Banks\BankTransaction;
 use App\helpers\HelperFunctions;
 use App\Models\Account\Customer\Customer;
+use App\Models\Practice\Practice;
+use App\Repositories\Practice\PracticeRepository;
+use Illuminate\Support\Facades\Log;
 
 class FinanceRepository implements FinanceRepositoryInterface
 {
@@ -22,6 +25,7 @@ class FinanceRepository implements FinanceRepositoryInterface
     protected $helpers;
     protected $customerRepository;
     protected $accountingRepository;
+    protected $companyUser;
 
     public function __construct( Model $model )
     {
@@ -29,6 +33,7 @@ class FinanceRepository implements FinanceRepositoryInterface
         $this->helpers = new HelperFunctions();
         $this->customerRepository = new CustomerRepository(new Customer());
         $this->accountingRepository = new AccountingRepository(new AccountsCoa());
+        $this->companyUser = new PracticeRepository( new Practice() );
     }
 
     public function all(){
@@ -53,6 +58,22 @@ class FinanceRepository implements FinanceRepositoryInterface
 
     public function update(array $arr, $id){
         return $this->model->find($id)->update($arr);
+    }
+
+    public function getOrCreateBankReconciliation(AccountsBank $accountsBank, $start_date, $inputs=[]){
+
+        //This function will be used to get Bank Reconciliation that has not been closed( i.e Whose newly created transactions are attached to)
+        $open_bank_reconciliation = $accountsBank->bank_reconciliations()->where('status',AccountsCoa::RECONCILIATION_NOT_TICKED)->get()->first();
+        if($open_bank_reconciliation){
+            return $open_bank_reconciliation;
+        }else{
+            return $accountsBank->bank_reconciliations()->create([
+                'start_date'=>$start_date,
+                'status'=>AccountsCoa::RECONCILIATION_NOT_TICKED,
+                'notes'=>'Newly created bank transaction will be attached to this reconciliation, until it become closed(reconciled)'
+            ]);
+        }
+
     }
 
     public function transform_bank_account_types(AccountBankAccountType $accountBankAccountType){
@@ -123,19 +144,30 @@ class FinanceRepository implements FinanceRepositoryInterface
     public function transform_bank_transaction( BankTransaction $bankTransaction, Model $company ){
 
         //Get Support Document(Which has account Holder Number)
-        $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
-        $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
-        //User Support Document to Find Account Holder
-        $accountHolder = $supportDoc->account_holders()->get()->first();
-        //Get Supplier,or Customer from AccountHolder
-        $account_owner = $accountHolder->owner()->get()->first();
-        $selection['id'] = $account_owner->uuid;
-        $selection['name'] = $account_owner->display_as;
+        // $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+        // $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
+
+        $selection['id'] = null;
+        $selection['name'] = null;
         $selections = array();
         $customer = null;
         $amount = 0;
-        $account_number = $accountHolder->account_number;
+        $account_number = null;
+        $double_entry = [];
+
         if( $bankTransaction->type == AccountsCoa::AC_TYPE_SUPPLIER ){
+
+            //HERE THE SUPPORT DOCUMENT "transactionable" is Supplier
+            $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+            // $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
+            //User Support Document to Find Account Holder
+            $accountHolder = $supportDoc->account_holders()->get()->first();
+            //Get Supplier,or Customer from AccountHolder
+            $account_owner = $accountHolder->owner()->get()->first();
+            $account_number = $accountHolder->account_number;
+            $selection['id'] = $account_owner->uuid;
+            $selection['name'] = $account_owner->display_as;
+
             $suppliers = $company->vendors()->get();
             foreach($suppliers as $suppl){
                 $temp_suppl['id'] = $suppl->uuid;
@@ -143,12 +175,42 @@ class FinanceRepository implements FinanceRepositoryInterface
                 array_push($selections,$temp_suppl);
             }
             $amount = $bankTransaction->spent;
+
         }else if( $bankTransaction->type == AccountsCoa::AC_TYPE_CUSTOMER ){
+
+            //HERE THE SUPPORT DOCUMENT "transactionable" is Customer
+            //User Support Document to Find Account Holder
+            $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+            $accountHolder = $supportDoc->account_holders()->get()->first();
+            //Get Supplier,or Customer from AccountHolder
+            $account_owner = $accountHolder->owner()->get()->first();
+            $account_number = $accountHolder->account_number;
+            // $selection['id'] = $account_owner->uuid;
+            // $selection['name'] = $account_owner->display_as;
+            //
             $selection['id'] = $account_owner->uuid;
             $selection['name'] = $account_owner->legal_name;
-            $custome = $accountHolder->owner()->get()->first();
-            $customer = $this->customerRepository->transform_customer($custome);
+            //$custome = $accountHolder->owner()->get()->first();
+            $customer = $this->customerRepository->transform_customer($account_owner);
             $amount = $bankTransaction->received;
+
+        }else if( $bankTransaction->type == AccountsCoa::AC_TYPE_ACCOUNT ){
+
+            //HERE THE SUPPORT DOCUMENT "transactionable" is Chart of Accounts
+            //Get Bank Account Transaction Occurred to
+            $bankAccount = $bankTransaction->bank_accounts()->get()->first();
+            //Then Get Bank Account Ledger Account
+            $bankAccountLedger = $bankAccount->ledger_accounts()->get()->first();
+            //This transaction occured on a Chart of Accounts
+            $support_document = $bankAccountLedger->double_entry_support_document()->get()->first();
+            //Get Double Entry
+            $double_entry = $support_document->vouchers()->get()->first();
+            $double_entry['support_document'] = $this->accountingRepository->transform_support_document($support_document);
+            //$double_entry = $this->accountingRepository->transform_support_document();
+            $selection['id'] = $bankAccountLedger->uuid;
+            $selection['name'] = $bankAccountLedger->name;
+            $amount = $double_entry->amount;
+
         }
 
         $vats['id'] = "id";
@@ -179,10 +241,76 @@ class FinanceRepository implements FinanceRepositoryInterface
 
     }
 
-    public function transform_bank_reconciliation( BankReconciliation $bankReconciliation ){
+    public function transform_bank_reconciliation( BankReconciliation $bankReconciliation, $show_reconciled_transaction = false, $filters=[] ){
+
+
+        $bank_account = $bankReconciliation->bank_accounts()->get()->first();
+        $reconciled_transactions = [];
+        /*
+            If user did not Tick a "Display Reconciled Transactions" checkbox, 
+            then by default load Bank Transactions in this "BankReconciliation" only,
+            else, Load Bank Transactions in this bank account based on the current Filters
+        */
+        //$transactions = $bankReconciliation->reconciled_transactions()->get();
+        if($show_reconciled_transaction){
+            $transactions = $bank_account->reconciled_transactions()
+                ->whereRaw("created_at >= ? AND created_at <= ?",$filters)
+                ->get();
+        }else{
+            $transactions = $bankReconciliation->reconciled_transactions()->get();
+        }
+        //Log::info($transactions);
+        $company = $bank_account->owner()->get()->first();
+        foreach( $transactions as $transaction ){ //This are reconciled transactions
+            //Get Reconciled Transaction Status
+            $statuses = $transaction->reconciled_transaction_states()->get();
+            $trans_status = array();
+            foreach ($statuses as $status) {
+                $temp_status['id'] = $status->uuid;
+                $temp_status['status'] = $status->status;
+                $temp_status['notes'] = $status->notes;
+                $temp_status['date'] = $this->helpers->format_mysql_date($status->created_at);
+                $practice_user = $status->responsible()->get()->first();
+                $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+                array_push($trans_status,$temp_status);
+            }
+            //Check the last status
+            //If is Reconciled and user selected show Reconciled Transaction Load it
+            if( (sizeof($trans_status)) && ($trans_status[sizeof($trans_status)-1]['status']==AccountsCoa::RECONCILIATION_RECONCILED) ){
+                if($show_reconciled_transaction==true){
+                    $bank_transaction = $transaction->bank_transactions()->get()->first();
+                    $bank_trans = $this->transform_bank_transaction($bank_transaction,$company);
+                    $bank_trans['reconciled_status'] = $trans_status;
+                    array_push($reconciled_transactions,$bank_trans);
+                }
+            }else{
+                $bank_transaction = $transaction->bank_transactions()->get()->first();
+                $bank_trans = $this->transform_bank_transaction($bank_transaction,$company);
+                $bank_trans['reconciled_status'] = $trans_status;
+                array_push($reconciled_transactions,$bank_trans);
+            }
+
+            // $bank_transaction = $transaction->bank_transactions()->get()->first();
+            // $bank_trans = $this->transform_bank_transaction($bank_transaction,$company);
+            // $bank_trans['reconciled_status'] = $trans_status;
+            // array_push($reconciled_transactions,$bank_trans);
+
+        }
+
         return [
             'id'=>$bankReconciliation->uuid,
+            'account_balance'=>$bankReconciliation->account_balance,
+            'statement_balance'=>$bankReconciliation->statement_balance,
+            'reconciled_amount'=>$bankReconciliation->reconciled_amount,
+            'end_date'=>$bankReconciliation->end_date,
+            'status'=>$bankReconciliation->status,
+            'statement_date'=>$bankReconciliation->statement_date,
+            'start_date'=>$bankReconciliation->start_date,
+            'notes'=>$bankReconciliation->notes,
+            'bank_account'=>$this->transform_bank_accounts($bank_account),
+            'reconciled_transactions'=>$reconciled_transactions,
         ];
+
     }
     
 }

@@ -58,21 +58,8 @@ class SupplierController extends Controller
         $http_resp = $this->response_type['200'];
         $rules = [
             'practice_id' => 'required',
-            // 'vendor_type' => 'required',
-            // 'notes' => 'required',
-            // 'first_name' => 'required',
-            // 'other_name' => 'required',
-            // 'middle_name' => 'required',
-            // 'company' => 'required',
-            // 'postal_code' => 'required',
-            // 'country' => 'required',
             'email' => 'required',
             'mobile' => 'required',
-            // 'fax' => 'required',
-            // 'phone' => 'required',
-            // 'terms' => 'required',
-            // 'bill_rate' => 'required',
-            // 'business_id' => 'required',
         ];
 
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());

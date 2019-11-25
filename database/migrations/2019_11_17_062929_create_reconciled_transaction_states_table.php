@@ -20,8 +20,8 @@ class CreateReconciledTransactionStatesTable extends Migration
             $table->increments('id');
             $table->string('uuid');
             $table->unsignedInteger('reconciled_transaction_id')->index();
-            $table->unsignedInteger('responsible_id')->nullable()->index();
-            $table->string('responsible_type')->nullable()->index();
+            $table->unsignedInteger('responsible_id')->index();
+            $table->string('responsible_type')->index();
             $table->string('status')->default('Not Ticked')->index();
             $table->string('notes')->nullable();
             $table->softDeletes();

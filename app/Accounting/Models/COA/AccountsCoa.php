@@ -71,6 +71,10 @@ class AccountsCoa extends Model
     const TRANS_NAME_JOURNAL_ENTRY = "Journal Entry";
     const TRANS_TYPE_START = "START";
 
+    const RECONCILIATION_NOT_TICKED = "Not Ticked";
+    const RECONCILIATION_TICKED = "Ticked";
+    const RECONCILIATION_RECONCILED = "Reconciled";
+
     const TRANS_ID_LENGTH = 10;
 
     const TRANS_NAME_INVENTORY_OP_STOCK = "Inventory Starting Value";
