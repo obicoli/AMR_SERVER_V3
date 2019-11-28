@@ -39,7 +39,9 @@ class AccountChartAccount extends Model
     public function accounts_natures(){ return $this->belongsTo(AccountsNature::class,'accounts_nature_id'); }
 
     public function credited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited','code'); }
+    public function credited_parent_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited_parent','code'); }
     public function debited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'debited','code'); }
+    public function debited_parent_vouchers(){ return $this->hasMany(AccountsVoucher::class,'debited_parent','code'); }
     public function bank_accounts(){ return $this->hasMany(AccountsBank::class,'ledger_account_id','id'); }
 
     public function double_entry_support_document(){

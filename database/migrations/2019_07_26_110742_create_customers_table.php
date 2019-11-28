@@ -48,6 +48,7 @@ class CreateCustomersTable extends Migration
             $table->float("default_discount",32,2)->default(00.00)->index();
             $table->unsignedInteger('default_price_id')->nullable();
             $table->unsignedInteger('default_vat_id')->nullable();
+            $table->unsignedInteger('ledger_account_id')->nullable()->index();
 
             //$table->unsignedInteger('customer_terms_id')->nullable();
             $table->unsignedInteger('payment_term_id')->nullable();

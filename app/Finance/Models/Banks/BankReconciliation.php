@@ -14,15 +14,18 @@ class BankReconciliation extends Model
     protected $connection = Module::MYSQL_FINANCE_DB_CONN;
     protected $table = "bank_reconciliations";
     protected $fillable = [
-        'statement_balance',
         'account_balance',
+        'statement_balance',
+        'reconciled_amount',
+        'difference',
+        'reconciled_total',
+        'reconciled_previous',
         'notes',
         'start_date',
         'end_date',
-        'bank_account_id',
         'statement_date',
+        'bank_account_id',
         'status',
-        'reconciled_amount'
     ];
     public function bank_accounts(){ return $this->belongsTo(AccountsBank::class,'bank_account_id','id'); }
     public function reconciled_transactions(){ return $this->hasMany(ReconciledTransaction::class,'bank_reconciliation_id','id'); }

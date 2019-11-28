@@ -12,9 +12,11 @@ use App\Finance\Models\Banks\AccountMasterBankBranch;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankReconciliation;
 use App\Finance\Models\Banks\BankTransaction;
+use App\Finance\Models\Banks\ReconciledTransaction;
 use App\helpers\HelperFunctions;
 use App\Models\Account\Customer\Customer;
 use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeUser;
 use App\Repositories\Practice\PracticeRepository;
 use Illuminate\Support\Facades\Log;
 
@@ -60,24 +62,131 @@ class FinanceRepository implements FinanceRepositoryInterface
         return $this->model->find($id)->update($arr);
     }
 
-    public function getOrCreateBankReconciliation(AccountsBank $accountsBank, $start_date, $inputs=[]){
+    public function reviewBankTransaction(BankTransaction $bankTransaction, PracticeUser $practiceUser,$status){
 
+        $bankTransaction->status = $status;
+        $bankTransaction->save();
+        $reconciled_transaction = $bankTransaction->reconciled_transactions()->get()->first();
+        $bank_reconciliation = $reconciled_transaction->bank_reconciliations()->get()->first();
+        //Record the initial Bank Transaction Status and Attach to Company user Performing This as below
+        $state_inputs['reconciled_transaction_id'] = $reconciled_transaction->id;
+        $state_inputs['status'] = $status;
+        $state_inputs['notes'] = $practiceUser->first_name." changed a bank transaction status to ".$status;
+        //$status = $this->bankReconciledTransactionState->create($state_inputs);
+        $status = $practiceUser->reconciled_transaction_state()->create($state_inputs);
+
+    }
+
+    public function reconcile_bank_transaction(PracticeUser $practiceUser, BankReconciliation $bankReconciliation,BankTransaction $bankTransaction=null, AccountsBank $accountsBank, $inputs=[], $status=AccountsCoa::RECONCILIATION_RECONCILED){
+        
+        if( $status && ($status==AccountsCoa::RECONCILIATION_RECONCILED) ){ //Here it is to update the status of already existing transaction
+            //Reconcile all selected Transaction in this bank reconcilation
+            //Close this Bank Reconciliation(Mark it as Reconciled) and update the final values
+            //Create new "Open" Bank Reconcilation
+            //Move any Unreconciled Transaction in the next "Open Bank Reconciliation"
+            $bankAccount = $bankReconciliation->bank_accounts()->get()->first();
+            //$reconciled_transactions = $bankReconciliation->reconciled_transactions()->get();
+            //Log::info($bankReconciliation);
+            // Log::info($inputs);
+            //$new_inputs['account_balance'] = $inputs['balance'];
+            // $new_inputs['statement_balance'] = $inputs['statement_balance'];
+            // $new_inputs['reconciled_amount'] = $inputs['reconciled_amount'];
+            // //$new_inputs['notes'] = $inputs['balance'];
+            // $new_inputs['start_date'] = $inputs['start_date'];
+            // $new_inputs['end_date'] = $inputs['end_date'];
+            // $new_inputs['statement_date'] = $inputs['statement_date'];
+            // $new_inputs['status'] = $status;
+            // $bankReconciliation->update($new_inputs);
+            $bankReconciliation->account_balance = $inputs['balance'];
+            $bankReconciliation->statement_balance = $inputs['statement_balance'];
+            $bankReconciliation->reconciled_amount = $inputs['reconciled_amount'];
+            $bankReconciliation->difference = $inputs['difference'];
+            $bankReconciliation->reconciled_total = $inputs['reconciled_total'];
+            $bankReconciliation->reconciled_previous = $inputs['reconciled_previous'];
+            $bankReconciliation->notes = $inputs['notes'];
+            $bankReconciliation->start_date = $inputs['start_date'];
+            $bankReconciliation->end_date = $inputs['end_date'];
+            $bankReconciliation->statement_date = $inputs['statement_date'];
+            $bankReconciliation->status = $status;
+            $bankReconciliation->save();
+            //Log::info($bankReconciliation);
+            //Next Reconciliation
+            $next_reco_start_date = $this->helpers->get_next_date(1, $inputs['end_date']);
+            $inpu['account_balance'] = $inputs['balance'];
+            $inpu['reconciled_amount'] = 0;
+            $inpu['statement_balance'] = 0;
+            $inpu['bank_account_id'] = $bankAccount->id;
+            $inpu['start_date'] = date("Y-m-d");
+            $inpu['end_date'] = date("Y-m-d");
+            $inpu['reconciled_total'] = 0;
+            $inpu['reconciled_previous'] = 0;
+            $inpu['difference'] = 0;
+            $nex_rec = $this->getOrCreateBankReconciliation($bankAccount,$next_reco_start_date, $inpu);
+            $reconcile = $inputs['reconcile'];
+            //$total_transaction = $reconciled_transactions->count();
+            $reconciled_trans = 0;
+            for ($i=0; $i < sizeof($reconcile); $i++) {
+                $bank_transaction = BankTransaction::all()->where('uuid',$reconcile[$i])->first();
+                //Log::info($bank_transaction);
+                $reconciled_transaction = $bank_transaction->reconciled_transactions()->get()->first();
+                //Log::info($reconciled_transaction);
+                $state_inputs['reconciled_transaction_id'] = $reconciled_transaction->id;
+                $state_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
+                $state_inputs['notes'] = $practiceUser->first_name." reconciled the bank transaction";
+                //$status = $this->bankReconciledTransactionState->create($state_inputs);
+                $statuses = $practiceUser->reconciled_transaction_state()->create($state_inputs);
+                $bank_transaction->status = $status;
+                $bank_transaction->save();
+            }
+            //
+            $reconciled_transactions = $bankReconciliation->reconciled_transactions()->get();
+            // Log::info($reconciled_transactions);
+            foreach( $reconciled_transactions as $reconciled_transaction ){
+                $bank_transa = $reconciled_transaction->bank_transactions()->get()->first();
+                if( $bank_transa->status != $status ){
+                    //Log::info('------------Yes---------');
+                    //Move it to the newly created Bank Reconciliation
+                    $reconciled_transaction->bank_reconciliation_id = $nex_rec->id;
+                    $reconciled_transaction->save();
+                }
+            }
+            return true;
+
+        }else{//Here create new reconciled transaction
+            //Link Bank Account Reconcilation to new Bank Transaction as Below
+            $reconciled_transaction_inputs['bank_transaction_id'] = $bankTransaction->id;
+            $reconciled_transaction_inputs['bank_account_id'] = $accountsBank->id;
+            //
+            $reconciled_transaction = $bankReconciliation->reconciled_transactions()->create($reconciled_transaction_inputs);
+            //Record the initial Bank Transaction Status and Attach to Company user Performing This as below
+            $state_inputs['reconciled_transaction_id'] = $reconciled_transaction->id;
+            $state_inputs['status'] = AccountsCoa::RECONCILIATION_NOT_TICKED;
+            $state_inputs['notes'] = $practiceUser->first_name." reconciled this transaction";
+            //$status = $this->bankReconciledTransactionState->create($state_inputs);
+            $status = $practiceUser->reconciled_transaction_state()->create($state_inputs);
+        }
+        return true;
+    }
+
+    public function getOrCreateBankReconciliation(AccountsBank $accountsBank, $start_date, $inputs=[]){
         //This function will be used to get Bank Reconciliation that has not been closed( i.e Whose newly created transactions are attached to)
         $open_bank_reconciliation = $accountsBank->bank_reconciliations()->where('status',AccountsCoa::RECONCILIATION_NOT_TICKED)->get()->first();
         if($open_bank_reconciliation){
             return $open_bank_reconciliation;
         }else{
-            return $accountsBank->bank_reconciliations()->create([
-                'start_date'=>$start_date,
-                'status'=>AccountsCoa::RECONCILIATION_NOT_TICKED,
-                'notes'=>'Newly created bank transaction will be attached to this reconciliation, until it become closed(reconciled)'
-            ]);
+            return $accountsBank->bank_reconciliations()->create($inputs);
+            // return $accountsBank->bank_reconciliations()->create([
+            //     'start_date'=>$start_date,
+            //     'reconciled_total'=>0,
+            //     'reconciled_previous'=>0,
+            //     'difference'=>0,
+            //     'status'=>AccountsCoa::RECONCILIATION_NOT_TICKED,
+            //     'notes'=>'Newly created bank transaction will be attached to this reconciliation, until it become closed(reconciled)'
+            // ]);
         }
-
     }
 
     public function transform_bank_account_types(AccountBankAccountType $accountBankAccountType){
-
         if(!$accountBankAccountType){
             return null;
         }
@@ -85,7 +194,6 @@ class FinanceRepository implements FinanceRepositoryInterface
             'id'=>$accountBankAccountType->uuid,
             'name'=>$accountBankAccountType->name,
         ];
-
     }
 
     public function transform_bank_accounts(AccountsBank $accountsBank){
@@ -100,12 +208,16 @@ class FinanceRepository implements FinanceRepositoryInterface
         $bank_branch['id'] = $banker_branch->uuid;
         $bank_branch['code'] = $banker_branch->code;
         $bank_branch['name'] = $banker_branch->name;
+
+        $bank_ledger_ac = $accountsBank->ledger_accounts()->get()->first();
+        $balance = $this->accountingRepository->calculate_account_balance($bank_ledger_ac);
+
         return [
             'id'=>$accountsBank->uuid,
             'account_name'=>$accountsBank->account_name,
             'current_date'=>date("Y-m-d").'T12',
             'account_number'=>$accountsBank->account_number,
-            'balance'=>$accountsBank->balance,
+            'balance'=>$balance,
             'status'=>$accountsBank->status,
             'description'=>$accountsBank->description,
             'is_default'=>$accountsBank->is_default,
@@ -182,6 +294,7 @@ class FinanceRepository implements FinanceRepositoryInterface
             //User Support Document to Find Account Holder
             $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
             $accountHolder = $supportDoc->account_holders()->get()->first();
+            $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
             //Get Supplier,or Customer from AccountHolder
             $account_owner = $accountHolder->owner()->get()->first();
             $account_number = $accountHolder->account_number;
@@ -193,6 +306,12 @@ class FinanceRepository implements FinanceRepositoryInterface
             //$custome = $accountHolder->owner()->get()->first();
             $customer = $this->customerRepository->transform_customer($account_owner);
             $amount = $bankTransaction->received;
+            $customers = $company->customers()->get();
+            foreach($customers as $custo){
+                $temp_suppl['id'] = $custo->uuid;
+                $temp_suppl['name'] = $custo->legal_name;
+                array_push($selections,$temp_suppl);
+            }
 
         }else if( $bankTransaction->type == AccountsCoa::AC_TYPE_ACCOUNT ){
 
@@ -302,10 +421,11 @@ class FinanceRepository implements FinanceRepositoryInterface
             'account_balance'=>$bankReconciliation->account_balance,
             'statement_balance'=>$bankReconciliation->statement_balance,
             'reconciled_amount'=>$bankReconciliation->reconciled_amount,
-            'end_date'=>$bankReconciliation->end_date,
+            'reconciled_total'=>$bankReconciliation->reconciled_total,
+            'end_date'=>date("Y-m-d",\strtotime($bankReconciliation->end_date)),
             'status'=>$bankReconciliation->status,
             'statement_date'=>$bankReconciliation->statement_date,
-            'start_date'=>$bankReconciliation->start_date,
+            'start_date'=>date("Y-m-d",\strtotime($bankReconciliation->start_date)),
             'notes'=>$bankReconciliation->notes,
             'bank_account'=>$this->transform_bank_accounts($bank_account),
             'reconciled_transactions'=>$reconciled_transactions,

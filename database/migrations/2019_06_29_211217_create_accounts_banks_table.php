@@ -25,7 +25,7 @@ class CreateAccountsBanksTable extends Migration
             $table->boolean('status')->default(true)->index();
             $table->boolean('is_default')->default(false)->index();
             $table->unsignedInteger('account_type_id')->nullable()->index();
-            $table->unsignedInteger('ledger_account_id')->nullable()->index();
+            $table->unsignedInteger('ledger_account_id')->index()->nullable();
             $table->unsignedInteger('bank_id')->index();
             $table->unsignedInteger('branch_id')->index();
             $table->string('description')->nullable();

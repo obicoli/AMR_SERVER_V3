@@ -13,6 +13,7 @@ use App\Accounting\Models\COA\AccountsType;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Accounting\Models\Voucher\AccountsVoucher;
+use App\Models\Practice\Practice;
 use Illuminate\Database\Eloquent\Model;
 
 interface AccountingRepositoryInterface
@@ -23,6 +24,8 @@ interface AccountingRepositoryInterface
     public function findByCode($code);
     public function findByDefaultCode($code);
     public function create($inputs = []);
+    public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs, Model $account_owner);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
     public function calculate_account_balance(AccountChartAccount $accountChartAccount,$filters=[]);

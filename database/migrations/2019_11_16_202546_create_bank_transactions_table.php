@@ -26,7 +26,7 @@ class CreateBankTransactionsTable extends Migration
             $table->string('type'); //this can be: Account,Customer,Supplier,Transfer,VAT
             $table->unsignedInteger('transactionable_id');//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->string('transactionable_type');//This is Supplier,or Customer,Or Account(Polymorphy)
-            $table->string('transaction_date');
+            $table->timestamp('transaction_date')->default(DB::raw("CURRENT_TIMESTAMP"));
             $table->float('spent',16,2)->default(00.00)->nullable()->index();
             $table->float('received',16,2)->default(00.00)->nullable()->index();
             $table->float('discount',16,2)->default(00.00)->nullable()->index();

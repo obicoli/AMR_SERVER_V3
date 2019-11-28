@@ -2,6 +2,7 @@
 
 namespace App\Finance\Http\Controllers\Api\Banking;
 
+use App\Accounting\Models\COA\AccountsCoa;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankReconciliation;
 use App\Finance\Repositories\FinanceRepository;
@@ -10,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Models\Module\Module;
+use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeUser;
+use App\Repositories\Practice\PracticeRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -20,27 +24,33 @@ class BankReconcileController extends Controller
     protected $http_response;
     protected $helper;
     protected $bankAccounts;
+    protected $companyUsers;
+    protected $practices;
     public function __construct(BankReconciliation $bankReconciliation)
     {
         $this->http_response = Config::get('response.http');
         $this->bankReconciliation = new FinanceRepository($bankReconciliation);
         $this->helper = new HelperFunctions();
         $this->bankAccounts = new FinanceRepository( new AccountsBank() );
+        $this->companyUsers = new PracticeRepository( new PracticeUser() );
+        $this->practices = new PracticeRepository( new Practice() );
     }
     
     public function index(Request $request){}
 
     public function create(Request $request){
-        //Log::info($request);
+        Log::info($request);
         $http_resp = $this->http_response['200'];
         $rules = [
             'bank_account_id'=>'required',
-            'transactions'=>'required',
+            'reconcile'=>'required',
             'balance'=>'required',
             'statement_balance'=>'required',
-            'notes'=>'sometimes|required|max:255',
+            //'notes'=>'sometimes|required|max:255',
             'start_date'=>'required',
             'end_date'=>'required',
+            'bank_reconciliation_id'=>'required',
+            'last_reconciliation_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules,$this->helper->messages());
         if ($validation->fails()){
@@ -51,14 +61,40 @@ class BankReconcileController extends Controller
 
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         try{
-
+            $user = $request->user();
+            $inputs = $request->all();
+            $company = $this->practices->find($user->company_id);
+            $companyUser = $this->companyUsers->findByUserAndCompany($user,$company);
+            $bankAccount = $this->bankAccounts->findByUuid($request->bank_account_id);
+            $bankReconciliation = $this->bankReconciliation->findByUuid($request->bank_reconciliation_id);
+            $previousReconciliation = $this->bankReconciliation->findByUuid($request->last_reconciliation_id);
+            //The starting date must be one day after the date the selected bank account was last reconciled.
+            //Verify the dates
+            //Log::info( $this->helper->calculate_date_range( $previousReconciliation->end_date, $inputs['start_date']) );
+            $one_day = 1 * 24 * 60 * 60;
+            if( $this->helper->compare_two_dates( $inputs['start_date'], $inputs['end_date'] ) ){//Check if Start date is less
+                if( $this->helper->calculate_date_range( $previousReconciliation->end_date, $inputs['start_date']) == $one_day ){
+                    $this->bankReconciliation->reconcile_bank_transaction($companyUser,$bankReconciliation,null,$bankAccount,$inputs,AccountsCoa::RECONCILIATION_RECONCILED);
+                }else{
+                    DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+                    $http_resp = $this->http_response['422'];
+                    $http_resp['errors'] = ['The starting date must be one day after the date the selected bank account was last reconciled.'];
+                    return response()->json($http_resp,422);
+                }
+                //$this->bankReconciliation->reconcile_bank_transaction($companyUser,$bankReconciliation,null,$bankAccount,$inputs,AccountsCoa::RECONCILIATION_RECONCILED);
+            }else{
+                DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ['The starting date must be greater than end date.'];
+                return response()->json($http_resp,422);
+            }
         }catch(\Exception $e){
             Log::info($e);
             DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
             $http_resp = $this->http_response['500'];
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

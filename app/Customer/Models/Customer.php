@@ -2,10 +2,12 @@
 
 namespace App\Customer\Models;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Quote\Estimate;
+use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Module\Module;
 use App\Supplier\Models\PurchaseOrder;
 use App\Traits\UuidTrait;
@@ -26,7 +28,7 @@ class Customer extends Model
         'first_name',
         'other_name',
         'middle_name',
-        'company',
+        //'company',
         'postal_code',
         'country',
         'email',
@@ -56,7 +58,8 @@ class Customer extends Model
         'document_sending_by',
         'default_discount',
         'default_price_id',
-        'default_vat_id'
+        'default_vat_id',
+        'ledger_account_id'
     ];
 
     public function owning(){ return $this->morphTo();} //Branch level
@@ -69,5 +72,10 @@ class Customer extends Model
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function bank_transactions(){
+        return $this->morphMany(BankTransaction::class,'transactionable','transactionable_type','transactionable_id');
+    }
+
+    public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
 
 }

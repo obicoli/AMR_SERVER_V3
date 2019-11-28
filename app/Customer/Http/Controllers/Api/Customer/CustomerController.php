@@ -2,6 +2,7 @@
 
 namespace App\Customer\Http\Controllers\Api\Customer;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsVoucher;
@@ -36,6 +37,7 @@ class CustomerController extends Controller
     protected $accountingVouchers;
     protected $taxations;
     //protected $paymentTerms;
+    protected $accountChartAccount;
 
     public function __construct( Customer $customers )
     {
@@ -49,6 +51,7 @@ class CustomerController extends Controller
         $this->accountingVouchers = new AccountingRepository(new AccountsVoucher());
         $this->countries = new AccountingRepository( new Country() );
         $this->taxations = new ProductReposity( new ProductTaxation() );
+        $this->accountChartAccount = new AccountingRepository(new AccountChartAccount());
         //$this->paymentTerms = new CustomerRepository(new CustomerTerms());
     }
 
@@ -129,6 +132,13 @@ class CustomerController extends Controller
                 $http_resp['errors'] = ['Mobile number already in use'];
                 return response()->json($http_resp,422);
             }
+            if( $company->customers()->where('legal_name',$request->legal_name)->get()->first() ){
+                DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ['Contact name already taken!'];
+                return response()->json($http_resp,422);
+            }
             $inputs['mobile'] = $encoded_mobile;
             if( $company->customers()->where('email',$request->email)->get()->first() ){
                 DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
@@ -176,6 +186,11 @@ class CustomerController extends Controller
                 $new_customer->save();
             }
 
+            $main_parent = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
+            $ac_inputs = $request->all();
+            $ac_inputs['name'] = $request->legal_name;
+            $custom_chart_of_coa = $this->accountChartAccount->create_sub_chart_of_account($company,$main_parent,$ac_inputs,$new_customer);
+
             //Account is done here
             if($request->opening_balance > 0){
                 //Ensure start date is provided
@@ -199,11 +214,11 @@ class CustomerController extends Controller
                     4. AccountHolder: Balance is Increased
                 */
                 //Get Company Account Receivable
-                $account_receivable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
+                //$account_receivable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
                 //Get Company Sales Account
                 $sales_account = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_SALES_CODE)->get()->first();
                 $transaction_id = $this->helper->getToken(10);
-                $debited_ac = $account_receivable->code;
+                $debited_ac = $custom_chart_of_coa->code;
                 $credited_ac = $sales_account->code;
                 $as_of = $request->as_of;
                 $trans_type = AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE;
@@ -211,8 +226,9 @@ class CustomerController extends Controller
                 $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
                 $account_number = $account_holder->account_number;
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_type,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number]);
-                $support_doc = $new_customer->double_entry_support_document()->save($support_doc);
+                $support_doc = $new_customer->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
+                //$support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number]);
+                //$support_doc = $new_customer->double_entry_support_document()->save($support_doc);
             }
             $http_resp['results'] = $this->customers->transform_customer($new_customer);
 

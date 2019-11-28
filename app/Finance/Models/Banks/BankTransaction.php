@@ -25,6 +25,7 @@ class BankTransaction extends Model
         'bank_account_id',
         'discount',
         'comment',
+        'status'
     ];
 
     public function double_entry_support_document(){

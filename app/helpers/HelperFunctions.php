@@ -62,6 +62,11 @@ class HelperFunctions
         ];
     }
 
+    public function format_lunox_date($date_to){
+        $lunox_str = "T00:00:00.000Z";
+        return str_replace($lunox_str, "", $date_to);
+    }
+
     public function get_default_date_range(){
 
         $first = date("j M Y", strtotime("first day of this month"));
@@ -930,6 +935,8 @@ class HelperFunctions
             'initial_stock.required'=> 'Initial stock on hand is required!',
             'bank_account_id.required'=>'Select a Bank or Credit Card',
             'transactions.required'=>'Bank transactions missing!',
+            'bank_reconciliation_id.required'=>'Bank Reconciliation required!',
+            'last_reconciliation_id.required'=>'Previous Bank Reconciliation required!',
         ];
     }
 
@@ -1181,9 +1188,9 @@ class HelperFunctions
     }
 
     public function compare_two_dates($smaller_date, $bigger_date){
-        $sm1 = date("H:i", strtotime($smaller_date));
-        $sm2 = date("H:i", strtotime($bigger_date));
-        if ( strtotime($sm1) > strtotime($sm2) ){
+        $sm1 = date("Y-m-d", strtotime($smaller_date));
+        $sm2 = date("Y-m-d", strtotime($bigger_date));
+        if ( strtotime($sm2) > strtotime($sm1) ){
             return true;
         }
         return false;
@@ -1206,8 +1213,13 @@ class HelperFunctions
         return date('D', strtotime(strftime("%Y-%m-%d", strtotime($duration_to_add))));
     }
 
-    public function get_next_date($duration_to_add){
+    public function get_next_date($duration_to_add, $date=null){
+
+        if($date){
+            return date('Y-m-d', strtotime(strftime($date, strtotime($duration_to_add))));
+        }
         return date('M j Y', strtotime(strftime("%Y-%m-%d", strtotime($duration_to_add))));
+
     }
 
     public function format_mysql_date($date_given, $date_format=null){
@@ -1226,7 +1238,7 @@ class HelperFunctions
     }
 
     public function calculate_date_range($date1,$date2){
-        return strtotime($date1) - strtotime($date2);
+        return  strtotime($date2) - strtotime($date1);
     }
 
     public function add_to_date($startdate,$range_to_add){

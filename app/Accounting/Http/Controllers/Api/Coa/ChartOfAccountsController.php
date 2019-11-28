@@ -73,7 +73,6 @@ class ChartOfAccountsController extends Controller
         foreach ($company_chart_of_accounts as $company_chart_of_account) {
             array_push($paged_data['data'],$this->accountChartAccount->transform_company_chart_of_account($company_chart_of_account));
         }
-        $paged_data['as_at'] = $this->helper->format_mysql_date( date('Y-m-d H:i:s'),'D jS M Y h:i A' );
         $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }

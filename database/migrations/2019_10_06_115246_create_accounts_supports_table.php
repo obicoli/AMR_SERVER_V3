@@ -17,7 +17,7 @@ class CreateAccountsSupportsTable extends Migration
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_supports');
         Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('accounts_supports', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('voucher_id')->nullable()->index();
+            $table->unsignedInteger('voucher_id')->index();
             $table->string('reference_number');
             $table->string('account_number')->index(); //This account number connects Support Doc & Double Entry Ledger to the Real Account Holder e.g Supplier, Customer etc
             $table->string('trans_type');//Transactions  type e.g Deposit

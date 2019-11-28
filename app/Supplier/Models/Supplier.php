@@ -33,11 +33,14 @@ class Supplier extends Model
         'display_as'
     ];
 
-    public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
+    // public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
     public function account_holders(){ return $this->morphMany(AccountsHolder::class, 'owner','owner_type','owner_id'); }
     public function addresses(){ return $this->hasMany(SupplierAddress::class,'supplier_id'); }
     public function currencies(){ return $this->belongsTo(Country::class,'currency_id'); }
     public function supplier_companies(){ return $this->belongsTo(SupplierCompany::class,'company_id'); }
     public function supplier_terms(){ return $this->belongsTo(SupplierTerms::class,'payment_term_id'); }
+    public function bank_transactions(){
+        return $this->morphMany(BankTransaction::class,'transactionable','transactionable_type','transactionable_id');
+    }
     
 }

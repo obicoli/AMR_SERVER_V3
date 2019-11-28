@@ -20,6 +20,7 @@ use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
+use App\Models\Practice\Practice;
 
 class AccountingRepository implements AccountingRepositoryInterface
 {
@@ -51,6 +52,48 @@ class AccountingRepository implements AccountingRepositoryInterface
     }
     public function create($inputs = []){
         return $this->model->create($inputs);
+    }
+
+    public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner){
+
+        //(B). CREATING BANKS LEDGER ACCOUNT: 4 Steps
+        //Step 1. Find Default Bank(Bank balances) account
+        //$default_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
+        //Step 2. Create Bank's Legder Account in AccountsCoa
+        //$inpos['name'] = $request->account_name;
+        //$inpos['code'] = $default_bank_coa->code.'0000'.$facility->id;
+        $inputs['code'] = $account_owner->id.'00'.$accountsCoa->code.'00'.$company->id;
+        $inputs['accounts_type_id'] = $accountsCoa->accounts_type_id;
+        $inputs['sys_default'] = true;
+        $inputs['is_special'] = false;
+        $default_account = AccountsCoa::create($inputs);
+        //Link above account to company
+        $default_account = $company->coas()->save($default_account);
+        //Step 3. Create this company default&special account in debitable,creditable table
+        $inputs2['name'] = $inputs['name'];
+        $inputs2['code'] = $account_owner->id.'00'.$accountsCoa->code.'00'.$company->id;
+        $inputs2['accounts_type_id'] = $accountsCoa->accounts_type_id;
+        $inputs2['default_code'] = $accountsCoa->code;
+        $inputs2['is_special'] = true;
+        $custom_chart_of_coa = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
+        //Link above debitable_creditable_ac account to a company
+        $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
+        //Step 4. Link bank account to Ledger
+        $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($account_owner);
+        return $custom_chart_of_coa;
+
+    }
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs,Model $account_owner){
+        $default_coa = $mainAccount->coas()->get()->first();
+        $inputs['accounts_type_id'] = $mainAccount->accounts_type_id;
+        $inputs['code'] = $this->helpers->getAccountNumber();
+        $inputs['default_coa_id'] = $default_coa->id;
+        $inputs['is_sub_account'] = true;
+        $inputs['default_code'] = $mainAccount->default_code;
+        $custom_chart_of_coa = AccountChartAccount::create($inputs);
+        $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
+        $custom_chart_of_coa->bank_accounts()->save($account_owner);
+        return $custom_chart_of_coa;
     }
 
     public function account_statement(Model $company, AccountsHolder $accountsHolder){
@@ -93,14 +136,19 @@ class AccountingRepository implements AccountingRepositoryInterface
           debits made to the account and subtract any credit postings. This calculation
            represents the current balance in the account.
         */
+
         $debited_total = $accountChartAccount->debited_vouchers()->sum('amount');
         $credited_total = $accountChartAccount->credited_vouchers()->sum('amount');
         $account_type = $accountChartAccount->account_types()->get()->first();
         $account_nature = $account_type->accounts_natures()->get()->first();
+
+        $debit_parent_balance = $accountChartAccount->debited_parent_vouchers()->sum('amount');
+        $credited_parent_total = $accountChartAccount->credited_parent_vouchers()->sum('amount');
+        
         if( $account_nature->name == AccountsCoa::ASSETS || $account_nature->name == AccountsCoa::EXPENSE ){
-            return $debited_total - $credited_total;
+            return ($debited_total+$debit_parent_balance) - ($credited_total+$credited_parent_total);
         }else{
-            return $credited_total - $debited_total;
+            return ($credited_total+$credited_parent_total) + ($debited_total+$debit_parent_balance);
         }
         /*
             Calculate liability, equity and revenue account balances. 
@@ -188,6 +236,8 @@ class AccountingRepository implements AccountingRepositoryInterface
                     ->table('accounts_vouchers')
                     ->where('credited', $accountChartAccount->code)
                     ->orWhere('debited', $accountChartAccount->code)
+                    ->orWhere('credited_parent', $accountChartAccount->code)
+                    ->orWhere('debited_parent', $accountChartAccount->code)
                     ->whereBetween('created_at', [$filters['start'], $filters['end']])
                     ->get();
                 foreach( $double_entries as $double_entry ){
@@ -632,6 +682,8 @@ class AccountingRepository implements AccountingRepositoryInterface
 
                 $double_entry['debited'] = $accountsVoucher->debited;
                 $double_entry['credited'] = $accountsVoucher->credited;
+                $double_entry['debited_parent'] = $accountsVoucher->debited_parent;
+                $double_entry['credited_parent'] = $accountsVoucher->credited_parent;
                 $double_entry['amount'] = $accountsVoucher->amount;
 
                 $debit['id'] = $accountsVoucher->uuid;

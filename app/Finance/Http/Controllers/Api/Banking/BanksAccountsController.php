@@ -72,11 +72,28 @@ class BanksAccountsController extends Controller
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        $accounts = $company->bank_accounts()->get();
-        foreach( $accounts as $account ){
-            array_push($results,$this->accountsBank->transform_bank_accounts($account));
+        $filters = $this->helper->get_default_filter();
+        if($request->has('search_key')){
+            $search_key = $request->search_key;
+            $accounts = $company->bank_accounts()
+                ->where('account_name', 'LIKE', "%{$search_key}%")
+                ->orWhere('account_number', 'LIKE', "%{$search_key}%")
+                ->orWhere('status', 'LIKE', "%{$search_key}%")
+                ->orWhere('balance', 'LIKE', "%{$search_key}%")
+                ->orderByDesc('created_at')
+                ->paginate(50);
+        }else{
+            $accounts = $company->bank_accounts()
+                ->orderByDesc('created_at')
+                ->paginate(50);
         }
-        $http_resp['results'] = $results;
+        
+        $paged_data = $this->helper->paginator($accounts);
+        $paged_data['filters'] = $filters;
+        foreach( $accounts as $account ){
+            array_push($paged_data['data'],$this->accountsBank->transform_bank_accounts($account));
+        }
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
@@ -158,47 +175,23 @@ class BanksAccountsController extends Controller
 
             if($request->is_sub_account){
                 //Get the system COA called "Bank"
-                $system_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
+                //$system_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
                 //Get Company Parent COA called "Bank"
                 //$main_parent = $this->accountChartAccount->findByDefaultCode(AccountsCoa::AC_BANK_CODE); //Will be replaced by "User Specified Main Account"
                 $main_parent = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_BANK_CODE)->get()->first();
-                $default_coa = $main_parent->coas()->get()->first();
-                $default_inputs['accounts_type_id'] = $main_parent->accounts_type_id;
-                $default_inputs['code'] = $this->helper->getAccountNumber();
-                $default_inputs['name'] = $request->account_name;
-                $default_inputs['default_coa_id'] = $default_coa->id;
-                //$default_inputs['code'] = $this->helper->getAccountNumber();
-                $default_inputs['is_sub_account'] = true;
-                $default_inputs['default_code'] = $main_parent->default_code;
-                $custom_chart_of_coa = $this->accountChartAccount->create($default_inputs);
-                $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
-                $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($new_bank_account);
-            }else{ //Create as the Main Account
+                $inputs = $request->all();
+                $inputs['name'] = $request->account_name;
+                $custom_chart_of_coa = $this->accountChartAccount->create_sub_chart_of_account($company,$main_parent,$inputs,$new_bank_account);
+                $new_bank_account->ledger_account_id = $custom_chart_of_coa->id;
+                $new_bank_account->save();
 
-                //(B). CREATING BANKS LEDGER ACCOUNT: 4 Steps
-                //Step 1. Find Default Bank(Bank balances) account
+            }else{ //Create as the Main Account
+                $inputs = $request->all();
+                $inputs['name'] = $request->account_name;
                 $default_bank_coa = $this->accountsCoa->findByCode(AccountsCoa::AC_BANK_CODE);
-                //Step 2. Create Bank's Legder Account in AccountsCoa
-                $inpos['name'] = $request->account_name;
-                //$inpos['code'] = $default_bank_coa->code.'0000'.$facility->id;
-                $inpos['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
-                $inpos['accounts_type_id'] = $default_bank_coa->accounts_type_id;
-                $inpos['sys_default'] = true;
-                $inpos['is_special'] = false;
-                $default_account = $this->accountsCoa->create($inpos);
-                //Link above account to company
-                $default_account = $company->coas()->save($default_account);
-                //Step 3. Create this company default&special account in debitable,creditable table
-                $inputs2['name'] = $request->account_name;
-                $inputs2['code'] = $new_bank_account->id.'00'.$default_bank_coa->code.'00'.$company->id;
-                $inputs2['accounts_type_id'] = $default_bank_coa->accounts_type_id;
-                $inputs2['default_code'] = $default_bank_coa->code;
-                $inputs2['is_special'] = true;
-                $custom_chart_of_coa = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
-                //Link above debitable_creditable_ac account to a company
-                $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
-                //Step 4. Link bank account to Ledger
-                $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($new_bank_account);
+                $custom_chart_of_coa = $this->accountChartAccount->create_chart_of_account($company,$default_bank_coa, $inputs,$new_bank_account);
+                $new_bank_account->ledger_account_id = $custom_chart_of_coa->id;
+                $new_bank_account->save();
             }
 
             //(C) OPENING BALANCES
@@ -223,8 +216,6 @@ class BanksAccountsController extends Controller
                 $transaction_id = $this->helper->getToken(10);
                 $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
 
-
-                
                 $debited_ac = $custom_chart_of_coa->code;
                 $credited_ac = $custom_op_bal_equity->code;
                 $amount = $opening_balance;
@@ -263,26 +254,34 @@ class BanksAccountsController extends Controller
                 $reco_inputs['bank_account_id'] = $new_bank_account->id;
                 $reco_inputs['start_date'] = $as_at;
                 $reco_inputs['end_date'] = $as_at;
+                $reco_inputs['reconciled_total'] = $amount;
+                $reco_inputs['reconciled_previous'] = 0;
+                $reco_inputs['difference'] = 0;
                 $reco_inputs['notes'] = $reference_number;
                 $reco_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
-                $bank_reconciliation = $this->bankReconciliations->create($reco_inputs);//Create a Reconciliation
+                //Create a Bank Account Reconciliation
+                $bank_account_reconciliation = $this->bankReconciliations->create($reco_inputs);//Create a Reconciliation
                 //Link Above Reconciliation to a Transaction as Below:
                 $reco_inputs['bank_transaction_id'] = $transacted->id;
-                $reconciled_transaction = $bank_reconciliation->reconciled_transactions()->create($reco_inputs);
+                $reconciled_transaction = $bank_account_reconciliation->reconciled_transactions()->create($reco_inputs);
                 //Create the new next Bank Reconciliation
-                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,$as_at);
+                $inpo['reconciled_total'] = $amount;
+                $inpo['start_date'] = $as_at;
+                $inpo['reconciled_previous'] = 0;
+                $inpo['difference'] = 0;
+                $inpo['status'] = AccountsCoa::RECONCILIATION_NOT_TICKED;
+                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,$as_at,$inpo);
 
                 /*
-                    Record The Final Status "Reconciled" for this Transaction: Below Statements Performs this.
+                    Record The Final Status "Reconciled" for this Bank Transaction: Below Statements Performs this.
                 */
                 $state_inputs['reconciled_transaction_id'] = $reconciled_transaction->id;
                 $state_inputs['status'] = AccountsCoa::RECONCILIATION_RECONCILED;
                 $state_inputs['notes'] = $companyUser->first_name." opened a bank account";
                 //$status = $this->bankReconciledTransactionState->create($state_inputs);
                 $status = $companyUser->reconciled_transaction_state()->create($state_inputs);
-
+                //
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-
                 $support_doc = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
                     'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
                 // $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
@@ -290,7 +289,12 @@ class BanksAccountsController extends Controller
                 //$support_doc = $new_bank_account->double_entry_support_document()->save($support_doc);
 
             }else{
-                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,date("Y-m-d H:i:s"));
+                $inpo['reconciled_total'] = 0;
+                $inpo['start_date'] = date("Y-m-d H:i:s");
+                $inpo['reconciled_previous'] = 0;
+                $inpo['difference'] = 0;
+                $inpo['status'] = AccountsCoa::RECONCILIATION_NOT_TICKED;
+                $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,date("Y-m-d H:i:s"), $inpo);
             }
 
         }catch(\Exception $e){

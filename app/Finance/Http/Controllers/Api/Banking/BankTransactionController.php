@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Accounting\Repositories\AccountingRepository;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
+use App\Models\Account\Account;
+use App\Models\Practice\PracticeUser;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
 
@@ -34,6 +36,7 @@ class BankTransactionController extends Controller
     protected $accountingVouchers;
     protected $suppliers;
     protected $customers;
+    protected $companyUsers;
 
     public function __construct(BankTransaction $bankTransaction)
     {
@@ -46,18 +49,42 @@ class BankTransactionController extends Controller
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->customers = new CustomerRepository( new Customer() );
+        $this->companyUsers = new PracticeRepository(new PracticeUser());
     }
 
-    public function index(Request $request){}
+    public function index(Request $request){
+
+        Log::info($request);
+        $company = $this->practices->find($request->user()->company_id);
+        $filters = $this->helper->get_default_filter();
+        if($request->has('bank_account_id')){
+            $bankAccount = $this->bankAccounts->findByUuid($request->bank_account_id);
+            if($request->has('status')){
+                $status = $request->status;
+                $bank_transactions = $bankAccount->bank_transactions()
+                    ->where('status',$status)
+                    ->whereRaw("transaction_date >= ? AND transaction_date <= ?",$filters)
+                    ->orderByDesc('created_at')
+                    ->paginate(15);
+            }
+        }
+        $paged_data = $this->helper->paginator($bank_transactions);
+        $paged_data['filters'] = $filters;
+        foreach($bank_transactions as $bank_transaction){
+            array_push($paged_data['data'], $this->bankAccounts->transform_bank_transaction($bank_transaction,$company));
+        }
+        $http_resp = $this->http_response['200'];
+        $http_resp['results'] = $paged_data;
+        return response()->json($http_resp);
+
+    }
 
     public function create(Request $request){
+
+
         //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rules = [
-            'statement_balance'=>'required',
-            'account_balance'=>'required',
-            'start_date'=>'required',
-            'end_date'=>'required',
             'bank_account_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules,$this->helper->messages());
@@ -69,50 +96,71 @@ class BankTransactionController extends Controller
 
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+
         try{
 
             $company = $this->practices->find($request->user()->company_id);
-            $bankAccount = $this->bankAccounts->findByUuid($request->bank_account);
+            $bankAccount = $this->bankAccounts->findByUuid($request->bank_account_id);
             $bank_ledger_account = $bankAccount->ledger_accounts()->get()->first();
+            $user = $request->user();
+            $companyUser = $this->companyUsers->findByUserAndCompany($user,$company);
             
-            $new_transaction_array = array();
-            $exist_transaction_array = array();
+            // $new_transaction_array = array();
+            // $exist_transaction_array = array();
+
 
             if($request->has('action_taken')){
+                //---------------------------------------------------------------------------------------
                 switch($request->action_taken){
                     case "Save":
                         $missing = 0;
                         if( is_array($request->transactions) ){
                             $transactions = $request->transactions;
                             for ($i=0; $i < sizeof($transactions); $i++) {
+
+
+
+
                                 $tranction = $transactions[$i];
+                                $transaction_id_ = $tranction['id'];
+                                $type_ = $tranction['type'];
+                                $transaction_date_ = $tranction['transaction_date'];
+                                $description_ = $tranction['description'];
+                                $selection_ = $tranction['selection'];
+                                $reference_ = $tranction['reference'];
+                                $payee_ = $tranction['payee'];
+                                $received_ = $tranction['received'];
+                                $spent_ = $tranction['spent'];
+                                $vat_ = $tranction['vat'];
+                                //$rec_ = $tranction['rec'];
+                                $amount = 0;
+                                $trans_date = $this->helper->format_lunox_date($tranction['transaction_date']);
                                 //Ensure every field is provided in transaction
-                                if( ($tranction['id']=='') && ($tranction['transaction_date']=='' || $tranction['payee']=='' || $tranction['description']=='' || $tranction['type']=='' || $tranction['selection']=='' || $tranction['reference']=='') ){
+                                if( ($transaction_id_=='') && ($transaction_date_=='' || $description_=='' || $type_=='' || $selection_=='' || $reference_=='' || $payee_=='') ){
                                     $transactions[$i]['error'] = true;
-                                    $transactions[$i]['error_msg'] = "This row!";
-                                    $transactions[$i]['is_date'] = true;
-                                    //Rollback & Report
+                                    $transactions[$i]['error_msg'] = "Missing!";
+                                    $transactions[$i]['is_date'] = $this->validate_array_inputs($transaction_date_);
+                                    $transactions[$i]['is_desc'] = $this->validate_array_inputs($description_);
+                                    $transactions[$i]['is_type'] = $this->validate_array_inputs($type_);
+                                    $transactions[$i]['is_select'] = $this->validate_array_inputs($selection_);
+                                    //$transactions[$i]['is_ref'] = $this->validate_array_inputs($reference_);
+                                    $transactions[$i]['is_payee'] = $this->validate_array_inputs($payee_);
                                     DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
                                     DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
                                     $http_resp = $this->http_response['422'];
-                                    $http_resp['errors'] = $transactions;
+                                    $http_resp['errors'] = ['Missing payload'];
+                                    $http_resp['err_array'] = $transactions;
                                     return response()->json($http_resp,422);
                                 }else{
                                     //Transaction inputs provided so process it
                                     //Check if Transaction "id" is not null and do basic updates
                                     //If Transaction has "id" is NULL
-                                    if( $transactions[$i]['id'] == null ){ //Create New Transaction
+                                    if( $transaction_id_ == null ){ //Create New Transaction
 
-                                        // $inputs['transaction_date'] = $transactions[$i]['transaction_date'];
-                                        // $inputs['reference'] = $transactions[$i]['reference'];
-                                        // $inputs['bank_account_id'] = $bankAccount->id;
-                                        // $inputs['payee'] = $transactions[$i]['payee'];
-                                        // $inputs['description'] = $transactions[$i]['description'];
-                                        // $inputs['type'] = $transactions[$i]['type'];
-                                        // $inputs['discount'] = $transactions[$i]['discount'];
-                                        // $inputs['comment'] = $transactions[$i]['comment'];
-                                        $transactions[$i]['bank_account_id'] = $bankAccount->id;
-                                        $transacted = $this->bankTransaction->create($transactions[$i]);
+                                        // $transactions[$i]['bank_account_id'] = $bankAccount->id;
+                                        // $transactions[$i]['transaction_date'] = $this->helper->format_lunox_date($transactions[$i]['transaction_date']);
+                                        // $transacted = $this->bankTransaction->create($transactions[$i]);
+
                                         //Create New Transaction
                                         //Create Double Entry Ledger
                                         //Link The Ledger to Account Holders
@@ -135,6 +183,10 @@ class BankTransactionController extends Controller
                                         
                                         switch( $type_ ){
 
+
+
+
+
                                             case AccountsCoa::AC_TYPE_SUPPLIER:
                                                 //Here "spent" parameter must be provided
                                                 if($spent == null){
@@ -149,6 +201,12 @@ class BankTransactionController extends Controller
                                                     $http_resp['errors'] = $transactions;
                                                     return response()->json($http_resp,422);
                                                 }
+                                                $supplier = $this->suppliers->findByUuid($transactions[$i]['selection']['id']);
+                                                $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
+                                                $transactions[$i]['bank_account_id'] = $bankAccount->id;
+                                                $transactions[$i]['transaction_date'] = $trans_date;
+                                                $transacted = $supplier->bank_transactions()->create($transactions[$i]);
+
                                                 $transacted->spent = $spent;
                                                 $transacted->save();
                                                 $amount = $transactions[$i]['spent'];
@@ -160,7 +218,7 @@ class BankTransactionController extends Controller
                                                 //ASSET and EXPENSE accounts have normal debit balances. Debited when Increase, Credited when Decrease
                                                 //Liability, equity and revenue have normal Credit Balance: i.e Credited when Increase, Debited when Descrease
                                                 //Get Supplier by uuid
-                                                $supplier = $this->suppliers->findByUuid($transactions[$i]['selection']['id']);
+                                                
                                                 //Get Supplier Account from AccountHolders and Reduce the balance since is being 
                                                 $supplier_account = $supplier->account_holders()->get()->first();
                                                 $account_holder_number = $supplier_account->account_number;
@@ -171,15 +229,16 @@ class BankTransactionController extends Controller
                                                 $bankAccount->save();
                                                 //Link Supplier to Transaction via Transactionable:
                                                 $transacted = $supplier->bank_transactions()->save($transacted);
-                                                $company_accounts_payable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
+                                                //$company_accounts_payable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
                                                 $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
-                                                $debited_ac = $company_accounts_payable->code;
+                                                $debited_ac = $supplier_ledger_ac->code;
                                                 $credited_ac = $bank_ledger_account->code;
                                                 //
                                                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                                                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number]);
+                                                $support_doc = $transacted->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'voucher_id'=>$double_entry->id]);
                                                 //Link Support Document to Transactionable: this can be "Bank Transaction", "Invoice","Bill" etc
-                                                $support_doc = $transacted->double_entry_support_document()->save($support_doc);
+                                                //$support_doc = $transacted->double_entry_support_document()->save($support_doc);
+
                                                 //Also Perform Double Entry for Discount we Received
                                                 if( $discount ){
                                                     //Get Companies Discount/Received or Refund
@@ -188,21 +247,31 @@ class BankTransactionController extends Controller
                                                     $trans_name = $comment;
                                                     $transaction_id = $this->helper->getToken(10,'DISC');
                                                     $company_discount_received_account = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE)->get()->first();
-                                                    $debited_ac = $company_accounts_payable->code;
+                                                    $debited_ac = $supplier_ledger_ac->code;
                                                     $credited_ac = $company_discount_received_account->code;
                                                     $double_entry2 = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$discount,$as_at,$trans_name,$transaction_id);
-                                                    $support_doc2 = $double_entry2->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number]);
-                                                    $support_doc2 = $transacted->double_entry_support_document()->save($support_doc2);
+                                                    $support_doc2 = $transacted->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
+                                                    //$support_doc2 = $transacted->double_entry_support_document()->save($support_doc2);
                                                     $supplier_account->balance = $supplier_account->balance - $discount;
                                                     $supplier_account->save();
                                                     //Bank Account Balance Update
                                                     $bankAccount->balance = $bankAccount->balance - $discount;
                                                     $bankAccount->save();
                                                 }
+                                                //Attach this bank transaction to an Open Bank Reconciliation as Below:
+                                                //1. Get available Reconciliation by line below
+                                                $bank_account_reconciliation = $this->bankTransaction->getOrCreateBankReconciliation($bankAccount,$trans_date,null);
+                                                $this->bankTransaction->reconcile_bank_transaction($companyUser,$bank_account_reconciliation,$transacted,$bankAccount,null);
                                             break;
+
+
+
+
+
                                             case AccountsCoa::AC_TYPE_CUSTOMER: //We Receive from the customer payment
                                                 if($transactions[$i]['received'] == null){
                                                     //Create message to display to user interface
+                                                    //
                                                     $transactions[$i]['error'] = true;
                                                     $transactions[$i]['error_msg'] = "Amount received!";
                                                     $transactions[$i]['is_received'] = true;
@@ -213,6 +282,12 @@ class BankTransactionController extends Controller
                                                     $http_resp['errors'] = $transactions;
                                                     return response()->json($http_resp,422);
                                                 }
+
+                                                $customer = $this->customers->findByUuid($transactions[$i]['selection']['id']);
+                                                $transactions[$i]['bank_account_id'] = $bankAccount->id;
+                                                $transactions[$i]['transaction_date'] = $this->helper->format_lunox_date($transactions[$i]['transaction_date']);
+                                                // $transacted = $this->bankTransaction->create($transactions[$i]);
+                                                $transacted = $customer->bank_transactions()->create($transactions[$i]);
                                                 //
                                                 $amount = $transactions[$i]['received'];
                                                 if( $discount ){
@@ -231,19 +306,17 @@ class BankTransactionController extends Controller
                                                 //Bank Account Balance Update
                                                 $bankAccount->balance = $bankAccount->balance - $amount;
                                                 $bankAccount->save();
-
-                                                
-                                                Log::info("============");
                                                 $transacted->received = $amount;
                                                 $transacted->save();
-                                                $transaction_id = $this->helper->getToken(10,'PAI');
+                                                $transaction_id = $this->helper->getToken(10,'PA');
                                                 
                                                 $trans_type = AccountsCoa::TRANS_TYPE_CUSTOMER_RECEIPT;
                                                 $transaction_id = $this->helper->getToken(10,'REC');
-                                                $company_accounts_receivable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
+                                                //$company_accounts_receivable = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
                                                 //$company_discount_given_account = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE)->get()->first();
+                                                $customer_ledger_ac = $customer->ledger_accounts()->get()->first();
                                                 $debited_ac = $bank_ledger_account->code;
-                                                $credited_ac = $company_accounts_receivable->code;
+                                                $credited_ac = $customer_ledger_ac->code;
                                                 /*
                                                     TR 1: Credit A/R & Dedit "This Bank Ledger Account" by $amount
                                                     TR 2: Debit "Discount" & Credit A/R
@@ -251,11 +324,13 @@ class BankTransactionController extends Controller
 
                                                 //Transaction 
                                                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                                                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
+                                                $support_doc = $transacted->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
                                                     'account_number'=>$account_holder_number,
-                                                    'reference_number'=>$reference_number]);
+                                                    'reference_number'=>$reference_number,
+                                                    'voucher_id'=>$double_entry->id
+                                                    ]);
                                                 //Link Support Document to Transactionable: this can be "Bank Transaction", "Invoice","Bill" etc
-                                                $support_doc = $transacted->double_entry_support_document()->save($support_doc);
+                                                //$support_doc = $transacted->double_entry_support_document()->save($support_doc);
 
 
                                                 //Transaction 2: If discount was allowed
@@ -266,9 +341,10 @@ class BankTransactionController extends Controller
                                                     $transaction_id = $this->helper->getToken(10,'DISC');
                                                     $company_discount_given_account = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE)->get()->first();
                                                     $debited_ac = $company_discount_given_account->code;
-                                                    $credited_ac = $company_accounts_receivable->code;
+                                                    $credited_ac = $customer_ledger_ac->code;
                                                     $double_entry2 = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$discount,$as_at,$trans_name,$transaction_id);
-                                                    $support_doc2 = $double_entry2->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number]);
+
+                                                    $support_doc2 = $transacted->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
                                                     $support_doc2 = $transacted->double_entry_support_document()->save($support_doc2);
                                                     $customer_account->balance = $customer_account->balance - $discount;
                                                     $customer_account->save();
@@ -276,15 +352,23 @@ class BankTransactionController extends Controller
                                                     $bankAccount->balance = $bankAccount->balance - $discount;
                                                     $bankAccount->save();
                                                 }
-
+                                                //Attach this bank transaction to an Open Bank Reconciliation as Below:
+                                                //1. Get available Reconciliation by line below
+                                                $bank_account_reconciliation = $this->bankTransaction->getOrCreateBankReconciliation($bankAccount,$trans_date,null);
+                                                $this->bankTransaction->reconcile_bank_transaction($companyUser,$bank_account_reconciliation,$transacted,$bankAccount,null,null);
                                             break;
+
+
+
+
+                                            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                         }
 
                                     }else{ //Get Transaction and do basic update
                                         //SPECIAL EDITS: amount,type,selection,status(reconciled)
                                         $transacted = $this->bankTransaction->findByUuid($transactions[$i]['id']);
                                         $inputs = [];
-                                        $inputs['transaction_date'] = $transactions[$i]['transaction_date'];
+                                        $inputs['transaction_date'] = $trans_date;
                                         $inputs['reference'] = $transactions[$i]['reference'];
                                         $inputs['payee'] = $transactions[$i]['payee'];
                                         $inputs['description'] = $transactions[$i]['description'];
@@ -293,6 +377,43 @@ class BankTransactionController extends Controller
                                 }
                             }
                         }
+                    break;
+                    //---------------------------------------------------------------------------------------
+                    case AccountsCoa::RECONCILIATION_TICKED: //User wants to mark the selected Transactions as Reviewed
+
+                        $rules = [
+                            'bank_account_id'=>'required',
+                            'selected_transactions'=>'required',
+                        ];
+                        $validation = Validator::make($request->all(),$rules,$this->helper->messages());
+                        if ($validation->fails()){
+                            $http_resp = $this->http_response['422'];
+                            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                            return response()->json($http_resp,422);
+                        }
+
+                        if( is_array($request->selected_transactions) ){
+                            //1. Get available Reconciliation by line below
+                            //$bank_account_reconciliation = $this->bankTransaction->getOrCreateBankReconciliation($bankAccount,$trans_date,null);
+                            //$this->bankTransaction->reconcile_bank_transaction($companyUser,$bank_account_reconciliation,$transacted,$bankAccount,null);
+                            $selected_transactions = $request->selected_transactions;
+                            for ($i=0; $i < \sizeof($selected_transactions); $i++) {
+                                //Get Bank Transaction
+                                $bank_transaction = $this->bankTransaction->findByUuid($selected_transactions[$i]);
+                                //Log::info($bank_transaction);
+                                if($bank_transaction){
+                                    //Log::info($selected_transactions);
+                                    //Log::info($bank_transaction);
+                                    $this->bankTransaction->reviewBankTransaction($bank_transaction,$companyUser,AccountsCoa::RECONCILIATION_TICKED);
+                                }
+                                // Log::info($bank_transaction);
+                                // //Get Reconciled Transaction
+                                // $reconciled_transaction = $bank_transaction->reconciled_transactions()->get()->first();
+                                // //Get Bank Reconciliation
+                                // $bank_reconciliation = $reconciled_transaction->bank_reconciliations()->get()->first();
+                            }
+                        }
+
                     break;
                 }
             }
@@ -320,5 +441,13 @@ class BankTransactionController extends Controller
     public function update(Request $request,$uuid){}
 
     public function destroy($uuid){}
+
+    public function validate_array_inputs($input){
+        if($input == ""){
+            return true;
+        }else{
+            return false;
+        }
+    }
 
 }
