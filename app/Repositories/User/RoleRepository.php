@@ -33,8 +33,6 @@ class RoleRepository implements RoleRepositoryInterface
             ->where('slug','!=','superadmin')
             ->where('slug','!=','practice')
             ->toArray();
-
-        // TODO: Implement getPermissions() method
     }
 
     public function formatPermissions()
@@ -63,20 +61,8 @@ class RoleRepository implements RoleRepositoryInterface
                 $temp_arr1['sub_category_data'] = $looped_data;
                 array_push($temp_arr, $temp_arr1);
             }
-
-//            Log::info($permission_categorys);
-//            foreach ($permission as $perms){
-//                $temp_arr1['id'] = $perms->id;
-//                $temp_arr1['name'] = $perms->name;
-//                $temp_arr1['slug'] = $perms->slug;
-//                $temp_arr1['description'] = $perms->description;
-//                $temp_arr1['description_1'] = $perms->description_1;
-//                array_push($temp_arr, $temp_arr1);
-//            }
-
             $temp_data['data'] = $temp_arr;
             array_push($res,$temp_data);
-
         }
         return $res;
     }

@@ -2,6 +2,9 @@
 
 namespace App\Customer\Repositories;
 
+use App\Accounting\Models\COA\AccountChartAccount;
+use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Repositories\AccountingRepository;
 use Illuminate\Database\Eloquent\Model;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Customer;
@@ -15,6 +18,7 @@ use App\Models\Product\ProductTaxation;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CustomerRepository implements CustomerRepositoryInterface{
 
@@ -22,6 +26,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
     protected $helpers;
     protected $companyUser;
     protected $productItem;
+    //protected $accountings;
 
     public function __construct(Model $model)
     {
@@ -29,6 +34,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
         $this->helpers = new HelperFunctions();
         $this->companyUser = new PracticeRepository( new Practice() );
         $this->productItem = new ProductReposity( new ProductItem() );
+        //$this->accountings = new AccountingRepository( new AccountChartAccount() );
     }
 
     public function all(){}
@@ -203,5 +209,57 @@ class CustomerRepository implements CustomerRepositoryInterface{
         $company->customer_terms()->create(['name'=>'Due end of the month','notes'=>'full payment is expected end month']);
         $company->customer_terms()->create(['name'=>'Due end of next month','notes'=>'full payment is expected end of next month']);
     }
+
+    // public function create_reports(Practice $practice, $report_type, Customer $customer=null, $filters=[] ){
+
+    //     switch ($report_type) {
+    //         case 'Top Customers by Outstanding Balance':
+    //             //Get Company Default A/R
+    //             $account_receivable = $practice->chart_of_accounts()->where('default_code',AccountsCoa::AC_RECEIVABLE_CODE)->get()->first();
+    //             //Joins
+    //             $series = array();
+    //             $labels = array();
+    //             $chartOptions = array();
+
+    //             $customer_ledgers = DB::connection(Module::MYSQL_DB_CONN)->table('practices')
+    //                 ->join( env('DB_ACCOUNTS_DATABASE', 'amref_accounting').'.account_chart_accounts','practices.id','=','account_chart_accounts.owning_id' )
+    //                 ->join( env('DB_ACCOUNTS_DATABASE', 'amref_accounting').'.accounts_vouchers','account_chart_accounts.code','=','accounts_vouchers.debited' )
+    //                 //->select([DB::RAW('DISTINCT(account_chart_accounts.code)')])
+    //                 //->select(DB::raw('SUM(accounts_vouchers.amount) AS total_debited'))
+    //                 ->select('account_chart_accounts.*')
+    //                 ->where('practices.id',$practice->id)
+    //                 ->where('account_chart_accounts.is_sub_account',true)
+    //                 ->where('account_chart_accounts.accounts_type_id',$account_receivable->accounts_type_id)
+    //                 ->get();
+
+    //             // foreach( $customer_ledgers as $customer_ledger ){
+
+    //             //     //$chart_ac_model = $this->accountings->find($customer_ledger->id);
+    //             //     Log::info($customer_ledger);
+
+    //             // }
+
+    //                 //,DB::raw('SUM(accounts_vouchers.amount) AS total_debited')
+
+    //             // $credited_balances = DB::connection(Module::MYSQL_DB_CONN)->table('practices')
+    //             //     ->join( env('DB_ACCOUNTS_DATABASE', 'amref_accounting').'.account_chart_accounts','practices.id','=','account_chart_accounts.owning_id' )
+    //             //     ->join( env('DB_ACCOUNTS_DATABASE', 'amref_accounting').'.accounts_vouchers','account_chart_accounts.code','=','accounts_vouchers.credited' )
+    //             //     ->select('account_chart_accounts.*',DB::raw('SUM(accounts_vouchers.amount) AS total_credited'))
+    //             //     ->where('practices.id',$practice->id)
+    //             //     ->where('account_chart_accounts.is_sub_account',true)
+    //             //     ->where('account_chart_accounts.accounts_type_id',$account_receivable->accounts_type_id)
+    //             //     ->orderByDesc('total_credited')
+    //             //     ->get();
+
+    //                 //Log::info($customer_ledgers);
+    //                 //Log::info($credited_balances->count());
+
+    //             break;
+            
+    //         default:
+    //             # code...
+    //             break;
+    //     }
+    // }
 
 }

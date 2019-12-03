@@ -60,6 +60,7 @@ use App\Models\NotificationCenter\Inventory\InventoryAlert;
 use App\Models\Product\Inventory\ProductRequistion;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailbox;
 use App\Models\NotificationCenter\Inventory\NotificationInventorySms;
+use App\Models\Practice\Settings\DashboardSetting;
 use App\Models\Product\Inventory\Inward\ProductStockInward;
 use App\Models\Product\Inventory\ProductStockTaking;
 use App\Models\Product\Purchase\GrnNote;
@@ -80,8 +81,6 @@ class Practice extends Model implements AccountableInterface
     const AC_VERIFICATION = "EMAIL VERIFICATION";
     const NAME_SPACE = "App\Models\Practice\Practice";
     const AC_NAME = "Practice";
-
-    //protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
 
     protected $table = 'practices';
 
@@ -119,11 +118,18 @@ class Practice extends Model implements AccountableInterface
         'batch_tracking',
     ];
 
+    //Settings
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }
+    public function dashboard_widgets(){ return $this->belongsToMany(DashboardSetting::class,'company_widgets','practice_id','widget_id'); }
 
     //Supplier Module Integration
     public function vendors(){ return $this->morphMany(Supplier::class,'owning','owning_type','owning_id'); }
     public function supplier_bills(){ return $this->morphMany(SupplierBill::class,'owning','owning_type','owning_id'); }
+    public function purchase_order_shipping(){ return $this->morphMany(PurchaseOrder::class,'shipable','shipable_type','shipable_id'); }
+    public function purchase_orders(){ return $this->morphMany(PurchaseOrder::class,'owning','owning_type','owning_id'); }
+    public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
+    //Supplier Integration ends here
+
     //Accounting Integration=================================================
     public function coas(){ return $this->morphMany(AccountsCoa::class,'owning','owning_type','owning_id'); }
     public function accounts_payment_methods(){ return $this->morphMany(AccountPaymentType::class,'owning','owning_type','owning_id'); }
@@ -139,11 +145,7 @@ class Practice extends Model implements AccountableInterface
     public function customers(){ return $this->morphMany(Customer::class,'owning','owning_type','owning_id'); }
     //Customer Integration===========Ends=============
 
-    //Supplier Integration starts here
-    public function purchase_order_shipping(){ return $this->morphMany(PurchaseOrder::class,'shipable','shipable_type','shipable_id'); }
-    public function purchase_orders(){ return $this->morphMany(PurchaseOrder::class,'owning','owning_type','owning_id'); }
-    public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
-    //Supplier Integration ends here
+
 
     //Banking Integration Starts here
     public function bank_transactions(){ return $this->morphMany(BankTransaction::class,'owning','owning_type','owning_id'); }

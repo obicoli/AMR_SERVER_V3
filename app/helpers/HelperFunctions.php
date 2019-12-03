@@ -875,7 +875,7 @@ class HelperFunctions
                 'to' => $data->lastItem()
             ],
             'data' => [],
-            'filters' => [],
+            'filters' => $this->get_default_filter(),
         ];
     }
 

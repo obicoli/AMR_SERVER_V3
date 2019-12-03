@@ -147,10 +147,11 @@ class CustomerController extends Controller
                 $http_resp['errors'] = ['Email address already in use!'];
                 return response()->json($http_resp,422);
             }
-            if($request->vat_id){
-                $tax = $this->taxations->findByUuid($request->vat_id);
-                $inputs['default_vat_id'] = $tax->id;
-            }
+
+            // if($request->vat_id){
+            //     $tax = $this->taxations->findByUuid($request->vat_id);
+            //     $inputs['default_vat_id'] = $tax->id;
+            // }
 
             if($request->vat_id){
                 $tax = $this->taxations->findByUuid($request->vat_id);
@@ -225,6 +226,7 @@ class CustomerController extends Controller
                 $trans_name = $request->display_as." ".$trans_type;
                 $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
                 $account_number = $account_holder->account_number;
+                
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_type,$transaction_id);
                 $support_doc = $new_customer->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
                 //$support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number]);
@@ -370,9 +372,11 @@ class CustomerController extends Controller
             ->where('account_type',Account::AC_CUSTOMERS)
             ->orderByDesc('balance')
             ->paginate(10);
+
         $series = array();
         $labels = array();
         $chartOptions = array();
+        
         foreach($top_balance_customers as $top_balance_customer){
             $balance = $top_balance_customer->balance;
             array_push($series,$balance);

@@ -5,6 +5,7 @@ namespace App\Customer\Repositories;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Quote\Estimate;
+use App\Models\Practice\Practice;
 use Illuminate\Database\Eloquent\Model;
 
 interface CustomerRepositoryInterface{
@@ -17,4 +18,5 @@ interface CustomerRepositoryInterface{
     public function transform_term(CustomerTerms $customerTerms);
     public function transform_estimate(Estimate $estimate);
     public function company_terms_initialization(Model $company);
+    //public function create_reports(Practice $practice, $report_type, Customer $customer=null, $filters=[]);
 }

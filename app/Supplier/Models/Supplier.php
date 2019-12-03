@@ -2,6 +2,7 @@
 
 namespace App\Supplier\Models;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Models\Account\Account;
 use App\Models\Module\Module;
 use App\Traits\UuidTrait;
@@ -9,6 +10,8 @@ use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Accounting\Models\COA\AccountsHolder;
+use App\Accounting\Models\Voucher\AccountsSupport;
+use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Localization\Country;
 
@@ -30,7 +33,16 @@ class Supplier extends Model
         'tax_reg_number',
         'company_id',
         'currency_id',
-        'display_as'
+        'display_as',
+        'payment_term_id',
+        'default_vat_id',
+        'old_invoice_payment_auto_locate',
+        'default_discount',
+        'legal_name',
+        'credit_limit',
+        'ledger_account_id',
+        'website',
+        'fax'
     ];
 
     // public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
@@ -42,5 +54,12 @@ class Supplier extends Model
     public function bank_transactions(){
         return $this->morphMany(BankTransaction::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function bank_accounts(){
+        return $this->morphMany(AccountsBank::class,'owner','owner_type','owner_id');
+    }
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
+    public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
     
 }

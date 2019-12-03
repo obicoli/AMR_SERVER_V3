@@ -44,7 +44,6 @@ class TermsController extends Controller
         // $this->payment_methods = new AccountingRepository(new AccountPaymentType());
         // $this->accountingVouchers = new AccountingRepository(new AccountsVoucher());
         // $this->countries = new AccountingRepository( new Country() );
-        
     }
 
     public function index(Request $request){

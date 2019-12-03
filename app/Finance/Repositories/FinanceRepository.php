@@ -202,15 +202,21 @@ class FinanceRepository implements FinanceRepositoryInterface
         $acc_type['id'] = $account_type->uuid;
         $acc_type['name'] = $account_type->name;
         $banker = $accountsBank->bank()->get()->first();
-        $bank['id'] = $banker->uuid;
-        $bank['name'] = $banker->name;
+        // $bank['id'] = $banker->uuid;
+        // $bank['name'] = $banker->name;
+        $bank = $this->transform_bank($banker);
         $banker_branch = $accountsBank->bank_branch()->get()->first();
-        $bank_branch['id'] = $banker_branch->uuid;
-        $bank_branch['code'] = $banker_branch->code;
-        $bank_branch['name'] = $banker_branch->name;
+        // $bank_branch['id'] = $banker_branch->uuid;
+        // $bank_branch['code'] = $banker_branch->code;
+        // $bank_branch['name'] = $banker_branch->name;
+        $bank_branch = $this->transform_bank_branch($banker_branch);
 
+        $balance = 0;
         $bank_ledger_ac = $accountsBank->ledger_accounts()->get()->first();
-        $balance = $this->accountingRepository->calculate_account_balance($bank_ledger_ac);
+        if($bank_ledger_ac){
+            $balance = $this->accountingRepository->calculate_account_balance($bank_ledger_ac);
+        }
+        
 
         return [
             'id'=>$accountsBank->uuid,

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         Model::unguard();
 
+        
         $this->call('PermissionsTableSeeder');
         $this->call('RolesTableSeeder');
         $this->call('ConnectRelationshipsSeeder');
@@ -49,6 +50,8 @@ class DatabaseSeeder extends Seeder
         $this->call('OrderDeliveryStatusesTableSeeder');
         $this->call('HrTablesSeeder');
         $this->call('AssetSeeder');
+        $this->call('DashboardWidgetSeeder');
+
         Model::reguard();
     }
 }

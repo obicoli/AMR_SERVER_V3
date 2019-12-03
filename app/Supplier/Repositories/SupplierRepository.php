@@ -2,8 +2,12 @@
 
 namespace App\Supplier\Repositories;
 
+use App\Accounting\Models\COA\AccountChartAccount;
+use App\Accounting\Repositories\AccountingRepository;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
+use App\Finance\Models\Banks\AccountsBank;
+use App\Finance\Repositories\FinanceRepository;
 use App\helpers\HelperFunctions;
 use App\Models\Localization\Country;
 use App\Models\Module\Module;
@@ -31,6 +35,8 @@ class SupplierRepository implements SupplierRepositoryInterface
     protected $companyUser;
     protected $productItem;
     protected $customers;
+    protected $accounts;
+    protected $finances;
 
     public function __construct( Model $model )
     {
@@ -39,6 +45,8 @@ class SupplierRepository implements SupplierRepositoryInterface
         $this->companyUser = new PracticeRepository( new Practice() );
         $this->productItem = new ProductReposity( new ProductItem() );
         $this->customers = new CustomerRepository( new Customer() );
+        $this->accounts = new AccountingRepository( new AccountChartAccount() );
+        $this->finances = new FinanceRepository( new AccountsBank() );
     }
 
     public function all(){}
@@ -66,8 +74,20 @@ class SupplierRepository implements SupplierRepositoryInterface
             'balance'=>$account_holder->balance,
         ];
 
+        //This are Billing or Shipping address specified during account creation
+        $addresses = [];
+        $addreses = $supplier->addresses()->get();
+        foreach($addreses as $addrese){
+            if($addrese->type == Product::BILLING_ADDRESS ){
+                $addresses['billing'] = $this->transform_address($addrese);
+            }
+            if($addrese->type == Product::SHIPPING_ADDRESS ){
+                $addresses['shipping'] = $this->transform_address($addrese);
+            }
+        }
+
         //Vendor Company
-        $company = $this->transform_company($supplier->supplier_companies()->get()->first());
+        //$company = $this->transform_company($supplier->supplier_companies()->get()->first());
         //This is the currency specified during account creation
         $currenc = $supplier->currencies()->get()->first();
         $currency = [
@@ -75,6 +95,16 @@ class SupplierRepository implements SupplierRepositoryInterface
             'currency_sympol'=>$currenc->currency_sympol,
             'currency'=>$currenc->currency,
         ];
+
+        $ledger_ac = $supplier->ledger_accounts()->get()->first();
+        $balance = $this->accounts->calculate_account_balance($ledger_ac);
+
+        //Banking
+        $supplier_bank = $supplier->bank_accounts()->get()->first();
+        $bank_account = null;
+        if($supplier_bank){
+            $bank_account = $this->finances->transform_bank_accounts($supplier_bank);
+        }
 
         if(!$detailed){
 
@@ -84,30 +114,28 @@ class SupplierRepository implements SupplierRepositoryInterface
                 'salutation'=>$supplier->salutation,
                 'first_name'=>$supplier->first_name,
                 'last_name'=>$supplier->last_name,
-                'company'=>$company,
+                'legal_name'=>$supplier->legal_name,
+                'website'=>$supplier->website,
+                'tax_reg_number'=>$supplier->tax_reg_number,
+                'credit_limit'=>$supplier->credit_limit,
+                'notes'=>$supplier->notes,
+                'default_discount'=>$supplier->default_discount,
+                'old_invoice_payment_auto_locate'=>$supplier->old_invoice_payment_auto_locate,
+                'fax'=>$supplier->fax,
                 'status'=>$supplier->status,
                 'email'=>$supplier->email,
                 'phone'=>$supplier->phone,
                 'mobile'=>$supplier->mobile,
                 'account'=>$account,
                 'currency'=>$currency,
-                // 'addresses'=>$addresses,
-                // 'supplier_term'=>$term,
+                'balance'=>$balance,
+                'addresses'=>$addresses,
+                'bank_account'=>$bank_account,
             ];
 
         }else{
 
-            //This are Billing or Shipping address specified during account creation
-            $addresses = [];
-            $addreses = $supplier->addresses()->get();
-            foreach($addreses as $addrese){
-                if($addrese->type == Product::BILLING_ADDRESS ){
-                    $addresses['billing'] = $this->transform_address($addrese);
-                }
-                if($addrese->type == Product::SHIPPING_ADDRESS ){
-                    $addresses['shipping'] = $this->transform_address($addrese);
-                }
-            }
+
             //Get Vendor Terms
             $supplier_term = $supplier->supplier_terms()->get()->first();
             $term = [];
@@ -121,15 +149,19 @@ class SupplierRepository implements SupplierRepositoryInterface
                 'salutation'=>$supplier->salutation,
                 'first_name'=>$supplier->first_name,
                 'last_name'=>$supplier->last_name,
-                'company'=>$company,
+                'legal_name'=>$supplier->legal_name,
+                'notes'=>$supplier->notes,
+                //'company'=>$company,
                 'status'=>$supplier->status,
                 'email'=>$supplier->email,
                 'phone'=>$supplier->phone,
                 'mobile'=>$supplier->mobile,
                 'account'=>$account,
                 'currency'=>$currency,
+                'balance'=>$balance,
                 'addresses'=>$addresses,
                 'supplier_term'=>$term,
+                'bank_account'=>$bank_account
             ];
 
         }

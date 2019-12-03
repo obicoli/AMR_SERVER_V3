@@ -2,9 +2,14 @@
 
 namespace App\Supplier\Http\Controllers\Api\Vendor;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Accounting\Repositories\AccountingRepository;
+use App\Finance\Models\Banks\AccountBankAccountType;
+use App\Finance\Models\Banks\AccountMasterBank;
+use App\Finance\Models\Banks\AccountMasterBankBranch;
+use App\Finance\Repositories\FinanceRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Practice\Practice;
@@ -21,6 +26,8 @@ use App\Supplier\Models\SupplierTerms;
 use App\Supplier\Repositories\SupplierRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Product\ProductTaxation;
+use App\Repositories\Product\ProductReposity;
 
 class VendorController extends Controller
 {
@@ -32,6 +39,11 @@ class VendorController extends Controller
     protected $countries;
     protected $paymentTerms;
     protected $supplierCompanies;
+    protected $taxations;
+    protected $banks;
+    protected $bankBranches;
+    protected $accountTypes;
+    protected $accountChartAccount;
 
     public function __construct()
     {
@@ -43,6 +55,11 @@ class VendorController extends Controller
         $this->countries = new AccountingRepository( new Country() );
         $this->paymentTerms = new SupplierRepository( new SupplierTerms() );
         $this->supplierCompanies = new SupplierRepository( new SupplierCompany() );
+        $this->taxations = new ProductReposity( new ProductTaxation() );
+        $this->banks = new FinanceRepository( new AccountMasterBank() );
+        $this->bankBranches = new FinanceRepository( new AccountMasterBankBranch() );
+        $this->accountTypes = new FinanceRepository( new AccountBankAccountType() );
+        $this->accountChartAccount = new AccountingRepository(new AccountChartAccount());
     }
 
     public function index(Request $request){
@@ -60,6 +77,7 @@ class VendorController extends Controller
     }
 
     public function create(Request $request){
+
         $http_resp = $this->http_response['200'];
         $rule = [
             'salutation'=>'required',
@@ -70,11 +88,12 @@ class VendorController extends Controller
             'mobile'=>'required',
             'billing'=>'required',
             'shipping'=>'required',
-            'currency'=>'required',
-            'company'=>'required',
-            'display_as'=>'required'
+            'currency_id'=>'required',
+            'payment_term_id'=>'required',
+            'display_as'=>'required',
+            'credit_limit'=>'required'
         ];
-        //Log::info($request);
+        Log::info($request);
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
             $http_resp = $this->http_response['422'];
@@ -122,13 +141,30 @@ class VendorController extends Controller
                 return response()->json($http_resp,422);
             }
 
+            if( $company->vendors()->where('legal_name',$request->legal_name)->get()->first() ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Contact/Legal name already in use!"];
+                return response()->json($http_resp,422);
+            }
+
             //Get Vendor Company
-            $vendor_company = $this->supplierCompanies->findByUuid($request->company);
-            $inputs['company_id'] = $vendor_company->id;
-            $inputs['mobile'] = $encoded_mobile;
+            // $vendor_company = $this->supplierCompanies->findByUuid($request->company);
+            // $inputs['company_id'] = $vendor_company->id;
+            // $inputs['mobile'] = $encoded_mobile;
+
             //Attach to currency
-            $currecy = $this->countries->findByUuid($request->currency['id']);
+            $currecy = $this->countries->findByUuid($request->currency_id);
             $inputs['currency_id'] = $currecy->id;
+            //Attach Payment Terms
+            $payment_term = $this->paymentTerms->findByUuid($request->payment_term_id);
+            $inputs['payment_term_id'] = $payment_term->id;
+            //Attach to VAT
+            if($request->vat_id){
+                $tax = $this->taxations->findByUuid($request->vat_id);
+                $inputs['default_vat_id'] = $tax->id;
+            }
             //Create new vendor
             $new_vendor = $this->suppliers->create($inputs);
             //Attach this vendor to a company
@@ -139,6 +175,7 @@ class VendorController extends Controller
             $ac_inputs['account_type'] = Account::AC_SUPPLIERS;
             $ac_inputs['account_number'] = strtoupper($this->helper->getToken(10));
             $ac_inputs['balance'] = 0;
+            $ac_inputs['practice_id'] = $company->id;
             $vendor_account = $new_vendor->account_holders()->create($ac_inputs);
             //Attach addresses to this account
             //Log::info($request);
@@ -152,13 +189,36 @@ class VendorController extends Controller
             $billing_address = $new_vendor->addresses()->create($bil_add);
             $shipping_address = $new_vendor->addresses()->create($ship_add);
             //Payment Terms
-            if($request->payment_term){
-                $pay_terms = $this->paymentTerms->findByUuid($request->payment_term);
-                $new_vendor->payment_term_id = $pay_terms->id;
-                $new_vendor->save();
+            // if($request->payment_term){
+            //     $pay_terms = $this->paymentTerms->findByUuid($request->payment_term);
+            //     $new_vendor->payment_term_id = $pay_terms->id;
+            //     $new_vendor->save();
+            // }
+
+            //Save Supplier Bank Account
+            if($request->bank_id){
+                $bank = $this->banks->findByUuid($request->bank_id);
+                $inputs['bank_id'] = $bank->id;
             }
+            if($request->bank_branch_id){
+                $bank_branch = $this->bankBranches->findByUuid($request->bank_branch_id);
+                $inputs['branch_id'] = $bank_branch->id;
+            }
+            if($request->account_type_id){
+                $account_type = $this->accountTypes->findByUuid($request->account_type_id);
+                $inputs['account_type_id'] = $account_type->id;
+            }
+            $inputs['balance'] = 0;
+            $supplier_bank_account = $new_vendor->bank_accounts()->create($inputs);
+
+            //Create Vendor Ledger Accounts
+            $main_parent = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
+            $ac_inputs = $request->all();
+            $ac_inputs['name'] = $request->legal_name;
+            $custom_chart_of_coa = $this->accountChartAccount->create_sub_chart_of_account($company,$main_parent,$ac_inputs,$new_vendor);
+
             //Check if opening balance is given and save
-            if($request->balance){
+            if($request->opening_balance){
 
                 $rule2 = [
                     'as_of'=>'required',
@@ -169,8 +229,11 @@ class VendorController extends Controller
                     $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
                     return response()->json($http_resp,422);
                 }
-                $vendor_account->balance = $request->balance;
-                $vendor_account->save();//Update Account Holder Balance
+                // $vendor_account->balance = $request->balance;
+                // $vendor_account->save();//Update Account Holder Balance
+                $amount = $request->opening_balance;
+                $vendor_account->balance = $amount;
+                $vendor_account->save(); //Update Account Holder Balance
                 //Accounting Transactions starts here
                 /*
                     Since we are creating supplier with Opening Balance:
@@ -179,22 +242,24 @@ class VendorController extends Controller
                     3. RULE: Asset & Expense have normal Debit Balance, Liability & Equity & Revenue have normal Credit Balance
                 */
                 //Get company Other Expense Account
-                $account_payables = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
+                //$account_payables = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_PAYABLE_CODE)->get()->first();
                 $other_expense = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OTHER_EXPENSE)->get()->first();
                 //Get company Accounts Payables
                 $debited_ac = $other_expense->code;
-                $credited_ac = $account_payables->code;
-                $amount = $request->balance;
-                $as_at = $request->as_of;
+                $credited_ac = $custom_chart_of_coa->code;
+                //$amount = $request->balance;
+                $as_at = $this->helper->format_lunox_date($request->as_of);
                 $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE;
                 $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
-                $trans_name = $new_vendor->salutation.' '.$new_vendor->first_name.' '>$reference_number;
-                $ac_number = $vendor_account->account_number;
+                $trans_name = $request->legal_name.' '.$reference_number;
+                //$ac_number = $vendor_account->account_number;
+                $account_number = $vendor_account->account_number;
                 //
                 $transaction_id = $this->helper->getToken(10,'SOBP');
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_type,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$ac_number,'reference_number'=>$reference_number]);
-                $support_doc = $new_vendor->double_entry_support_document()->save($support_doc);
+                $support_doc = $new_vendor->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
+                // $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$ac_number,'reference_number'=>$reference_number]);
+                // $support_doc = $new_vendor->double_entry_support_document()->save($support_doc);
                 $http_resp['results'] = $this->suppliers->transform_supplier($new_vendor);
             }
             //

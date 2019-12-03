@@ -212,20 +212,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     Route::group( ['prefix'=>'practices','middleware' => ['cors'] ], function (){ //
 
-        // Route::group( ['prefix'=>'roles' ], function (){
-        //     Route::get('/', "Api\Practice\PracticeRoleController@index");
-        //     Route::get('/{id}', "Api\Practice\PracticeRoleController@show");
-        //     Route::post('/', "Api\Practice\PracticeRoleController@create");
-        //     Route::post('/{uuid}', "Api\Practice\PracticeRoleController@update");
-        //     Route::delete('/{uuid}', "Api\Practice\PracticeRoleController@delete");
-        // });
-
-        // Route::group( ['prefix'=>'finance' ], function (){
-        //     Route::get('/', "Api\Practice\PracticeFinanceController@index");
-        //     Route::post('/', "Api\Practice\PracticeFinanceController@create");
-        //     Route::post('/{uuid}', "Api\Practice\PracticeFinanceController@update");
-        //     Route::delete('/{uuid}', "Api\Practice\PracticeFinanceController@delete");
-        // });
+        Route::group( ['prefix'=>'dashboard' ], function (){
+            Route::get('/', "Api\Practice\DashboardController@index");
+            Route::post('/', "Api\Practice\DashboardController@create");
+            Route::post('/{id}', "Api\Practice\DashboardController@update");
+            Route::get('/reports', "Api\Practice\DashboardController@reports");
+        });
 
         Route::group( ['prefix'=>'manufacturers' ], function (){
             Route::get('/', "Api\Practice\PracticeManufacturerController@index");
@@ -697,8 +689,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
     });
 
     Route::group( ['prefix'=>'suppliers' ], function (){
-
-        
         // Route::get('/', "Api\Supplier\SupplierController@index");
         // Route::get('/{uuid}', "Api\Supplier\SupplierController@show");
         // Route::post('/', "Api\Supplier\SupplierController@create");
@@ -730,6 +720,13 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Vendor\CompanyController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Vendor\CompanyController@create");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\CompanyController@show");
+        });
+
+        //companies
+        Route::group( ['prefix'=>'terms' ], function (){
+            Route::get('/', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@index");
+            Route::post('/', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@create");
+            Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@show");
         });
 
     });

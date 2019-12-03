@@ -353,9 +353,10 @@ class ChartOfAccountsController extends Controller
         // foreach ($default_chart_of_accounts as $default_chart_of_account) {
         //     array_push($default_acc, $this->accountsCoa->transform_default_coa($default_chart_of_account));
         // }
-        $default_chart_of_accounts = AccountsCoa::all()->where('sys_default',true)
-                                                        ->where('owning_id','')
-                                                        ->where('owning_type','');
+        $default_chart_of_accounts = AccountsCoa::all()
+            ->where('sys_default',true)
+            ->where('owning_id','')
+            ->where('owning_type','');
         $default_acc = array();
         foreach ($default_chart_of_accounts as $default_chart_of_account) {
             array_push($default_acc, $this->accountsCoa->transform_default_coa($default_chart_of_account));
