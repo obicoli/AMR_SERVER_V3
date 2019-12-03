@@ -8,7 +8,7 @@
 
 namespace App\Repositories\Localization;
 
-
+use App\Models\Localization\Country;
 use Illuminate\Database\Eloquent\Model;
 
 class LocalizationRepository implements LocalizationRepositoryInterface
@@ -57,6 +57,17 @@ class LocalizationRepository implements LocalizationRepositoryInterface
     {
         // TODO: Implement findByName() method.
         return $this->model->all()->where('name',$name)->first();
+    }
+
+    public function transform_country(Country $country){
+        return [
+            'id'=>$country->uuid,
+            'name'=>$country->name,
+            'code'=>$country->code,
+            'currency'=>$country->currency,
+            'currency_sympol'=>$country->currency_sympol,
+            'display_as'=>$country->currency_sympol."-".$country->currency,
+        ];
     }
 
 

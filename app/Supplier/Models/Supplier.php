@@ -14,6 +14,7 @@ use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Localization\Country;
+use App\Models\Product\ProductTaxation;
 
 class Supplier extends Model
 {
@@ -42,7 +43,8 @@ class Supplier extends Model
         'credit_limit',
         'ledger_account_id',
         'website',
-        'fax'
+        'fax',
+        'status'
     ];
 
     // public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
@@ -61,5 +63,6 @@ class Supplier extends Model
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
     public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
+    public function vats(){ return $this->belongsTo(ProductTaxation::class,'default_vat_id','id'); }
     
 }

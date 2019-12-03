@@ -199,8 +199,12 @@ class FinanceRepository implements FinanceRepositoryInterface
     public function transform_bank_accounts(AccountsBank $accountsBank){
 
         $account_type = $accountsBank->account_types()->get()->first();
-        $acc_type['id'] = $account_type->uuid;
-        $acc_type['name'] = $account_type->name;
+        $acc_type = null;
+        if($account_type){
+            $acc_type = $this->transform_bank_account_types($account_type);
+            // $acc_type['id'] = $account_type->uuid;
+            // $acc_type['name'] = $account_type->name;
+        }
         $banker = $accountsBank->bank()->get()->first();
         // $bank['id'] = $banker->uuid;
         // $bank['name'] = $banker->name;

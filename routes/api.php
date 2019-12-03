@@ -713,7 +713,9 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::group( ['prefix'=>'vendors' ], function (){
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@create");
+            Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@update");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@show");
+            Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@destroy");
         });
         //companies
         Route::group( ['prefix'=>'companies' ], function (){

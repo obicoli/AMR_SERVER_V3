@@ -16,6 +16,7 @@ use App\Models\Practice\PracticeUser;
 use App\Models\Product\Product;
 use App\Models\Product\ProductItem;
 use App\Models\Product\ProductTaxation;
+use App\Repositories\Localization\LocalizationRepository;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use App\Supplier\Models\PurchaseOrder;
@@ -37,6 +38,7 @@ class SupplierRepository implements SupplierRepositoryInterface
     protected $customers;
     protected $accounts;
     protected $finances;
+    protected $localizations;
 
     public function __construct( Model $model )
     {
@@ -47,6 +49,7 @@ class SupplierRepository implements SupplierRepositoryInterface
         $this->customers = new CustomerRepository( new Customer() );
         $this->accounts = new AccountingRepository( new AccountChartAccount() );
         $this->finances = new FinanceRepository( new AccountsBank() );
+        $this->localizations = new LocalizationRepository(new Country());
     }
 
     public function all(){}
@@ -59,6 +62,9 @@ class SupplierRepository implements SupplierRepositoryInterface
     }
     public function create($inputs = []){
         return $this->model->create($inputs);
+    }
+    public function update($inputs = [], $id){
+        return $this->model->find($id)->update($inputs);
     }
     public function transform_supplier(Supplier $supplier, $detailed=false){
         
@@ -90,11 +96,15 @@ class SupplierRepository implements SupplierRepositoryInterface
         //$company = $this->transform_company($supplier->supplier_companies()->get()->first());
         //This is the currency specified during account creation
         $currenc = $supplier->currencies()->get()->first();
-        $currency = [
-            'id'=>$currenc->uuid,
-            'currency_sympol'=>$currenc->currency_sympol,
-            'currency'=>$currenc->currency,
-        ];
+        $currency = null;
+        if($currenc){
+            $currency = $this->localizations->transform_country($currenc);//$this->transform_country($currenc);
+        }
+        // $currency = [
+        //     'id'=>$currenc->uuid,
+        //     'currency_sympol'=>$currenc->currency_sympol,
+        //     'currency'=>$currenc->currency,
+        // ];
 
         $ledger_ac = $supplier->ledger_accounts()->get()->first();
         $balance = $this->accounts->calculate_account_balance($ledger_ac);
@@ -104,6 +114,18 @@ class SupplierRepository implements SupplierRepositoryInterface
         $bank_account = null;
         if($supplier_bank){
             $bank_account = $this->finances->transform_bank_accounts($supplier_bank);
+        }
+
+        $payment_terms = null;
+        $term = $supplier->supplier_terms()->get()->first();
+        if($term){
+            $payment_terms = $this->transform_term($term);
+        }
+
+        $vat = null;
+        $default_vat = $supplier->vats()->get()->first();
+        if($default_vat){
+            $vat = $this->productItem->transform_taxation($default_vat);
         }
 
         if(!$detailed){
@@ -131,6 +153,8 @@ class SupplierRepository implements SupplierRepositoryInterface
                 'balance'=>$balance,
                 'addresses'=>$addresses,
                 'bank_account'=>$bank_account,
+                'payment_term'=>$payment_terms,
+                'vat'=>$vat,
             ];
 
         }else{
@@ -172,6 +196,15 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     public function transform_address(SupplierAddress $supplierAddress){
 
+        if(!$supplierAddress){
+            return null;
+        }
+
+        $country = null;
+        $countr = $supplierAddress->countries()->get()->first();
+        if( $countr ){
+            $country = $this->transform_country( $countr );
+        }
         return [
             'id'=>$supplierAddress->uuid,
             'type'=>$supplierAddress->type,
@@ -183,7 +216,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             'phone'=>$supplierAddress->phone,
             'state'=>$supplierAddress->state,
             'fax'=>$supplierAddress->fax,
-            'country'=>$this->transform_country( $supplierAddress->countries()->get()->first() ),
+            'country'=>$country,
         ];
 
     }
@@ -203,14 +236,14 @@ class SupplierRepository implements SupplierRepositoryInterface
     }
 
     public function transform_country(Country $country){
-
         return [
             'id'=>$country->uuid,
             'name'=>$country->name,
             'code'=>$country->code,
             'currency'=>$country->currency,
+            'currency_sympol'=>$country->currency_sympol,
+            'display_as'=>$country->currency_sympol."-".$country->currency,
         ];
-
     }
 
     public function transform_term(SupplierTerms $supplierTerms){

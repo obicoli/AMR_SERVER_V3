@@ -9,6 +9,7 @@ use App\Accounting\Repositories\AccountingRepository;
 use App\Finance\Models\Banks\AccountBankAccountType;
 use App\Finance\Models\Banks\AccountMasterBank;
 use App\Finance\Models\Banks\AccountMasterBankBranch;
+use App\Finance\Models\Banks\AccountsBank;
 use App\Finance\Repositories\FinanceRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -21,6 +22,7 @@ use App\helpers\HelperFunctions;
 use App\Models\Account\Account;
 use App\Models\Localization\Country;
 use App\Models\Module\Module;
+use App\Models\Product\Product;
 use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierTerms;
 use App\Supplier\Repositories\SupplierRepository;
@@ -28,6 +30,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Product\ProductTaxation;
 use App\Repositories\Product\ProductReposity;
+use App\Supplier\Models\SupplierAddress;
+use Exception;
 
 class VendorController extends Controller
 {
@@ -44,6 +48,8 @@ class VendorController extends Controller
     protected $bankBranches;
     protected $accountTypes;
     protected $accountChartAccount;
+    protected $supplierAddresses;
+    protected $bankAccounts;
 
     public function __construct()
     {
@@ -60,13 +66,15 @@ class VendorController extends Controller
         $this->bankBranches = new FinanceRepository( new AccountMasterBankBranch() );
         $this->accountTypes = new FinanceRepository( new AccountBankAccountType() );
         $this->accountChartAccount = new AccountingRepository(new AccountChartAccount());
+        $this->supplierAddresses = new SupplierRepository( new SupplierAddress() );
+        $this->bankAccounts = new FinanceRepository( new AccountsBank() );
     }
 
     public function index(Request $request){
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        $vendors = $company->vendors()->orderByDesc('created_at')->paginate(15);
+        $vendors = $company->vendors()->orderByDesc('created_at')->paginate(10);
         $paged_data = $this->helper->paginator($vendors);
         foreach( $vendors as $vendor){
             array_push($results, $this->suppliers->transform_supplier($vendor));
@@ -78,6 +86,7 @@ class VendorController extends Controller
 
     public function create(Request $request){
 
+        Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'salutation'=>'required',
@@ -91,9 +100,15 @@ class VendorController extends Controller
             'currency_id'=>'required',
             'payment_term_id'=>'required',
             'display_as'=>'required',
-            'credit_limit'=>'required'
+            'credit_limit'=>'required',
+            'default_discount'=>'required',
+            'legal_name'=>'required',
+            'bank_id'=>'required',
+            'bank_branch_id'=>'required',
+            'account_type_id'=>'required',
+            'account_number'=>'required',
+            'account_name'=>'required',
         ];
-        Log::info($request);
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
             $http_resp = $this->http_response['422'];
@@ -274,7 +289,183 @@ class VendorController extends Controller
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
     }
-    public function update(Request $request,$uuid){}
+
+    public function update(Request $request,$uuid){
+
+        $http_resp = $this->http_response['200'];
+        $rule = [
+            'salutation'=>'required',
+            'first_name'=>'required',
+            'last_name'=>'required',
+            'email'=>'required',
+            'last_name'=>'required',
+            'mobile'=>'required',
+            'billing'=>'required',
+            'shipping'=>'required',
+            'currency_id'=>'required',
+            'payment_term_id'=>'required',
+            'display_as'=>'required',
+            'credit_limit'=>'required',
+            'default_discount'=>'required'
+        ];
+
+        if($request->has('inactive_active_action')){
+            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+            $supplier = $this->suppliers->findByUuid($uuid);
+            $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
+            $ledger_ac_balance = $this->accountingVouchers->calculate_account_balance($supplier_ledger_ac);
+            if( ($ledger_ac_balance) && (!$request->status) ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Account balance must be zero before flagging an account as in-active"];
+                return response()->json($http_resp,422);
+            }else{
+                $supplier->status = $request->status;
+                $supplier->save();
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+                return response()->json($http_resp);
+            }
+        }
+
+        $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+        if ($validation->fails()){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+            return response()->json($http_resp,422);
+        }
+        Log::info($request);
+        // Log::info($uuid);
+        // DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+        // DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        try{
+            //
+            $company = $this->practices->find($request->user()->company_id);
+            $supplier = $this->suppliers->findByUuid($uuid);
+            $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
+            $ledger_ac_balance = $this->accountingVouchers->calculate_account_balance($supplier_ledger_ac);
+            if( ($ledger_ac_balance) && (!$request->status) ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Account balance must be zero before flagging an account as in-active"];
+                return response()->json($http_resp,422);
+            }
+            //Check if email is already taken
+            $inputs = $request->all();
+            if( $company->vendors()->where('email',$request->email)->where('id','!=',$supplier->id)->get()->first() ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Email address already in use"];
+                return response()->json($http_resp,422);
+            }
+            //Check if mobile is already taken
+            $encoded_mobile = $this->helper->encode_mobile($request->mobile,"KE");
+            //
+            if(!$encoded_mobile){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Invalid or missing mobile number!"];
+                return response()->json($http_resp,422);
+            }
+            //
+            if( $company->vendors()->where('mobile',$encoded_mobile)->where('id','!=',$supplier->id)->get()->first() ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Mobile already in use"];
+                return response()->json($http_resp,422);
+            }
+
+            if( $company->vendors()->where('tax_reg_number',$request->tax_reg_number)->where('id','!=',$supplier->id)->get()->first() ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Tax registration number already in use!"];
+                return response()->json($http_resp,422);
+            }
+
+            if( $company->vendors()->where('legal_name',$request->legal_name)->where('id','!=',$supplier->id)->get()->first() ){
+                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ["Contact/Legal name already in use!"];
+                return response()->json($http_resp,422);
+            }
+
+            //----------------------------------------------------------------------------------------------------
+            //Attach to currency
+            $currecy = $this->countries->findByUuid($request->currency_id);
+            $inputs['currency_id'] = $currecy->id;
+            //Attach Payment Terms
+            $payment_term = $this->paymentTerms->findByUuid($request->payment_term_id);
+            $inputs['payment_term_id'] = $payment_term->id;
+            //Attach to VAT
+            if($request->vat_id){
+                $tax = $this->taxations->findByUuid($request->vat_id);
+                $inputs['default_vat_id'] = $tax->id;
+            }
+            //Update vendor
+            $supplier->update($inputs);
+
+            //Attach this Vendor to Account
+            $ac_inputs = $request->all();
+            $ac_inputs['name'] = $supplier->first_name;
+            //**$vendor_account = $supplier->account_holders()->update($ac_inputs);
+
+            //Attach addresses to this account
+            //Log::info($request);
+            $bil_add = $request->billing;
+            $ship_add = $request->shipping;
+            //$billing_ad = $this->supplierAddresses->findByUuid($bil_add['id']);
+            $billing_ad = $supplier->addresses()->where('type',Product::BILLING_ADDRESS)->get()->first();
+            if($billing_ad){
+                $billing_ad->update($bil_add);
+            }
+            $shipping_ad = $supplier->addresses()->where('type',Product::SHIPPING_ADDRESS)->get()->first();
+            if($shipping_ad){
+                $shipping_ad->update($ship_add);
+            }
+
+            //Save Supplier Bank Account
+            if($request->bank_id){
+                $bank = $this->banks->findByUuid($request->bank_id);
+                $inputs['bank_id'] = $bank->id;
+            }
+            if($request->bank_branch_id){
+                $bank_branch = $this->bankBranches->findByUuid($request->bank_branch_id);
+                $inputs['branch_id'] = $bank_branch->id;
+            }
+            if($request->account_type_id){
+                $account_type = $this->accountTypes->findByUuid($request->account_type_id);
+                $inputs['account_type_id'] = $account_type->id;
+            }
+            $inputs['balance'] = 0;
+            $supplier_bank_account = $this->bankAccounts->findByUuid($request->bank_account['id']);
+            $supplier_bank_account->update($inputs);
+            // $supplier_bank_account = $supplier->bank_accounts()->update($inputs); //bank_account
+            
+            $supplier_ledger_ac->name = $request->legal_name;
+            $supplier_ledger_ac->save();
+            //----------------------------------------------------------------------------------------------------
+
+        }catch(\Exception $e){
+            $http_resp = $this->http_response['500'];
+            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            Log::info($e);
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        return response()->json($http_resp);
+    }
 
     public function show($uuid){
         $http_resp = $this->http_response['200'];
@@ -283,6 +474,12 @@ class VendorController extends Controller
         return response()->json($http_resp);
     }
 
-    public function delete($uuid){}
+    public function destroy($uuid){
+        $http_resp = $this->http_response['200'];
+        $supplier = $this->suppliers->findByUuid($uuid);
+        $supplier->delete();
+        $http_resp['results'] = $this->suppliers->transform_supplier($supplier);
+        return response()->json($http_resp);
+    }
 
 }

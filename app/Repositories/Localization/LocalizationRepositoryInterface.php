@@ -8,6 +8,7 @@
 
 namespace App\Repositories\Localization;
 
+use App\Models\Localization\Country;
 
 interface LocalizationRepositoryInterface
 {
@@ -19,5 +20,6 @@ interface LocalizationRepositoryInterface
     public function update(array $arr, $id);
     public function findByCountryId($country_id);
     public function findByName($name);
+    public function transform_country(Country $country);
 
 }

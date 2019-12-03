@@ -18,6 +18,7 @@ interface SupplierRepositoryInterface
     public function findByUuid($uuid);
     public function findByTransNumber($trans_number);
     public function create($inputs = []);
+    public function update($inputs = [], $id);
     public function transform_supplier(Supplier $supplier, $detailed=null);
     public function transform_address(SupplierAddress $supplierAddress);
     public function transform_company(SupplierCompany $supplierCompany);

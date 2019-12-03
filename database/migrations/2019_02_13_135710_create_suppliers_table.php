@@ -44,9 +44,10 @@ class CreateSuppliersTable extends Migration
             $table->string("owning_type")->nullable()->index();
             $table->unsignedInteger("user_id")->nullable();
             $table->unsignedInteger('default_vat_id')->nullable();
-            $table->unsignedInteger('payment_term_id')();
+            $table->unsignedInteger('payment_term_id');
             //$table->string("city")->nullable();
             $table->string("website")->nullable();
+            $table->string("fax")->nullable();
             $table->string("facebook")->nullable();
             $table->string("twitter")->nullable();
             \ByTestGear\Accountable\Accountable::columns($table);
