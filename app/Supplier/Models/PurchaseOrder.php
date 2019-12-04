@@ -22,7 +22,8 @@ class PurchaseOrder extends Model
         'po_date',
         'po_due_date',
         'ship_to',
-        'taxation_option'
+        'taxation_option',
+        'status'
     ];
     public function owning(){ return $this->morphTo();} //Branch owning this PO
     public function shipable(){ return $this->morphTo();} //Can be a customer or a Facility

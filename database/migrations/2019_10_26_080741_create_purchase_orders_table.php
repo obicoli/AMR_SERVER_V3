@@ -22,6 +22,7 @@ class CreatePurchaseOrdersTable extends Migration
             $table->string('terms')->nullable();
             $table->string('trans_number')->nullable();
             $table->string('ship_to')->nullable();
+            $table->string('status')->default('Draft');
             $table->text('notes')->nullable();
             $table->unsignedInteger('shipable_id')->nullable()->index(); //Facility,Branch, Customer: to ship this
             $table->string('shipable_type')->nullable()->index(); //Facility,Branch, Customer: to ship this

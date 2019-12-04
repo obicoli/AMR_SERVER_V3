@@ -62,7 +62,15 @@ class PurchaseOrderController extends Controller
 
         $http_resp = $this->http_response['200'];
         $company = $this->practices->find($request->user()->company_id);
-        $po_lists = $company->purchase_orders()->orderByDesc('created_at')->paginate(15);
+        //Log::info($request);
+        if($request->has('filter_by')){
+            $po_lists = $company->purchase_orders()
+                ->where('status',$request->filter_by)
+                ->orderByDesc('created_at')
+                ->paginate(10);
+        }else{
+             $po_lists = $company->purchase_orders()->orderByDesc('created_at')->paginate(10);
+        }
         $results = array();
         foreach($po_lists as $po_list){
             array_push($results,$this->suppliers->transform_purchase_order($po_list) );
@@ -168,6 +176,8 @@ class PurchaseOrderController extends Controller
             //Create new PO
             $inputs = $request->all();
             $inputs['supplier_id'] = $supplier->id;
+            $inputs['po_date'] = $this->helper->format_lunox_date($request->po_date);
+            $inputs['po_due_date'] = $this->helper->format_lunox_date($request->po_due_date);
             $new_po = $this->purchaseOrders->create($inputs); //Create new Estimate
             $new_po->trans_number = $this->helper->create_transaction_number('PO',$new_po->id);
             //Attact this PO to a company creating it
@@ -175,14 +185,16 @@ class PurchaseOrderController extends Controller
             //Attach to shipping Address
             $new_po = $shippable->purchase_order_shipping()->save($new_po);
             //Switch initial state
-            $status = [ 'status'=>Product::STATUS_DRAFT ];
+            $status ['status'] = Product::STATUS_DRAFT;
             if( $request->has("action_taken") ){
                 switch ($request->action_taken) {
                     case Product::ACTIONS_SAVE_DRAFT:
-                        $status = [ 'status'=>Product::STATUS_DRAFT ];
+                        //$status = [ 'status'=>Product::STATUS_DRAFT ];
+                        $status ['status'] = Product::STATUS_DRAFT;
                         break;
                     case Product::ACTIONS_SAVE_SEND :
-                        $status = [ 'status'=>Product::STATUS_OPEN ];
+                        //$status = [ 'status'=>Product::STATUS_OPEN ];
+                        $status ['status'] = Product::STATUS_OPEN;
                         //Schedule this Email to be Send
                         //Schedule mail
                         $mailing_address['subject'] = MailBox::PO_SUBJECT;
@@ -198,6 +210,7 @@ class PurchaseOrderController extends Controller
             //Then attach it to estimate
             $po_status = $company_user->po_status()->create($status);
             $est_status = $new_po->po_status()->save($po_status);
+            $new_po->status = $status['status']; 
 
             //Items
             $items = $request->items;
