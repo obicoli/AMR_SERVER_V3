@@ -15,7 +15,8 @@ class PurchaseOrderStatus extends Model
     protected $table = "purchase_order_statuses";
     protected $fillable = [
         'status',
-        'notes'
+        'notes',
+        'type',
     ];
     public function responsible(){ return $this->morphTo();}
     public function purchase_orders(){ return $this->belongsTo(PurchaseOrder::class,'purchase_order_id'); }

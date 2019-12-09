@@ -23,6 +23,7 @@ use App\Supplier\Models\PurchaseOrder;
 use Illuminate\Database\Eloquent\Model;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Models\SupplierAddress;
+use App\Supplier\Models\SupplierAsset;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierTerms;
@@ -66,6 +67,21 @@ class SupplierRepository implements SupplierRepositoryInterface
     public function update($inputs = [], $id){
         return $this->model->find($id)->update($inputs);
     }
+
+    public function transform_assets(SupplierAsset $supplierAsset){
+        if($supplierAsset){
+            return [
+                'id'=>$supplierAsset->uuid,
+                'file_path'=>$supplierAsset->file_path,
+                'file_mime'=>$supplierAsset->file_mime,
+                'file_name'=>$supplierAsset->file_name,
+                'file_size'=>$supplierAsset->file_size,
+            ];
+        }else{
+            return [];
+        }
+    }
+
     public function transform_supplier(Supplier $supplier, $detailed=false){
         
         //This supplier has accounting account number that keep track of all payments made to him/her 
@@ -184,7 +200,7 @@ class SupplierRepository implements SupplierRepositoryInterface
                 'currency'=>$currency,
                 'balance'=>$balance,
                 'addresses'=>$addresses,
-                'supplier_term'=>$term,
+                'payment_term'=>$payment_terms,
                 'bank_account'=>$bank_account
             ];
 
@@ -258,16 +274,37 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     public function transform_purchase_order(PurchaseOrder $purchaseOrder){
 
-        $po_statuses = $purchaseOrder->po_status()->get();
+        $po_statuses = $purchaseOrder->po_status()->where('type','status')->get();
         $trans_status = array();
         foreach ($po_statuses as $po_status) {
             $temp_status['id'] = $po_status->uuid;
             $temp_status['status'] = $po_status->status;
-            $temp_status['note'] = $po_status->note;
+            $temp_status['type'] = $po_status->type;
+            $temp_status['notes'] = $po_status->notes;
             $temp_status['date'] = $this->helpers->format_mysql_date($po_status->created_at);
             $practice_user = $po_status->responsible()->get()->first();
             $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
             array_push($trans_status,$temp_status);
+        }
+
+        $po_trails = $purchaseOrder->po_status()->get();
+        $po_audit_trails = array();
+        foreach ($po_trails as $po_trail) {
+            $temp_sta['id'] = $po_trail->uuid;
+            $temp_sta['status'] = $po_trail->status;
+            $temp_sta['type'] = $po_trail->type;
+            $temp_sta['notes'] = $po_trail->notes;
+            $temp_sta['date'] = date('Y-m-d',\strtotime($po_trail->created_at));
+            $practice_user = $po_trail->responsible()->get()->first();
+            $temp_sta['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($po_audit_trails,$temp_sta);
+        }
+
+        //Find Attachments
+        $attachments = [];
+        $attachmens = $purchaseOrder->assets()->get();
+        foreach($attachmens as $attachmen){
+            array_push($attachments,$this->transform_assets($attachmen));
         }
 
         $shipping = null;
@@ -342,18 +379,20 @@ class SupplierRepository implements SupplierRepositoryInterface
         return [
             'id' => $purchaseOrder->uuid,
             'notes' => $purchaseOrder->notes,
-            'po_date' => $this->helpers->format_mysql_date($purchaseOrder->po_date,"j M Y"),
+            'po_date' => date('Y-m-d',\strtotime($purchaseOrder->po_date)),//$this->helpers->format_mysql_date($purchaseOrder->po_date,"j M Y"),
             'trans_number' => $purchaseOrder->trans_number,
             'ref_number' => $purchaseOrder->ref_number,
             'vendor' => $this->transform_supplier( $purchaseOrder->suppliers()->get()->first(),true ),
             'total_grand' => 0,
-            'po_due_date' => $this->helpers->format_mysql_date($purchaseOrder->po_due_date,"j M Y"),
+            'po_due_date' => date('Y-m-d',\strtotime($purchaseOrder->po_due_date)),//$this->helpers->format_mysql_date(,"j M Y"),
             'status' => $trans_status,
             'bills' => null,
             'ship_to' => $purchaseOrder->ship_to,
             'shipping' => $shipping,
             'items' => $po_items,
             'other_total' => 0,
+            'attachments' => $attachments,
+            'audit_trails' => $po_audit_trails,
             'shipping_total' => 0,
             'taxation_option' => $purchaseOrder->taxation_option,
             'total_grand' => $total_without_discount_and_tax,

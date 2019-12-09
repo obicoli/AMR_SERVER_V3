@@ -696,12 +696,23 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         // Route::post('/upload', "Api\Supplier\SupplierController@upload");
         // Route::delete('/{uuid}', "Api\Supplier\SupplierController@delete");
         Route::group( ['prefix'=>'purchases' ], function (){
+
             Route::group( ['prefix'=>'orders' ], function (){
+
+                Route::group( ['prefix'=>'assets' ], function (){
+                    Route::get('/', "\App\Supplier\Http\Controllers\Api\Purchase\PoAssetControler@index");
+                    Route::post('/', "\App\Supplier\Http\Controllers\Api\Purchase\PoAssetControler@create");
+                    Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Purchase\PoAssetControler@update");
+                    Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Purchase\PoAssetControler@show");
+                    Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Purchase\PoAssetControler@delete");
+                });
+
                 Route::get('/', "\App\Supplier\Http\Controllers\Api\Purchase\PurchaseOrderController@index");
                 Route::post('/', "\App\Supplier\Http\Controllers\Api\Purchase\PurchaseOrderController@create");
                 Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Purchase\PurchaseOrderController@update");
                 Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Purchase\PurchaseOrderController@show");
             });
+
         });
 
         Route::group( ['prefix'=>'bills' ], function (){

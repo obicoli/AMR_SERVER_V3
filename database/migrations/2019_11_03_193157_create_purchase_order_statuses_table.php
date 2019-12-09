@@ -22,6 +22,7 @@ class CreatePurchaseOrderStatusesTable extends Migration
             $table->unsignedInteger('responsible_id')->nullable()->index();
             $table->string('responsible_type')->nullable()->index();
             $table->string('status')->default('Draft')->index(); //product_requistions_id
+            $table->enum('type',['status','action'])->default('status');
             $table->string('notes')->nullable();
             $table->softDeletes();
             Accountable::columns($table);

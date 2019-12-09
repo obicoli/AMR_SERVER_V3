@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use jeremykenedy\LaravelRoles\Traits\HasRoleAndPermission;
 use Laravel\Passport\HasApiTokens;
-use App\Models\Supplier\Supplier;
+// use App\Models\Supplier\Supplier;
 
 class User extends Authenticatable
 {
@@ -93,7 +93,7 @@ class User extends Authenticatable
     public function doctor(){return $this->hasOne(Doctor::class,'user_id');}
     public function patient(){return $this->hasOne(Patient::class,'user_id');}
     public function pharmacy(){return $this->hasOne(Pharmacy::class,'user_id');}
-    public function supplier(){return $this->hasOne(Supplier::class,'user_id');}
+    //public function supplier(){return $this->hasOne(Supplier::class,'user_id');}
 
     public function assets(){
         return $this->morphMany(Assets::class, 'assetable');

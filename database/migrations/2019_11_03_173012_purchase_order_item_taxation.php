@@ -23,6 +23,7 @@ class PurchaseOrderItemTaxation extends Migration
             $table->float('purchase_rate',8,2)->default(00.00);
             $table->boolean('collected_on_sales')->default(false);
             $table->boolean('collected_on_purchase')->default(false);
+            $table->foreign('po_item_id')->references('id')->on('purchase_order_items')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
         });

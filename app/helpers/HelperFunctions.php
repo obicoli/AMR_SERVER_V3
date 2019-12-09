@@ -942,6 +942,7 @@ class HelperFunctions
             'account_type_id.required'=>'Bank Account type required!',
             'account_number.required'=>'Bank Account number required!',
             'account_name.required'=>'Bank Account Holder required!',
+            'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }
 
@@ -1425,12 +1426,41 @@ class HelperFunctions
         ];
     }
 
+    public function create_upload_directory($company_id,$document_type,$document_id){
+
+        switch ($document_type) {
+            case Product::DOC_PO:
+                $file_public = "/assets/company/".$company_id."/po/".$document_id;
+                break;
+            default:
+                $file_public = "/assets/company/".$company_id."/logos";
+                break;
+        }
+        //$file_public = "/assets/company/".$company_id."/logos";
+        $directory = $_SERVER['DOCUMENT_ROOT'].$file_public;
+        if ( file_exists( $directory ) ){
+            //return $directory;
+            return [
+                'file_server_root'=>$directory,
+                'file_public_access'=>$file_public
+            ];
+        }
+        mkdir($directory, 0755, true);
+        return [
+            'file_server_root'=>$directory,
+            'file_public_access'=>$file_public
+        ];
+
+    }
+
 
 
     public function delete_file($file_to_delete){
         if ( file_exists( $file_to_delete ) ){
             unlink($file_to_delete);
+            return true;
         }
+        return false;
     }
 
     public function encode_mobile($mobile, $country_code = 'KE'){

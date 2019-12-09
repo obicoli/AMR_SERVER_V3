@@ -23,6 +23,7 @@ class CreateSupplierBillItemsTable extends Migration
             $table->unsignedInteger('product_price_id')->index();
             $table->unsignedInteger('product_item_id')->index();
             $table->string('uuid')->nullable();
+            $table->foreign('supplier_bill_id')->references('id')->on('supplier_bills')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
         });

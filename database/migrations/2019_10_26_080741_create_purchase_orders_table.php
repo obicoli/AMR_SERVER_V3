@@ -4,6 +4,7 @@ use App\Models\Module\Module;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class CreatePurchaseOrdersTable extends Migration
 {
@@ -35,24 +36,6 @@ class CreatePurchaseOrdersTable extends Migration
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->softDeletes();
             $table->timestamps();
-
-            // ->default('Pending');
-            //$table->string('purchase_type',10)->default('LPO');
-            //$table->string('status',30)->default('Pending Approval')->index();
-
-            // $table->unsignedInteger('owner_id')->nullable()->index(); //Enterprise,Organization level
-            // $table->string('owner_type')->nullable()->index(); //Enterprise,Organization level
-
-            // $table->unsignedInteger('deliverable_id')->nullable()->index(); //Facility,Branch level: Facility where delivered
-            // $table->string('deliverable_type')->nullable()->index(); //Facility,Branch level: Facility where delivered
-            // $table->unsignedInteger('approvable_id')->nullable()->index(); //Facility,Branch level: Who approved this
-            // $table->string('approvable_type')->nullable()->index(); //Facility,Branch level: Who approved this
-            // $table->unsignedInteger('chargeable_id')->nullable()->index(); //Facility,Branch level: Who cater for cost of this PO
-            // $table->string('chargeable_type')->nullable()->index(); //Facility,Branch level: Who cater for cost of this PO
-            // $table->unsignedInteger('received_id')->nullable()->index(); //Received By
-            // $table->string('received_type')->nullable()->index(); //Received By
-
-
         });
     }
 

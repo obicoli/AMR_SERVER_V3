@@ -23,6 +23,7 @@ class SupplierBillItemTaxation extends Migration
             $table->float('purchase_rate',8,2)->default(00.00);
             $table->boolean('collected_on_sales')->default(false);
             $table->boolean('collected_on_purchase')->default(false);
+            $table->foreign('bill_item_id')->references('id')->on('supplier_bill_items')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
         });

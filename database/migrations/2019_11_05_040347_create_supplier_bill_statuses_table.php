@@ -26,6 +26,7 @@ class CreateSupplierBillStatusesTable extends Migration
             $table->softDeletes();
             Accountable::columns($table);
             $table->unsignedInteger('supplier_bill_id')->index()->nullable();
+            $table->foreign('supplier_bill_id')->references('id')->on('supplier_bills')->onDelete('cascade');
             $table->timestamps();
         });
     }

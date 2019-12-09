@@ -23,8 +23,12 @@ class PurchaseOrder extends Model
         'po_due_date',
         'ship_to',
         'taxation_option',
-        'status'
+        'status',
     ];
+
+    public function assets(){
+        return $this->morphMany(SupplierAsset::class, 'owner');
+    }
     public function owning(){ return $this->morphTo();} //Branch owning this PO
     public function shipable(){ return $this->morphTo();} //Can be a customer or a Facility
     public function po_status(){ return $this->hasMany(PurchaseOrderStatus::class,'purchase_order_id');}

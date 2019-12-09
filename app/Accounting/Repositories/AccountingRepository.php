@@ -666,9 +666,12 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $trans_with['name'] = '';
                 $support_type = $support_document->trans_type;
                 $transactionable = $support_document->transactionable()->get()->first();
+                
                 if($support_type==AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE || $support_type==AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE){
-                    $trans_with['id'] = $transactionable->id;
-                    $trans_with['name'] = $transactionable->legal_name;
+                    if($transactionable){
+                        $trans_with['id'] = $transactionable->id;
+                        $trans_with['name'] = $transactionable->legal_name;
+                    }
                 }elseif($support_type == AccountsCoa::TRANS_TYPE_ACCOUNT_OPENING_BALANCE){
                     $trans_with['id'] = $transactionable->id;
                     $trans_with['name'] = $transactionable->account_name;

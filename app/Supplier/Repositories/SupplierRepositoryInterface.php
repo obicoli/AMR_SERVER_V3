@@ -6,6 +6,7 @@ use App\Models\Localization\Country;
 use App\Supplier\Models\PurchaseOrder;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Models\SupplierAddress;
+use App\Supplier\Models\SupplierAsset;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierTerms;
@@ -19,6 +20,7 @@ interface SupplierRepositoryInterface
     public function findByTransNumber($trans_number);
     public function create($inputs = []);
     public function update($inputs = [], $id);
+    public function transform_assets(SupplierAsset $supplierAsset);
     public function transform_supplier(Supplier $supplier, $detailed=null);
     public function transform_address(SupplierAddress $supplierAddress);
     public function transform_company(SupplierCompany $supplierCompany);

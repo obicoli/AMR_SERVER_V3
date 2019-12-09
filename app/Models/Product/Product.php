@@ -4,7 +4,6 @@ namespace App\Models\Product;
 
 use App\Models\Manufacturer\Manufacturer;
 use App\Models\Module\Module;
-use App\Models\Supplier\Supplier;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +37,7 @@ class Product extends Model
     const STATUS_OPEN = "Open";
     const STATUS_CLOSED = "Closed";
     const STATUS_RECEIVED = "Received";
+    const STATUS_ATTACHED = "Attached";
 
     const STOCK_SOURCE_OPENING_STOCK = "Opening Stock";
     const STOCK_SOLD = "sold";
@@ -54,9 +54,15 @@ class Product extends Model
     const ACTIONS_SAVE_DRAFT = "Save As Draft";
     const ACTIONS_SAVE_SEND = "Save & Send";
     const ACTIONS_SAVE_OPEN = "Open";
+    const ACTIONS_SEND_MAIL = "Send Mail";
+    const ACTIONS_PRINT = "Print";
 
     const SHIP_TO_ORGANIZATION = "Organization";
     const SHIP_TO_CUSTOMER = "Customer";
+
+    const DOC_GRN = "Goods Received Note";
+    const DOC_PO = "Purchase Order";
+    const DOC_ESTIMATE = "Estimate";
 
     protected $fillable = [
         'name',

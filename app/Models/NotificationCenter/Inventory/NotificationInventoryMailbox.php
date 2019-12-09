@@ -19,9 +19,10 @@ class NotificationInventoryMailbox extends Model
     protected $fillable = [
         'status',
         'subject',
+        'subject_type',
         'msg',
         'email',
-        'resend_count'
+        'resend_count',
     ];
 
     public function owner(){ return $this->morphTo();}
