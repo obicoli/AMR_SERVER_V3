@@ -7,6 +7,7 @@ use App\Finance\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\COA\AccountsNature;
 use App\Accounting\Models\COA\AccountsNatureType;
+use App\Accounting\Repositories\AccountingRepository;
 use App\helpers\HelperFunctions;
 use App\Models\Practice\Practice;
 use App\Models\Hospital\Hospital;
@@ -28,11 +29,22 @@ class AccountingTableSeeder extends Seeder
         //Government Tax Rates
         $compana = Practice::find(1);
         $parent_owner = $compana->owner()->get()->first();
+
         $manual_vat = $parent_owner->product_taxations()->create(['name'=>'Manual VAT','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
         $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Manual VAT(capital goods)','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
         $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
         $exept = $parent_owner->product_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
         $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Standard Rated','agent_name'=>'KRA','purchase_rate'=>15,'sales_rate'=>15]);
+
+        // $manual_vat = $parent_owner->product_taxations()->create(['name'=>'KRA-Free','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'Capital Acquisitions - KRA-Free']);
+        // $capital_goods = $parent_owner->product_taxations()->create(['name'=>'KRA','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16,'description'=>'Capital Acquisitions - KRA']);
+        // $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Capital Acquisitions','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'Capital Acquisitions - For making Input Taxed Supplies']);
+        // $exept = $parent_owner->product_taxations()->create(['name'=>'KRA-Free Exports','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'KRA-Free Exports']);
+        // $standard_rated = $parent_owner->product_taxations()->create(['name'=>'KRA-Free Supplies','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'KRA-Free Supplies']);
+        // $standard_rated = $parent_owner->product_taxations()->create(['name'=>'KRA','agent_name'=>'KRA','purchase_rate'=>10,'sales_rate'=>10,'description'=>'KRA']);
+        // $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Non-Capital-KRA-Free','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'Non-Capital Acquisitions - KRA-Free']);
+        // $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Non-Capital-KRA','agent_name'=>'KRA','purchase_rate'=>10,'sales_rate'=>10,'description'=>'Non-Capital Acquisitions - KRA']);
+        // $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Non-Capital Acquisitions','agent_name'=>'KRA','purchase_rate'=>15,'sales_rate'=>15,'description'=>'Non-Capital Acquisitions - For making Input Taxed Supplies (0.0%)']);
 
         // $parent_owner->product_taxations()->save($manual_vat);
         // $parent_owner->product_taxations()->save($capital_goods);
@@ -249,10 +261,12 @@ class AccountingTableSeeder extends Seeder
         //END==============================================================
 
 
+        $accountingRepository = new AccountingRepository(new AccountsCoa());
         $coas = AccountsCoa::all();
         $facilities = Practice::all();
         $hospital = Hospital::find(1);
         foreach ($facilities as $facility) {
+
             foreach ($coas as $coa) {
                 //Create company's COA in AccountsCOA
                 $inputs['name'] = $coa->name;
@@ -273,6 +287,19 @@ class AccountingTableSeeder extends Seeder
                 $debitable_creditable_ac = $default_account->chart_of_accounts()->create($inputs2);//This also links it to parent default account
                 //Link above debitable_creditable_ac account to a company
                 $debitable_creditable_ac = $facility->chart_of_accounts()->save($debitable_creditable_ac);
+
+                //If account is Tax Payable configure Company Sales Tax Accounts
+                if( $coa->code == AccountsCoa::AC_SALES_SERVICE_TAX_PAYABLE_CODE ){
+                    //Get taxation from main branch
+                    $taxations = ProductTaxation::all();
+                    foreach( $taxations as $taxation ){
+                        //Attach to branch
+                        $practice_taxation = $taxation->practice_taxation()->create(['practice_id'=>$facility->id]);
+                        //Use Branch Taxation to create Tax Chart of Account
+                        $sub_ac_inputs['name'] = $taxation->name;
+                        $tax_sub_accounts = $accountingRepository->create_sub_chart_of_account($facility,$debitable_creditable_ac,$sub_ac_inputs,$practice_taxation);
+                    }
+                }
             }
             //Customer Terms
             $facility->customer_terms()->create(['name'=>'net 15','notes'=>'full payment is expected within 10 days']);
@@ -298,10 +325,28 @@ class AccountingTableSeeder extends Seeder
             $facility->accounts_payment_methods()->create(['name'=>'Credit Card']);
             $facility->accounts_payment_methods()->create(['name'=>'Direct Debit']);
             //
-            
         }
+
+
 
         
 
     }
 }
+
+/*
+    Use "Sales and service tax payable" to track tax you have collected, 
+    but not yet remitted to your government tax agency. 
+    This includes value-added tax, goods and services tax, 
+    sales tax, and other consumption tax.
+*/
+
+/*
+    Use "Income tax payable" to track monies that are due to pay
+     the company’s income tax liabilties.
+*/
+
+/*
+    Use "Current tax liability" to track the total amount 
+    of taxes collected but not yet paid to the government.
+*/

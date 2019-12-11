@@ -135,14 +135,12 @@ class HelperFunctions
                     $unit_purchase_rate -= $unit_buy_tax_value;
                 }
             }
-
             $prices['pack_cost'] = \round($pack_purchase_rate,2);
             $prices['pack_retail_price'] = \round($pack_sales_rate,2);
             $prices['unit_cost'] = \round($unit_purchase_rate,2);
             $prices['unit_retail_price'] = \round($unit_sales_rate,2);
-                
-
         }
+
         return $prices;
     }
 
@@ -942,6 +940,7 @@ class HelperFunctions
             'account_type_id.required'=>'Bank Account type required!',
             'account_number.required'=>'Bank Account number required!',
             'account_name.required'=>'Bank Account Holder required!',
+            'bank_account.required'=>'Bank Account required!',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }
@@ -967,7 +966,7 @@ class HelperFunctions
             $brandSectorRepo = new ProductReposity(new ProductBrandSector());
             $unitRepo = new ProductReposity(new ProductUnit());
             $priceRepo = new ProductReposity(new ProductPriceRecord());
-            $prodCurrency = new ProductReposity(new ProductCurrency());
+            //$prodCurrency = new ProductReposity(new ProductCurrency());
             $productTax = new ProductReposity( new ProductSalesCharge() );
             //practice_product_item_id
             $taxes = DB::table('pract_prod_sale_charges')->where('practice_product_item_id',$productItem->id)->get();

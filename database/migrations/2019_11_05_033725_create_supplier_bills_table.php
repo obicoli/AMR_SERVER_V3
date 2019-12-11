@@ -4,6 +4,7 @@ use App\Models\Module\Module;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class CreateSupplierBillsTable extends Migration
 {
@@ -19,6 +20,7 @@ class CreateSupplierBillsTable extends Migration
             $table->increments('id');
             $table->text('notes')->nullable();
             $table->string('taxation_option')->nullable();
+            $table->enum('bill_type',['cash','credit'])->default('credit');
             $table->timestamp('bill_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('bill_due_date')->nullable();
             $table->string('order_number')->nullable()->index(); //trans_number
@@ -28,6 +30,15 @@ class CreateSupplierBillsTable extends Migration
             $table->unsignedInteger('billed_id')->index()->nullable();
             $table->string('billed_type')->nullable()->index();
             $table->string('uuid');
+
+            $table->float('total_bill')->default(00.00);
+            $table->float('total_grand')->default(00.00);
+            $table->float('total_tax')->default(00.00);
+            $table->float('discount_offered')->default(00.00);
+
+            $table->string('supplier_invoice_number')->nullable();
+            $table->string('delivery_form_number')->nullable();
+
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch level: Facility created this
             $table->string('owning_type')->nullable()->index(); //Facility,Branch level: Facility created this
             \ByTestGear\Accountable\Accountable::columns($table);

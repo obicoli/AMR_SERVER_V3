@@ -70,7 +70,7 @@ class BillController extends Controller
     }
 
     public function create(Request $request){
-
+        Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'bill_date'=>'required',
@@ -78,14 +78,32 @@ class BillController extends Controller
             'supplier_id'=>'required',
             'notes'=>'required',
             'taxation_option'=>'required',
-            'billable_type'=>'required',
-            'order_number'=>'required'
+            //'billable_type'=>'required',
+            //'order_number'=>'required',
+            'bill_type'=>'required',
+            'items'=>'required',
+            'total_bill'=>'required',
+            'total_grand'=>'required',
+            'total_tax'=>'required',
+            'discount_offered'=>'required',
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
             $http_resp = $this->http_response['422'];
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
+        }
+
+        if( $request->bill_type == Product::DOC_CASH_BILL ){
+            $rule = [
+                'bank_account'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
         }
 
         DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
@@ -181,8 +199,8 @@ class BillController extends Controller
             Log::info($e);
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
-        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
         return response()->json($http_resp);
 
     }

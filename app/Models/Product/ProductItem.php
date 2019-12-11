@@ -2,6 +2,7 @@
 
 namespace App\Models\Product;
 
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Quote\Estimate;
 use App\Models\Account\Vendors\AccountVendor;
 use App\Models\Product\ProductSalesCharge;
@@ -82,6 +83,10 @@ class ProductItem extends Model
     public function estimates(){ return $this->hasMany(Estimate::class,'product_item_id'); }
     //Suppliers Module
     public function supplier_bill_items(){ return $this->hasMany(SupplierBillItem::class,'product_item_id'); }
+    //Accounting Integration
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
     //Other
     public function stocks(){ return $this->hasMany(ProductStock::class, 'product_item_id'); }
     public function product_stock_inward(){ return $this->hasMany(ProductStockInward::class, 'product_item_id'); }

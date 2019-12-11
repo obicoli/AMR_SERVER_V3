@@ -25,7 +25,7 @@ interface AccountingRepositoryInterface
     public function findByDefaultCode($code);
     public function create($inputs = []);
     public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);
-    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs, Model $account_owner);
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[], Model $account_owner);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
     public function calculate_account_balance(AccountChartAccount $accountChartAccount,$filters=[]);

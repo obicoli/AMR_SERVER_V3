@@ -56,6 +56,7 @@ class Product extends Model
     const ACTIONS_SAVE_OPEN = "Open";
     const ACTIONS_SEND_MAIL = "Send Mail";
     const ACTIONS_PRINT = "Print";
+    const ACTIONS_COMMENT = "Comment";
 
     const SHIP_TO_ORGANIZATION = "Organization";
     const SHIP_TO_CUSTOMER = "Customer";
@@ -63,6 +64,8 @@ class Product extends Model
     const DOC_GRN = "Goods Received Note";
     const DOC_PO = "Purchase Order";
     const DOC_ESTIMATE = "Estimate";
+    const DOC_CASH_BILL = "Cash";
+    const DOC_CREDIT_BILL = "Credit";
 
     protected $fillable = [
         'name',

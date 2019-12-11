@@ -79,11 +79,13 @@ class AccountingRepository implements AccountingRepositoryInterface
         //Link above debitable_creditable_ac account to a company
         $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
         //Step 4. Link bank account to Ledger
-        $bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($account_owner);
+        //$bank_ledger_ac = $custom_chart_of_coa->bank_accounts()->save($account_owner);
+        $account_owner->ledger_account_id = $custom_chart_of_coa->id;
+        $account_owner->save();
         return $custom_chart_of_coa;
 
     }
-    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs,Model $account_owner){
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[],Model $account_owner){
         $default_coa = $mainAccount->coas()->get()->first();
         $inputs['accounts_type_id'] = $mainAccount->accounts_type_id;
         $inputs['code'] = $this->helpers->getAccountNumber();
@@ -92,7 +94,11 @@ class AccountingRepository implements AccountingRepositoryInterface
         $inputs['default_code'] = $mainAccount->default_code;
         $custom_chart_of_coa = AccountChartAccount::create($inputs);
         $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
-        $custom_chart_of_coa->bank_accounts()->save($account_owner);
+
+        //$custom_chart_of_coa->bank_accounts()->save($account_owner);
+        $account_owner->ledger_account_id = $custom_chart_of_coa->id;
+        $account_owner->save();
+
         return $custom_chart_of_coa;
     }
 

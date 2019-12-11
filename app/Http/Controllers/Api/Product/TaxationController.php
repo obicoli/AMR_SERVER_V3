@@ -20,6 +20,7 @@ class TaxationController extends Controller
 
     protected $productTaxation;
     protected $practices;
+    protected $helper;
 
     public function __construct(ProductTaxation $productTaxation)
     {
@@ -34,7 +35,9 @@ class TaxationController extends Controller
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
         $companyParent = $this->practices->findParent($company);
-        $taxes = $companyParent->product_taxations()->get();
+        //$taxes = $companyParent->product_taxations()->get();
+        $taxes = $companyParent->product_taxations()->orderByDesc('created_at')->paginate(20);
+        $paged_data = $this->helper->paginator($taxes);
         foreach($taxes as $taxe){
             $temp_data['id'] = $taxe->uuid;
             $temp_data['collected_on_purchase'] = $taxe->collected_on_purchase;
@@ -53,7 +56,8 @@ class TaxationController extends Controller
             $temp_data['display_as'] = $taxe->name.'('.$taxe->sales_rate.'%)';
             array_push($results,$temp_data);
         }
-        $http_resp['results'] = $results;
+        $paged_data['data'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 

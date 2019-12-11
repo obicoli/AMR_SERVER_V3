@@ -31,11 +31,14 @@ class TermsController extends Controller
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        $supplier_terms = $company->supplier_terms()->get();
+        //$supplier_terms = $company->supplier_terms()->get();
+        $supplier_terms = $company->supplier_terms()->orderByDesc('created_at')->paginate(100);
+        $paged_data = $this->helper->paginator($supplier_terms);
         foreach($supplier_terms as $supplier_term){
             array_push($results,$this->supplierTerms->transform_term($supplier_term) );
         }
-        $http_resp['results'] = $results;
+        $paged_data['data'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 

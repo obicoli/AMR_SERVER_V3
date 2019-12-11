@@ -175,6 +175,14 @@ class PurchaseOrderController extends Controller
                         $po_status = $company_user->po_status()->create($status);
                         $po_status = $purchase_order->po_status()->save($po_status);
                         break;
+                    case Product::ACTIONS_COMMENT:
+                        $status['status'] = Product::ACTIONS_COMMENT;
+                        $status['notes'] = $request->comment;
+                        $status['type'] = "action";
+                        $po_status = $company_user->po_status()->create($status);
+                        $po_status = $purchase_order->po_status()->save($po_status);
+                        $http_resp['description'] = "Comment successful added!";
+                        break;
                     default:
                         # code...
                         break;
@@ -239,7 +247,6 @@ class PurchaseOrderController extends Controller
     }
 
     public function create( Request $request ){
-        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'ship_to'=>'required',
@@ -312,23 +319,8 @@ class PurchaseOrderController extends Controller
             $new_po = $shippable->purchase_order_shipping()->save($new_po);
             //Switch initial state
             $status['status'] = Product::STATUS_DRAFT;
-
             $subj = MailBox::PO_SUBJECT;
-            $status['notes'] = $subj." created for ".$request->currency." ".$request->total_bill;
-            
-            // if($request->action_taken == Product::ACTIONS_SAVE_SEND){
-            //     $status['status'] = Product::STATUS_OPEN;
-            //     //Schedule this Email to be Send
-            //     $mailing_address['subject'] = MailBox::PO_SUBJECT;
-            //     $mailing_address['subject'] = MailBox::PO_SUBJECT;
-            //     $mailing_address['msg'] = MailBox::PO_MSG;
-            //     $mailbox = $practiceParent->product_email_notifications()->create($mailing_address);
-            //     $mailbox = $company->product_email_notifications()->save($mailbox);
-            //     $attachment = $mailbox->attatchments()->create(['attachment_type'=>MailBox::PO_SUBJECT]);
-            //     $attachment = $new_po->mails_attachments()->save($attachment);
-            //     $new_po->status = $status['status'];
-            //     $new_po->save();
-            // }
+            $status['notes'] = $subj." created for ".$request->currency." ".number_format($request->total_bill,2);
 
             //Create the status  and attach it the user responsible
             //Then attach it to estimate
@@ -337,7 +329,6 @@ class PurchaseOrderController extends Controller
             $new_po->save();
             $po_status = $company_user->po_status()->create($status);
             $po_status = $new_po->po_status()->save($po_status);
-            
 
             //Items
             $items = $request->items;
@@ -353,11 +344,13 @@ class PurchaseOrderController extends Controller
                     'product_price_id'=>$price->id,
                     'product_item_id'=>$product_item->id,
                 ];
+                //Log::info($current_item['applied_tax_rates']);
                 $po_item = $new_po->items()->create($item_inputs);
-                $item_taxes = $current_item['taxes'];
+                $item_taxes = $current_item['applied_tax_rates'];
+                //$item_taxes = $current_item['taxes'];
                 for ($i=0; $i < sizeof($item_taxes); $i++) { 
                     //get Tax from DB
-                    $taxe = $this->productTaxations->findByUuid($item_taxes[$i]['id']);
+                    $taxe = $this->productTaxations->findByUuid($item_taxes[$i]);
                     $tax_inputs = [
                         'sales_rate'=>$taxe->sales_rate,
                         'purchase_rate'=>$taxe->purchase_rate,
@@ -381,6 +374,7 @@ class PurchaseOrderController extends Controller
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
         return response()->json($http_resp);
+        
     }
 
     public function show($uuid){

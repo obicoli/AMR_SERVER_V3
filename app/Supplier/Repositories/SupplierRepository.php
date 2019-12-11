@@ -294,7 +294,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             $temp_sta['status'] = $po_trail->status;
             $temp_sta['type'] = $po_trail->type;
             $temp_sta['notes'] = $po_trail->notes;
-            $temp_sta['date'] = date('Y-m-d',\strtotime($po_trail->created_at));
+            $temp_sta['date'] = date('Y-m-d H:i:s',\strtotime($po_trail->created_at));
             $practice_user = $po_trail->responsible()->get()->first();
             $temp_sta['signatory'] = $this->companyUser->transform_user($practice_user);
             array_push($po_audit_trails,$temp_sta);
@@ -371,6 +371,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             $temp_item['line_taxation'] = $taxes;
             $temp_item['line_discount'] = $sub_discount;
             $temp_item['line_total_tax'] = $sub_total_tax;
+            $temp_item['line_total'] = 0;
             $temp_item['amount'] = $toty;
             $temp_item['adjustments'] = $adjustments;
             array_push($po_items,$temp_item);

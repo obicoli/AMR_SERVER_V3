@@ -121,6 +121,7 @@ class Practice extends Model implements AccountableInterface
     //Settings
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }
     public function dashboard_widgets(){ return $this->belongsToMany(DashboardSetting::class,'company_widgets','practice_id','widget_id'); }
+    public function practice_taxations(){ return $this->hasMany(PracticeTaxation::class,'practice_id','id'); }
 
     //Supplier Module Integration
     public function vendors(){ return $this->morphMany(Supplier::class,'owning','owning_type','owning_id'); }

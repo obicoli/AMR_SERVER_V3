@@ -356,6 +356,7 @@ class ProductReposity implements ProductReposityInterface
             'note'=>$productItem->item_note,
             'store_location'=>$productItem->unit_storage_location,
             'price'=>$price,
+            'price_after_tax'=>$price,
             'qty' => 0,//from here are transactional
             //'batch_number' => '',
             //'exp_month' => '',
@@ -363,11 +364,14 @@ class ProductReposity implements ProductReposityInterface
             //'description' => '',
             'amount' => 0,
             'discount_allowed' => 0,
+            'line_taxation' => 0,
+            'line_total' => 0,
             'sub_stock_total'=> 0,
             //'batched_stock' => [],
             //'default_batched_stock'=>[],
             'stock'=>$stock,
             'opening_stock'=>$opening_stock,
+            'applied_tax_rates'=>[],
         ];
 
     }

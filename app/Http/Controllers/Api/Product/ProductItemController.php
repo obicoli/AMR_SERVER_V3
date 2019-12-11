@@ -10,12 +10,12 @@ use App\helpers\HelperFunctions;
 use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeProductItem;
-use App\Models\Practice\PracticeProductItemStock;
+// use App\Models\Practice\PracticeProductItemStock;
 use App\Models\Product\Product;
 use App\Models\Product\ProductAdministrationRoute;
 use App\Models\Product\ProductBrand;
 use App\Models\Product\ProductCategory;
-use App\Models\Product\ProductCurrency;
+// use App\Models\Product\ProductCurrency;
 use App\Models\Product\ProductGeneric;
 use App\Models\Product\ProductType;
 use App\Models\Product\ProductUnit;
@@ -83,7 +83,7 @@ class ProductItemController extends Controller
         $results = array();
         $company = $this->practice->find($request->user()->company_id);
         $practiceMain = $this->practice->findParent($company);
-        $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(15);
+        $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(10);
         $paged_data = $this->helper->paginator($product_items);
         foreach($product_items as $product_item){
             array_push($results,$this->productItem->transform_product_item($product_item,$company));
@@ -112,7 +112,7 @@ class ProductItemController extends Controller
         Log::info($request);
         $http_resp = $this->response_type['200'];
         $rule = [
-            'initial_stock'=>'required',
+            //'initial_stock'=>'required',
             'price' => 'required'
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
@@ -145,7 +145,6 @@ class ProductItemController extends Controller
                 $owner_equity_account = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
                 //Calculate amount of stock in Cash
                 $stock_cash = $request->initial_stock * $request->price['pack_retail_price'];
-                
                 //Find the price
                 //Here system can also create new price if user edited 
                 $db_price = $this->product_prices->findByUuid($request->price['id']);
@@ -161,11 +160,23 @@ class ProductItemController extends Controller
                 //Accounting Transaction
                 //1. Selected Inventory Account will debited
                 //2. By default Owner's Equity account will be credited
+                $debited_ac = $inventory_account->code;
+                $credited_ac = $owner_equity_account->code;
+                $amount = $stock_cash;
+                $as_at = $request->as_of;
+                $trans_name = AccountsCoa::TRANS_NAME_OPEN_BALANCE;
+                $trans_type = AccountsCoa::TRANS_NAME_OPEN_BALANCE;
                 $transaction_id = $this->helper->getToken(AccountsCoa::TRANS_ID_LENGTH);
-                $double_entry = $this->accountsVouchers->accounts_double_entry($company,$inventory_account->code,$owner_equity_account->code,$stock_cash,$request->as_of,AccountsCoa::TRANS_TYPE_START,$transaction_id);
-                $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_START,'trans_name'=>AccountsCoa::TRANS_NAME_INVENTORY_OP_STOCK]);
+                $account_number = $product_item->item_code;
+                $reference_number = $product_item->item_code;
+                $double_entry = $this->accountsVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+                $support_doc = $product_item->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_number,'voucher_id'=>$double_entry->id,'reference_number'=>$reference_number]);
+                // $double_entry = $this->accountsVouchers->accounts_double_entry($company,$inventory_account->code,$owner_equity_account->code,$stock_cash,$request->as_of,AccountsCoa::TRANS_TYPE_START,$transaction_id);
+                // $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_START,'trans_name'=>AccountsCoa::TRANS_NAME_INVENTORY_OP_STOCK]);
             }
 
+            //Start by reseting all taxations on this product
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->table('product_item_taxations')->where('product_item_id',$product_item->id)->delete();
             //Process taxation attachment if user attached taxe rates that were not attached before
             //1. ProductItems Table : TaxationTaxation Table is a Many:Many relationship
             //2. Connection Table:"product_item_taxations", ProductID: "product_item_id", TaxationID: "product_taxation_id"
@@ -181,9 +192,9 @@ class ProductItemController extends Controller
                     DB::connection(Module::MYSQL_PRODUCT_DB_CONN)
                     ->table('product_item_taxations')->insert($inps);
                 }
-                Log::info("============================");
-                Log::info($taxed);
-                Log::info("============================");
+                // Log::info("============================");
+                // Log::info($taxed);
+                // Log::info("============================");
             }
             
         }catch(\Exception $e){
