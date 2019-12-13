@@ -271,7 +271,6 @@ class BanksAccountsController extends Controller
                 $inpo['difference'] = 0;
                 $inpo['status'] = AccountsCoa::RECONCILIATION_NOT_TICKED;
                 $this->bankReconciliations->getOrCreateBankReconciliation($new_bank_account,$as_at,$inpo);
-
                 /*
                     Record The Final Status "Reconciled" for this Bank Transaction: Below Statements Performs this.
                 */

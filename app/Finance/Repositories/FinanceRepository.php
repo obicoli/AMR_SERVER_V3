@@ -170,7 +170,10 @@ class FinanceRepository implements FinanceRepositoryInterface
 
     public function getOrCreateBankReconciliation(AccountsBank $accountsBank, $start_date, $inputs=[]){
         //This function will be used to get Bank Reconciliation that has not been closed( i.e Whose newly created transactions are attached to)
-        $open_bank_reconciliation = $accountsBank->bank_reconciliations()->where('status',AccountsCoa::RECONCILIATION_NOT_TICKED)->get()->first();
+        $open_bank_reconciliation = $accountsBank->bank_reconciliations()
+            ->where('status',AccountsCoa::RECONCILIATION_NOT_TICKED)
+            ->get()
+            ->first();
         if($open_bank_reconciliation){
             return $open_bank_reconciliation;
         }else{

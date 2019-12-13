@@ -9,6 +9,7 @@ use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Accounting\Models\COA\AccountsHolder;
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Models\Localization\Country;
 
 class SupplierBill extends Model
@@ -25,8 +26,8 @@ class SupplierBill extends Model
         'taxation_option',
         'notes',
         'billable_type',
+
         'bill_type',
-        
         'total_bill',
         'total_grand',
         'total_tax',
@@ -37,5 +38,8 @@ class SupplierBill extends Model
     public function billable(){ return $this->morphTo(); } //This is Polymorphy
     public function items(){ return $this->hasMany(SupplierBillItem::class,'supplier_bill_id'); }
     public function bill_status(){ return $this->hasMany(SupplierBillStatus::class,'supplier_bill_id');}
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
     
 }

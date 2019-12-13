@@ -6,6 +6,7 @@ namespace App\Accounting\Http\Controllers\Api\Coa;
 // use App\Accounting\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Models\COA\AccountsNature;
 use App\Accounting\Models\COA\AccountsType;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Accounting\Repositories\AccountingRepository;
@@ -37,6 +38,7 @@ class ChartOfAccountsController extends Controller
     protected $accountingVouchers;
     protected $customers;
     protected $suppliers;
+    protected $accountNatures;
 
     public function __construct(AccountChartAccount $accountChartAccount)
     {
@@ -49,6 +51,7 @@ class ChartOfAccountsController extends Controller
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
         $this->customers = new CustomerRepository(new Customer());
         $this->suppliers = new SupplierRepository( new Supplier() );
+        $this->accountNatures = new AccountingRepository( new AccountsNature() );
     }
 
     public function show($uuid){
@@ -63,12 +66,31 @@ class ChartOfAccountsController extends Controller
     }
 
     public function index(Request $request){
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
         //Get Chart of Accounts under this company //
         // $company_chart_of_accounts = $company->chart_of_accounts()->get()->sortBy('accounts_type_id');
-        $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(10);
+        if($request->has('default_code')){
+            $company_chart_of_accounts = $company->chart_of_accounts()
+            ->where('default_code',$request->default_code)
+            ->orderByDesc('accounts_type_id')
+            ->paginate(1000);
+        }elseif( $request->has('account_nature') ){
+            //->where('accounts_nature_id',$account_nature->id)
+            // $account_nature = $this->accountNatures->findByName($request->account_nature);
+            // $account_type_id_array = $account_nature->account_types()->pluck('id')->toArray();
+            // $company_chart_of_accounts = $company->chart_of_accounts()
+            //     ->whereIn('accounts_type_id',$account_type_id_array)
+            //     ->orderByDesc('accounts_type_id')
+            //     ->paginate(15);
+            $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(200);
+        }
+        else{
+            $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
+        }
+
         $paged_data = $this->helper->paginator($company_chart_of_accounts);
         foreach ($company_chart_of_accounts as $company_chart_of_account) {
             array_push($paged_data['data'],$this->accountChartAccount->transform_company_chart_of_account($company_chart_of_account));
@@ -134,7 +156,7 @@ class ChartOfAccountsController extends Controller
                     $default_inputs['default_code'] = $main_parent->default_code;
                     $custom_chart_of_coa = $this->accountChartAccount->create($default_inputs);
                     $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
-                    Log::info($request);
+                    //Log::info($request);
                 }else{
                     // $default_coa = $this->accountsCoa->create($default_inputs);
                     $default_coa = $this->accountsCoa->findByUuid($request->detail_type_id);
@@ -158,6 +180,7 @@ class ChartOfAccountsController extends Controller
                         $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
                         return response()->json($http_resp,422);
                     }
+
                     //Opening Balance Equity i.e "Capital" Credited
                     //The Newly Created "account" Debited
                     //Transaction Type is "Deposit"

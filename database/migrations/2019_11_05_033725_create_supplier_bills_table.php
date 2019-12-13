@@ -20,7 +20,7 @@ class CreateSupplierBillsTable extends Migration
             $table->increments('id');
             $table->text('notes')->nullable();
             $table->string('taxation_option')->nullable();
-            $table->enum('bill_type',['cash','credit'])->default('credit');
+            $table->enum('bill_type',['Cash','Credit'])->default('Credit');
             $table->timestamp('bill_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('bill_due_date')->nullable();
             $table->string('order_number')->nullable()->index(); //trans_number
@@ -28,13 +28,14 @@ class CreateSupplierBillsTable extends Migration
             $table->string('billable_type')->nullable()->index();
             $table->unsignedInteger('supplier_id')->index()->nullable();
             $table->unsignedInteger('billed_id')->index()->nullable();
+            $table->unsignedInteger('payment_term_id')->nullable();
             $table->string('billed_type')->nullable()->index();
             $table->string('uuid');
 
-            $table->float('total_bill')->default(00.00);
-            $table->float('total_grand')->default(00.00);
-            $table->float('total_tax')->default(00.00);
-            $table->float('discount_offered')->default(00.00);
+            $table->float('total_bill',32,2)->default(00.00);
+            $table->float('total_grand',32,2)->default(00.00);
+            $table->float('total_tax',32,2)->default(00.00);
+            $table->float('discount_offered',32,2)->default(00.00);
 
             $table->string('supplier_invoice_number')->nullable();
             $table->string('delivery_form_number')->nullable();

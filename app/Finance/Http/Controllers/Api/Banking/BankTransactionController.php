@@ -235,7 +235,12 @@ class BankTransactionController extends Controller
                                                 $credited_ac = $bank_ledger_account->code;
                                                 //
                                                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                                                $support_doc = $transacted->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'voucher_id'=>$double_entry->id]);
+                                                $support1['trans_type'] = $trans_type;
+                                                $support1['trans_name'] = $trans_name;
+                                                $support1['account_number'] = $account_holder_number;
+                                                $support1['reference_number'] = $reference_number;
+                                                $support1['voucher_id'] = $double_entry->id;
+                                                $support_doc = $transacted->double_entry_support_document()->create($support1);
                                                 //Link Support Document to Transactionable: this can be "Bank Transaction", "Invoice","Bill" etc
                                                 //$support_doc = $transacted->double_entry_support_document()->save($support_doc);
 
@@ -263,9 +268,6 @@ class BankTransactionController extends Controller
                                                 $bank_account_reconciliation = $this->bankTransaction->getOrCreateBankReconciliation($bankAccount,$trans_date,null);
                                                 $this->bankTransaction->reconcile_bank_transaction($companyUser,$bank_account_reconciliation,$transacted,$bankAccount,null);
                                             break;
-
-
-
 
 
                                             case AccountsCoa::AC_TYPE_CUSTOMER: //We Receive from the customer payment

@@ -2,6 +2,7 @@
 
 namespace App\Models\Practice;
 
+use App\Accounting\Models\COA\AccountChartAccount;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Module\Module;
 use App\Models\Product\ProductTaxation;
@@ -22,5 +23,6 @@ class PracticeTaxation extends Model
 
     public function practices(){ return $this->belongsTo(Practice::class,'practice_id','id'); }
     public function product_taxations(){ return $this->belongsTo(ProductTaxation::class,'product_taxation_id','id'); }
+    public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
 
 }

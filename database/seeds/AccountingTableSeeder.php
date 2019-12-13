@@ -121,7 +121,7 @@ class AccountingTableSeeder extends Seeder
         //2. CASH & CASH EQUIVALENTS=====================
         $cash_and_equivalent->default_accounts()->create(['code'=>201,'sys_default'=>true,'name'=>"Bank"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>202,'sys_default'=>true,'name'=>"Cash and cash equivalents"]);
-        $cash_and_equivalent->default_accounts()->create(['code'=>203,'sys_default'=>true,'name'=>"Cash on hand"]);
+        $cash_and_equivalent->default_accounts()->create(['code'=>203,'sys_default'=>true,'name'=>"Petty Cash"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>204,'sys_default'=>true,'name'=>"Client trust account"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>205,'sys_default'=>true,'name'=>"Money Market"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>206,'sys_default'=>true,'name'=>"Rents Held in Trust"]);

@@ -22,6 +22,7 @@ interface AccountingRepositoryInterface
     public function find($id);
     public function findByUuid($uuid);
     public function findByCode($code);
+    public function findByName($name);
     public function findByDefaultCode($code);
     public function create($inputs = []);
     public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);

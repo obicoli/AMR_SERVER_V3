@@ -70,6 +70,7 @@ use App\Supplier\Models\PurchaseOrder;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
+use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierTerms;
 
 class Practice extends Model implements AccountableInterface
@@ -129,6 +130,7 @@ class Practice extends Model implements AccountableInterface
     public function purchase_order_shipping(){ return $this->morphMany(PurchaseOrder::class,'shipable','shipable_type','shipable_id'); }
     public function purchase_orders(){ return $this->morphMany(PurchaseOrder::class,'owning','owning_type','owning_id'); }
     public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
+    public function supplier_payments(){ return $this->morphMany(SupplierPayment::class,'owning','owning_type','owning_id'); }
     //Supplier Integration ends here
 
     //Accounting Integration=================================================
@@ -186,7 +188,7 @@ class Practice extends Model implements AccountableInterface
     public function product_brands(){ return $this->hasMany(ProductBrand::class,'practice_id'); }
     public function product_brand_sector(){ return $this->hasMany(ProductBrandSector::class,'practice_id'); }
     public function product_units(){ return $this->hasMany(ProductUnit::class,'practice_id'); }
-    public function product_currency(){ return $this->hasMany(ProductCurrency::class,'practice_id'); }
+    //public function product_currency(){ return $this->hasMany(ProductCurrency::class,'practice_id'); }
     //public function employees(){ return $this->hasMany(Employee::class, 'practice_id'); }
     public function products(){
         // return $this->hasMany(Product::class, 'practice_id'); 
@@ -197,16 +199,16 @@ class Practice extends Model implements AccountableInterface
     public function practice_account_holder(){ return $this->morphMany(PracticeAccountHolder::class, 'owner','owner_type','owner_id'); }
     //public function suppliers(){ return $this->belongsToMany(Supplier::class,'product_practice_suppliers','practice_id','supplier_id'); }
     //public function manufacturers(){ return $this->belongsToMany(Manufacturer::class,'practice_manufacturers','practice_id','manufacturer_id'); }
-    public function payment_methods(){ return $this->hasMany(ProductPaymentMethod::class,'practice_id'); }
+    //public function payment_methods(){ return $this->hasMany(ProductPaymentMethod::class,'practice_id'); }
     //public function bank_accounts(){ return $this->morphMany(AccountsBank::class,'holderable','holder_type','holder_id'); }
     
     //public function purchases(){ return $this->hasMany(ProductPurchase::class,'practice_id'); }
     //public function purchases(){ return $this->morphMany(ProductPurchase::class,'owner'); }
     //public function purchase_orders(){ return $this->morphMany(ProductPo::class, 'owning','owning_type','owning_id'); }
-    public function delivered_locations(){ return $this->morphMany(ProductPo::class, 'deliverable','deliverable_type','deliverable_id'); }
-    public function charged_locations(){ return $this->morphMany(ProductPo::class, 'chargeable','chargeable_type','chargeable_id'); }
+    //public function delivered_locations(){ return $this->morphMany(ProductPo::class, 'deliverable','deliverable_type','deliverable_id'); }
+    //public function charged_locations(){ return $this->morphMany(ProductPo::class, 'chargeable','chargeable_type','chargeable_id'); }
     public function purchases(){ return $this->morphMany(ProductPurchase::class, 'owning','owning_type','owning_id'); }
-    public function payments(){ return $this->morphMany(AccountPaymentTransaction::class,'owning','owning_type','owning_id'); }
+    //public function payments(){ return $this->morphMany(AccountPaymentTransaction::class,'owning','owning_type','owning_id'); }
     // public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owning','owning_type','owning_id'); }
     //public function vendors(){ return $this->morphMany(AccountVendor::class,'owning','owning_type','owning_id'); }
     public function product_goods_out_note(){ return $this->morphMany(GoodsOutNote::class,'owning','owning_type','owning_id'); }

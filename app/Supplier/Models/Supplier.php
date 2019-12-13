@@ -64,5 +64,6 @@ class Supplier extends Model
     }
     public function ledger_accounts(){ return $this->belongsTo(AccountChartAccount::class,'ledger_account_id','id'); }
     public function vats(){ return $this->belongsTo(ProductTaxation::class,'default_vat_id','id'); }
+    public function supplier_payments(){ return $this->hasMany(SupplierPayment::class,'supplier_id','id'); }
     
 }

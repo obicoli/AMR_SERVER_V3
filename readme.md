@@ -21,6 +21,8 @@
 ##https://accounting.sageone.co.za
 
 ##https://accounting.sageone.co.za/Dashboard/MyWorkspace.aspx
+##https://accounting-simplified.com/accounting-for-sales-tax-on-purchases.html
+##0714637166-Wendy
 
 ## Inventory Module:
 [Vouchers](http://localhost)

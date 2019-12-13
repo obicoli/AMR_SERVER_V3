@@ -26,9 +26,10 @@ class AccountsSupport extends Model
         /*
             This transactions involves:
             Bank Transaction, Invoices
-            Supplier: If Transaction is Supplier Opening Balance
-            Customer: If Transaction is Customer Opening Balance
-            Account: If Transaction is Account Opening Balance
+            Supplier: If Transaction type is Supplier Opening Balance
+            Customer: If Transaction type is Customer Opening Balance
+            Account: If Transaction type is Account Opening Balance
+            Bills: If Transaction type is Supplier Bill
         */
         return $this->morphTo();
     }

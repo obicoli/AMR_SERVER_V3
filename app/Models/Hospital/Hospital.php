@@ -97,19 +97,19 @@ class Hospital extends Model
     //public function product_type(){ return $this->belongsToMany(ProductType::class,'practice_product_type','practice_id','product_type_id'); }
     
     
-    public function product_sales(){ return $this->morphMany(ProductSales::class,'owner'); }
-    public function product_price_record(){ return $this->morphMany(ProductPriceRecord::class,'owner'); }
+    // public function product_sales(){ return $this->morphMany(ProductSales::class,'owner'); }
+    // public function product_price_record(){ return $this->morphMany(ProductPriceRecord::class,'owner'); }
     //Product Goods Out Notes
     public function product_goods_out_note(){ return $this->morphMany(GoodsOutNote::class,'owner','owner_type','owner_id'); }
     public function product_stock_taking(){ return $this->morphMany(ProductStockTaking::class,'owner','owner_type','owner_id'); }
     
     
-    public function vouchers(){ return $this->morphMany(ProductVoucher::class,'owner'); }
-    public function chart_accounts(){ return $this->morphMany(ProductChartAccount::class,'owner'); }
+    // public function vouchers(){ return $this->morphMany(ProductVoucher::class,'owner'); }
+    // public function chart_accounts(){ return $this->morphMany(ProductChartAccount::class,'owner'); }
 
 
     
-    public function product_currency(){ return $this->morphMany(ProductCurrency::class,'owner'); }
+    // public function product_currency(){ return $this->morphMany(ProductCurrency::class,'owner'); }
     public function product_email_notifications(){ return $this->morphMany(NotificationInventoryMailbox::class,'owner'); }
     public function product_stocks(){ return $this->morphMany(ProductStock::class,'owner','owner_type','owner_id'); }
     public function product_notifications(){ return $this->morphMany(InventoryAlert::class,'owner','owner_type','owner_id'); }
@@ -137,7 +137,7 @@ class Hospital extends Model
     
     
     public function purchases(){ return $this->morphMany(ProductPurchase::class, 'owner','owner_type','owner_id'); }
-    public function purchase_orders(){ return $this->morphMany(ProductPo::class, 'owner','owner_type','owner_id'); }
+    //public function purchase_orders(){ return $this->morphMany(ProductPo::class, 'owner','owner_type','owner_id'); }
     
     
     public function product_vaccines(){ return $this->morphMany(ProductVaccine::class, 'owner','owner_type','owner_id'); }
@@ -146,13 +146,13 @@ class Hospital extends Model
     public function product_supply(){ return $this->morphMany(ProductSupply::class, 'owner','owner_type','owner_id'); }
     public function product_stock_inward(){ return $this->morphMany(ProductStockInward::class, 'owner','owner_type','owner_id'); }
     //accounting
-    public function banks(){ return $this->morphMany(AccountsBank::class,'owner','owner_type','owner_id'); }
+    //public function banks(){ return $this->morphMany(AccountsBank::class,'owner','owner_type','owner_id'); }
     public function vendors(){ return $this->morphMany(AccountVendor::class,'owner','owner_type','owner_id'); }
     public function stores(){ return $this->morphMany(ProductStore::class,'owner','owner_type','owner_id'); }
-    public function payment_types(){ return $this->morphMany(AccountPaymentType::class,'owner','owner_type','owner_id'); }
-    public function payment_method(){ return $this->morphMany(AccountPaymentMethod::class,'owner','owner_type','owner_id'); }
-    public function payments(){ return $this->morphMany(AccountPaymentTransaction::class,'owner','owner_type','owner_id'); }
-    public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owner','owner_type','owner_id'); }
+    // public function payment_types(){ return $this->morphMany(AccountPaymentType::class,'owner','owner_type','owner_id'); }
+    // public function payment_method(){ return $this->morphMany(AccountPaymentMethod::class,'owner','owner_type','owner_id'); }
+    // public function payments(){ return $this->morphMany(AccountPaymentTransaction::class,'owner','owner_type','owner_id'); }
+    // public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owner','owner_type','owner_id'); }
     //His RTC Tracks
     public function his_rtc_tracks(){ return $this->morphMany(HisRtcUserTrack::class,'owner','owner_type','owner_id'); }
 

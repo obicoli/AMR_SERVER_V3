@@ -17,6 +17,12 @@ class AccountsCoa extends Model
     const BALANCE_DEBIT = "Debit";
     const BALANCE_CREDIT = "Credit";
     const ACCOUNT_TRANSACTION_REPORT = "Transaction Report";
+    const PAY_METHOD_CHEQUE = "Cheque";
+    const PAY_METHOD_CASH = "Cash";
+    const PAY_SETTLEMENT_FULL = "Full";
+    const PAY_SETTLEMENT_PARTIAL = "Partial";
+    const BILL_TYPE_CASH = "Cash";
+    const BILL_TYPE_CREDIT = "Credit";
 
     const ASSETS = "Assets";
     const LIABILITY = "Liability";
@@ -62,6 +68,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_DISCOUNT_RECEIVED = "Discount Received";
     const TRANS_TYPE_DISCOUNT_ALLOWED = "Discount Allowed";
     const TRANS_TYPE_SUPPLIER_PAYMENT = "Supplier Payment";
+    const TRANS_TYPE_SUPPLIER_BILL = "Supplier Bill";
     const TRANS_TYPE_CUSTOMER_RECEIPT = "Customer Receipt";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
     const TRANS_TYPE_SUPPLIER_OPENING_BALANCE = "Supplier Opening Balance";

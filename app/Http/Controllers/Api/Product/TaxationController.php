@@ -35,8 +35,21 @@ class TaxationController extends Controller
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
         $companyParent = $this->practices->findParent($company);
-        //$taxes = $companyParent->product_taxations()->get();
-        $taxes = $companyParent->product_taxations()->orderByDesc('created_at')->paginate(20);
+        
+        if($request->has('input_tax')){
+            $taxes = $companyParent->product_taxations()
+                ->where('collected_on_purchase',true)
+                ->orderByDesc('created_at')
+                ->paginate(20);
+        }elseif($request->has('output_tax')){
+            $taxes = $companyParent->product_taxations()
+                ->where('collected_on_sales',true)
+                ->orderByDesc('created_at')
+                ->paginate(20);
+        }else{
+            $taxes = $companyParent->product_taxations()->orderByDesc('created_at')->paginate(20);
+        }
+
         $paged_data = $this->helper->paginator($taxes);
         foreach($taxes as $taxe){
             $temp_data['id'] = $taxe->uuid;
