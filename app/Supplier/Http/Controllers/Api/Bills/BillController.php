@@ -56,6 +56,13 @@ class BillController extends Controller
     protected $supplierPayments;
     protected $accountDoubleEntries;
 
+    protected $status_overdue;
+    protected $status_paid;
+    protected $status_draft;
+    protected $status_open;
+    protected $status_partial_paid;
+    protected $status_partial_unpaid;
+
     public function __construct( SupplierBill $supplierBill )
     {
         $this->http_response = Config::get('response.http');
@@ -75,12 +82,46 @@ class BillController extends Controller
         $this->companyTaxations = new PracticeRepository( new PracticeTaxation() );
         $this->bankTransactions = new FinanceRepository( new BankTransaction() );
         $this->accountDoubleEntries = new AccountingRepository( new AccountsVoucher() );
+        //
+        $this->status_overdue = Product::STATUS_OVERDUE;
+        $this->status_open = Product::STATUS_OPEN;
+        $this->status_partial_paid = Product::STATUS_PARTIAL_PAID;
+        $this->status_partial_unpaid = Product::STATUS_UNPAID;
+        $this->status_paid = Product::STATUS_PAID;
     }
 
     public function index(Request $request){
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $company = $this->practices->find($request->user()->company_id);
-        $bill_lists = $company->supplier_bills()->orderByDesc('created_at')->paginate(15);
+        if($request->has('filter_by')){
+            switch ($request->filter_by) {
+                case $this->status_overdue:
+                    $today_is = date('Y-m-d H:i:s');
+                    $bill_lists = $company->supplier_bills()
+                    ->where('bill_due_date','<',$today_is)
+                    ->where('status',$this->status_open)
+                    ->orWhere('status',$this->status_partial_paid)
+                    ->orderByDesc('created_at')
+                    ->paginate(10);
+                    break;
+                case $this->status_partial_unpaid:
+                    $bill_lists = $company->supplier_bills()
+                    ->where('status','!=',$this->status_paid)
+                    ->orderByDesc('created_at')
+                    ->paginate(10);
+                    break;
+                default:
+                    $bill_lists = $company->supplier_bills()
+                    ->where('status',$request->filter_by)
+                    ->orderByDesc('created_at')
+                    ->paginate(10);
+                    break;
+            }
+        }else{
+            $bill_lists = $company->supplier_bills()->orderByDesc('created_at')->paginate(10);
+        }
+        
         $results = array();
         foreach($bill_lists as $bill_list){
             array_push( $results,$this->supplierBills->transform_bill($bill_list) );
@@ -94,6 +135,12 @@ class BillController extends Controller
     public function create(Request $request){
         //Log::info($request);
         /*
+
+            When a business purchases goods on credit from a supplier the terms will stipulate
+            the date on which the amount outstanding is to be paid. In addition the terms 
+            will often allow a purchase discount to be taken if the 
+            invoice is settled at an earlier date.
+
             VAT Journal Entries
 
             When Goods are bought and you have to pay both purchase value and VAT input or pay both, following entry will be passed:
@@ -120,10 +167,10 @@ class BillController extends Controller
             //'order_number'=>'required',
             'bill_type'=>'required',
             'items'=>'required',
-            'total_bill'=>'required',
-            'total_grand'=>'required',
+            'net_total'=>'required',
+            'grand_total'=>'required',
             'total_tax'=>'required',
-            'discount_offered'=>'required',
+            'total_discount'=>'required',
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
@@ -154,33 +201,6 @@ class BillController extends Controller
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
 
-            //Create new bill
-            $inputs = $request->all();
-            $inputs['bill_date'] = $this->helper->format_lunox_date($inputs['bill_date']);
-            $inputs['bill_due_date'] = $this->helper->format_lunox_date($inputs['bill_due_date']);
-
-            $as_at = $this->helper->format_lunox_date($inputs['bill_date']);
-            $notes = $request->notes;
-            $discount = $request->total_discount;
-            $total_bill = $request->total_bill;
-            $total_tax = $request->total_tax;
-            $bank_account = null;
-            $bill_type = $request->bill_type;
-
-            $cash_basis_bill = AccountsCoa::BILL_TYPE_CASH;
-            $credit_basis_bill = AccountsCoa::BILL_TYPE_CREDIT;
-            $discount_received_allowed_ledger_code = AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE;
-            $account_type_supplier = AccountsCoa::AC_TYPE_SUPPLIER;
-            $partial_settlement = AccountsCoa::PAY_SETTLEMENT_PARTIAL;
-            $full_settlement = AccountsCoa::PAY_SETTLEMENT_FULL;
-            $payment_method_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
-            $payment_method_cash = AccountsCoa::PAY_METHOD_CASH;
-
-            $net_bill = $request->total_grand;
-            $cash_paid = $request->payment['cash_paid'];
-            $cash_balance = $request->payment['cash_balance'];
-            $payment_method = $request->payment['payment_method'];
-
             $user = $request->user();
             $company = $this->practices->find($request->user()->company_id);
             $practiceParent = $this->practices->findParent($company);
@@ -193,6 +213,51 @@ class BillController extends Controller
             $supplier = $this->suppliers->findByUuid($request->supplier_id);
             $supplier_account = $supplier->account_holders()->get()->first();
             $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
+            $ledger_support_document = null;
+            $bank_reference = $request->payment['cheque_number'];//This is the CHEQUE Number()
+
+            //Create new bill
+            $inputs = $request->all();
+            $inputs['bill_date'] = $this->helper->format_lunox_date($inputs['bill_date']);
+            $inputs['bill_due_date'] = $this->helper->format_lunox_date($inputs['bill_due_date']);
+
+            $as_at = $this->helper->format_lunox_date($inputs['bill_date']);
+            $notes = $request->notes;
+            $discount = $request->total_discount;
+            $grand_total = $request->grand_total;
+            $net_total = $request->net_total;
+            $total_tax = $request->total_tax;
+            $bank_account = null;
+            $bill_type = $request->bill_type;
+            $currency = $request->currency;
+
+            $cash_basis_bill = AccountsCoa::BILL_TYPE_CASH;
+            $credit_basis_bill = AccountsCoa::BILL_TYPE_CREDIT;
+            $discount_received_allowed_ledger_code = AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE;
+            $account_type_supplier = AccountsCoa::AC_TYPE_SUPPLIER;
+            $partial_settlement = AccountsCoa::PAY_SETTLEMENT_PARTIAL;
+            $full_settlement = AccountsCoa::PAY_SETTLEMENT_FULL;
+            $payment_method_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
+            $payment_method_cash = AccountsCoa::PAY_METHOD_CASH;
+            $transaction_status_partial_paid = Product::STATUS_PARTIAL_PAID;
+            $transaction_status_paid = Product::STATUS_PAID;
+            $trans_type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
+            $trans_type_supplier_payment = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
+            $trans_type_payment_receipt = AccountsCoa::TRANS_TYPE_PAYMENT_RECEIPT;
+
+            if($finance_settings){
+                $payment_prefix = "PAY";
+                $bill_prefix = $finance_settings->bill_prefix;
+            }else{
+                $payment_prefix = "PAY";
+                $bill_prefix = "BL";
+            }
+
+
+            //$grand_total = $request->grand_total;
+            $cash_paid = $request->payment['cash_paid'];
+            $cash_balance = $request->payment['cash_balance'];
+            $payment_method = $request->payment['payment_method'];
 
             $inputs['supplier_id'] = $supplier->id;
             if($payment_term){ $inputs['payment_term_id'] = $payment_term->id;}else{ $inputs['payment_term_id'] = $supplier->payment_term_id;}
@@ -207,7 +272,8 @@ class BillController extends Controller
 
             //Create Bill
             $new_bill = $this->supplierBills->create($inputs);
-            if($finance_settings){ $bill_prefix = $finance_settings->bill_prefix; }else{ $bill_prefix = "BIL"; }
+            $ledger_support_document = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type_supplier_bill]);
+            // if($finance_settings){ $bill_prefix = $finance_settings->bill_prefix; }else{ $bill_prefix = "BIL"; }
             $new_bill->trans_number = $this->helper->create_transaction_number($bill_prefix,$new_bill->id);
             $new_bill = $company->supplier_bills()->save($new_bill);
 
@@ -275,10 +341,10 @@ class BillController extends Controller
 
             //
             $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
-            $trans_name = $notes;
+            //$trans_name = $notes;
             //$as_at = $request->bill_date;
-            $reference_number = $new_bill->trans_number;
-            $account_holder_number = $supplier_account->account_number;
+            //$reference_number = $new_bill->trans_number;
+            //$account_holder_number = $supplier_account->account_number;
 
             //VAT Journal Entries
             //Accounting: tax collected
@@ -299,48 +365,55 @@ class BillController extends Controller
                         ->first();
                     $company_tax_ledger_ac = $practice_taxation->ledger_accounts()->get()->first();
                     $debited_ac = $company_tax_ledger_ac->code;
-                    //$credited_ac = $supplier_ledger_ac->code;
                     $amount = $tax_value_array[$tz];
+                    $trans_name = "Input tax ".$product_taxation->name;
                     $transaction_id = $this->helper->getToken(10,'BL');
-                    $double_entry2 = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                    $support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
-                    $support_doc2 = $new_bill->double_entry_support_document()->save($support_doc2);
+                    $tax_double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+                    $tax_support = $tax_double_entry->supports()->save($ledger_support_document);
+                    //$support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
+                    //$support_doc2 = $new_bill->double_entry_support_document()->save($support_doc2);
                 }
             }
 
             //Accounting: Discount we received from purchase
-            if($discount){
+            if($discount > 0){
                 //$trans_type = AccountsCoa::TRANS_TYPE_DISCOUNT_RECEIVED;
                 //$trans_name = $comment;
+                $trans_name = "Discount received";
                 $amount = $discount;
                 $transaction_id = $this->helper->getToken(10,'DISC');
                 $company_discount_received_account = $company->chart_of_accounts()->where('default_code',$discount_received_allowed_ledger_code)->get()->first();
                 $debited_ac = $supplier_ledger_ac->code;
                 $credited_ac = $company_discount_received_account->code;
-                $double_entry2 = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                $support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
+                $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+                $support = $double_entry->supports()->save($ledger_support_document);
+                //$support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
             }
 
             //Accounting: Purchase Inventory
             //$amount = $total_bill - $request->total_discount; //This is the amount after discount is removed
             //$amount = $amount - $request->total_tax;
             //$spent = $request->total_bill - $request->total_discount;
-            $amount = $total_bill - $discount - $total_tax;
+            $amount = $grand_total - $discount - $total_tax;
             $transaction_id = $this->helper->getToken(10,'SPAY');
             $debited_ac = $inventory_account->code;
-            $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
-            $double_entr = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-            $support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entr->id]);
+            $trans_name = $notes;
+            $credited_ac = $ledger_ac_paid_this_bill->code;
+            $trans_type = $trans_type_supplier_payment;
+            $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+            $support = $double_entry->supports()->save($ledger_support_document);
 
-            //Here you record payment
+            //$support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entr->id]);
+
+            //Here you record payment if this bill is a "Cash Basis"
             if( $bill_type === $cash_basis_bill ){
                 //Check if fully settled
                 $pay_inputs = [];
-                if( $net_bill == $cash_paid ){
-                    $pay_inputs['status'] = $full_settlement;
+                if( $net_total == $cash_paid ){ //"Total Bill" was fully paid
+                    $pay_inputs['status'] = $transaction_status_paid;
                     $pay_inputs['settlement_type'] = $full_settlement;
-                }elseif( ($cash_paid > 0) && ($cash_paid<$net_bill) ){
-                    $pay_inputs['status'] = $partial_settlement;
+                }elseif( ($cash_paid > 0) && ($cash_paid<$net_total) ){ //"Bill" was partial paid
+                    $pay_inputs['status'] = $transaction_status_partial_paid;
                     $pay_inputs['settlement_type'] = $partial_settlement;
                 }else{
                     $http_resp = $this->http_response['422'];
@@ -351,6 +424,12 @@ class BillController extends Controller
                     DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
                     return response()->json($http_resp,422);
                 }
+                if($bank_reference){
+                    $pay_reference = $bank_reference;
+                }else{
+                    $pay_reference = $new_bill->trans_number;
+                }
+                //Record this payment into Payments table as below
                 $pay_inputs['amount'] = $cash_paid;
                 $pay_inputs['bill_id'] = $new_bill->id;
                 $pay_inputs['supplier_id'] = $supplier->id;
@@ -358,40 +437,53 @@ class BillController extends Controller
                 $pay_inputs['ledger_account_id'] = $ledger_ac_paid_this_bill->id;
                 $pay_inputs['payment_method'] = $payment_method;
                 $pay_inputs['notes'] = $notes;
-                $pay_inputs['reference_number'] = $new_bill->trans_number;
-                $pay_inputs['reference_number'] = $new_bill->trans_number;
+                $pay_inputs['reference_number'] = $pay_reference;
+                $pay_inputs['trans_number'] = $payment_prefix;
                 $new_supplier_payment = $company->supplier_payments()->create($pay_inputs);
+                $new_supplier_payment->trans_number = $this->helper->create_transaction_number($payment_prefix,$new_supplier_payment->id);
+                $new_supplier_payment->save();
+                //Here also record status of the bill
+                //Create the status  and attach it the user responsible
+                //Then attach it to estimate
+                $pay_inputs['notes'] = $bill_type." basis supplier bill created for ".$currency." ".number_format($net_total,2);
+                $bill_status = $company_user->bill_status()->create($pay_inputs);
+                $bill_status = $new_bill->bill_status()->save($bill_status);
+                $new_bill->status = $pay_inputs['status'];
+                $new_bill->save();
 
-            }
+                //Record Bank Transaction if Cheque was Used to pay this bill and attach to above "new_supplier_payment" as below
+                if( $bill_type==$cash_basis_bill && $payment_method == $payment_method_cheque){
+                    $spent = $grand_total - $discount;
+                    
+                    //Bank Transaction is Recorded
+                    /*
+                        Any Bank Transaction Recorded to the system, 
+                        "reference_number" must be an issued reference number 
+                        from the bank institution, this is important when it comes to bank reconciliation
+                    */
+                    
+                    $transactions['bank_account_id'] = $bank_account->id;
+                    $transactions['transaction_date'] = $as_at;
+                    $transactions['spent'] = $spent;
+                    $transactions['type'] = $account_type_supplier;
+                    $transactions['name'] = $trans_type_supplier_payment;
+                    $transactions['payee'] = $company->name;
+                    $transactions['description'] = $notes;
+                    $transactions['reference'] = $bank_reference;
+                    $transactions['discount'] = $discount;
+                    $transactions['comment'] = $notes;
+                    $bank_transaction = $new_supplier_payment->bank_transactions()->create($transactions);//Create and Link this transaction to Supplier Payments
+                    $bank_transaction = $company->bank_transactions()->save($bank_transaction);//Link transaction to a company
 
-            //Bank Transaction if Cheque was Issued
-            if( $bill_type==$cash_basis_bill && $payment_method == $payment_method_cheque){
+                    //$support = $double_entry->supports()->save($ledger_support_document);
+                    //$support_doc = $bank_transaction->double_entry_support_document()->save($new_bill);
+                    //Attach this bank transaction to an Open Bank Reconciliation as Below:
+                    //1. Get available Reconciliation by line below
+                    //Log::info($bank_account);
+                    $bank_account_reconciliation = $this->bankTransactions->getOrCreateBankReconciliation($bank_account,$as_at,null);
+                    $this->bankTransactions->reconcile_bank_transaction($company_user,$bank_account_reconciliation,$bank_transaction,$bank_account,null,AccountsCoa::RECONCILIATION_NOT_TICKED);
+                }
 
-                $spent = $total_bill - $discount;
-                //Bank Transaction is Recorded
-                /*
-                    Any Bank Transaction Recorded to the system, 
-                    "reference_number" must be an issued reference number 
-                    from the bank institution, this is important when it comes to bank reconciliation
-                */
-                $reference = $request->payment['cheque_number'];//This is the CHEQUE Number()
-                //
-                $transactions['bank_account_id'] = $bank_account->id;
-                $transactions['transaction_date'] = $as_at;
-                $transactions['spent'] = $spent;
-                $transactions['type'] = $account_type_supplier;
-                $transactions['payee'] = $company->name;
-                $transactions['description'] = $notes;
-                $transactions['reference'] = $reference;
-                $transactions['discount'] = $discount;
-                $transactions['comment'] = $notes;
-                $bank_transaction = $supplier->bank_transactions()->create($transactions);
-                //Link it to a company
-                $bank_transaction = $company->bank_transactions()->save($bank_transaction);
-                //Attach this bank transaction to an Open Bank Reconciliation as Below:
-                //1. Get available Reconciliation by line below
-                $bank_account_reconciliation = $this->bankTransactions->getOrCreateBankReconciliation($bank_account,$as_at,null);
-                $this->bankTransactions->reconcile_bank_transaction($company_user,$bank_account_reconciliation,$bank_transaction,$bank_account,null);
             }
             
             
@@ -437,10 +529,10 @@ class BillController extends Controller
             //             $status = [ 'status'=>Product::STATUS_OPEN ];
             //             break;
             //     }
-            //     //Create the status  and attach it the user responsible
-            //     //Then attach it to estimate
-            //     $bill_status = $company_user->bill_status()->create($status);
-            //     $bill_status = $new_bill->bill_status()->save($bill_status);
+                // //Create the status  and attach it the user responsible
+                // //Then attach it to estimate
+                // $bill_status = $company_user->bill_status()->create($status);
+                // $bill_status = $new_bill->bill_status()->save($bill_status);
             // }
 
             // //Items
@@ -483,12 +575,22 @@ class BillController extends Controller
             Log::info($e);
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
+    }
 
+    public function show($uuid){
+        $http_resp = $this->http_response['200'];
+        $attachments = array();
+        $bill = $this->supplierBills->findByUuid($uuid);
+        $bill_data = $this->suppliers->transform_bill($bill);
+        $bill_data['attachments'] = $attachments;
+        $bill_data['items'] = $this->suppliers->transform_items($bill,$bill_data);
+        $http_resp['results'] = $bill_data;
+        return response()->json($http_resp);
     }
 
 }

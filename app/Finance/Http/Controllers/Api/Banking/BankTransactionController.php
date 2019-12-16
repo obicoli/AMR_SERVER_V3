@@ -54,7 +54,7 @@ class BankTransactionController extends Controller
 
     public function index(Request $request){
 
-        Log::info($request);
+        //Log::info($request);
         $company = $this->practices->find($request->user()->company_id);
         $filters = $this->helper->get_default_filter();
         if($request->has('bank_account_id')){
@@ -104,6 +104,8 @@ class BankTransactionController extends Controller
             $bank_ledger_account = $bankAccount->ledger_accounts()->get()->first();
             $user = $request->user();
             $companyUser = $this->companyUsers->findByUserAndCompany($user,$company);
+            $payment_method = AccountsCoa::PAY_METHOD_CHEQUE;
+            $trans_type_supplier_payment = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
             
             // $new_transaction_array = array();
             // $exist_transaction_array = array();
@@ -203,17 +205,37 @@ class BankTransactionController extends Controller
                                                 }
                                                 $supplier = $this->suppliers->findByUuid($transactions[$i]['selection']['id']);
                                                 $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
+
                                                 $transactions[$i]['bank_account_id'] = $bankAccount->id;
                                                 $transactions[$i]['transaction_date'] = $trans_date;
+                                                $transactions[$i]['name'] = $trans_type_supplier_payment;
                                                 $transacted = $supplier->bank_transactions()->create($transactions[$i]);
 
                                                 $transacted->spent = $spent;
                                                 $transacted->save();
                                                 $amount = $transactions[$i]['spent'];
                                                 $transaction_id = $this->helper->getToken(10,'PAY');
+
                                                 if( $discount ){
                                                     $amount = $amount - $discount;
                                                 }
+                                                //Record Into Supplier Payment
+                                                $pay_inputs['amount'] = $amount;
+                                                //$pay_inputs['bill_id'] = $new_bill->id;
+                                                $pay_inputs['supplier_id'] = $supplier->id;
+                                                $pay_inputs['payment_date'] = $as_at;
+                                                $pay_inputs['ledger_account_id'] = $bank_ledger_account->id;
+                                                $pay_inputs['payment_method'] = $payment_method;
+                                                $pay_inputs['notes'] = $comment;
+                                                $pay_inputs['reference_number'] = $reference_number;
+                                                //$pay_inputs['trans_number'] = //$new_bill->trans_number;
+                                                $new_supplier_payment = $company->supplier_payments()->create($pay_inputs);
+
+                                                $transactions[$i]['bank_account_id'] = $bankAccount->id;
+                                                $transactions[$i]['transaction_date'] = $trans_date;
+                                                $transactions[$i]['name'] = $trans_type_supplier_payment;
+                                                $transacted = $new_supplier_payment->bank_transactions()->create($transactions[$i]);
+
                                                 //Get Company Accounts Payables
                                                 //ASSET and EXPENSE accounts have normal debit balances. Debited when Increase, Credited when Decrease
                                                 //Liability, equity and revenue have normal Credit Balance: i.e Credited when Increase, Debited when Descrease
@@ -221,9 +243,10 @@ class BankTransactionController extends Controller
                                                 
                                                 //Get Supplier Account from AccountHolders and Reduce the balance since is being 
                                                 $supplier_account = $supplier->account_holders()->get()->first();
-                                                $account_holder_number = $supplier_account->account_number;
-                                                $supplier_account->balance = $supplier_account->balance - $amount;
-                                                $supplier_account->save();
+                                                // $account_holder_number = $supplier_account->account_number;
+                                                // $supplier_account->balance = $supplier_account->balance - $amount;
+                                                // $supplier_account->save();
+
                                                 //Bank Account Balance Update
                                                 $bankAccount->balance = $bankAccount->balance - $amount;
                                                 $bankAccount->save();
@@ -237,7 +260,7 @@ class BankTransactionController extends Controller
                                                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
                                                 $support1['trans_type'] = $trans_type;
                                                 $support1['trans_name'] = $trans_name;
-                                                $support1['account_number'] = $account_holder_number;
+                                                //$support1['account_number'] = $account_holder_number;
                                                 $support1['reference_number'] = $reference_number;
                                                 $support1['voucher_id'] = $double_entry->id;
                                                 $support_doc = $transacted->double_entry_support_document()->create($support1);
@@ -260,8 +283,8 @@ class BankTransactionController extends Controller
                                                     $supplier_account->balance = $supplier_account->balance - $discount;
                                                     $supplier_account->save();
                                                     //Bank Account Balance Update
-                                                    $bankAccount->balance = $bankAccount->balance - $discount;
-                                                    $bankAccount->save();
+                                                    // $bankAccount->balance = $bankAccount->balance - $discount;
+                                                    // $bankAccount->save();
                                                 }
                                                 //Attach this bank transaction to an Open Bank Reconciliation as Below:
                                                 //1. Get available Reconciliation by line below

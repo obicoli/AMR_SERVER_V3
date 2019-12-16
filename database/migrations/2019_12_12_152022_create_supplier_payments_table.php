@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Module\Module;
+use ByTestGear\Accountable\Accountable;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -24,13 +25,15 @@ class CreateSupplierPaymentsTable extends Migration
             $table->string('payment_method')->default('Cheque');
             $table->float('amount',32,2)->default(00.00);
             $table->string('status')->default('Paid')->index();
-            $table->string('settlement_type',['Full','Partial'])->default('Full')->index();
+            $table->enum('settlement_type',['Full','Partial'])->default('Full')->index();
             $table->string('notes')->nullable();
             $table->string('reference_number')->nullable();
             $table->string('trans_number')->nullable();
             $table->unsignedInteger('owning_id')->nullable()->index();
             $table->string('owning_type')->nullable()->index();
             $table->string('uuid');
+            $table->softDeletes();
+            Accountable::columns($table);
             $table->timestamps();
         });
     }

@@ -18,7 +18,7 @@ class CreateSupplierBillItemsTable extends Migration
         Schema::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->create('supplier_bill_items', function (Blueprint $table) {
             $table->increments('id');
             $table->float('qty')->default(00.00);
-            $table->string('description')->nullable();
+            //$table->string('description')->nullable();
             $table->unsignedInteger('supplier_bill_id')->index();
             $table->unsignedInteger('product_price_id')->index();
             $table->unsignedInteger('product_item_id')->index();

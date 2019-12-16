@@ -36,4 +36,9 @@ class AccountsSupport extends Model
     public function vouchers(){ return $this->belongsTo(AccountsVoucher::class,'voucher_id'); }
     public function account_holders(){ return $this->belongsTo(AccountHolder::class,'account_number','account_number'); }
 
+    public function accounts_vouchers()
+    {
+        return $this->belongsToMany(AccountsVoucher::class,'accounts_voucher_supports','support_id','voucher_id');
+    }
+
 }

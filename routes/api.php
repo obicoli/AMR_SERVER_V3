@@ -715,6 +715,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
         });
 
+        Route::group( ['prefix'=>'payments' ], function (){
+            Route::get('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@index");
+            Route::post('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@create");
+            Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@show");
+        });
+
         Route::group( ['prefix'=>'bills' ], function (){
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@create");

@@ -24,6 +24,7 @@ class CreateBankTransactionsTable extends Migration
             $table->string('description')->nullable();
             $table->string('reference')->nullable();
             $table->string('type'); //this can be: Account,Customer,Supplier,Transfer,VAT
+            $table->string('name'); //this can be "Supplier Payment", "Customer Payment" etc
             $table->unsignedInteger('transactionable_id');//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->string('transactionable_type');//This is Supplier,or Customer,Or Account(Polymorphy)
             $table->timestamp('transaction_date')->default(DB::raw("CURRENT_TIMESTAMP"));

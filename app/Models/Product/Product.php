@@ -38,6 +38,10 @@ class Product extends Model
     const STATUS_CLOSED = "Closed";
     const STATUS_RECEIVED = "Received";
     const STATUS_ATTACHED = "Attached";
+    const STATUS_PAID = "Paid";
+    const STATUS_PARTIAL_PAID = "Partial Paid";
+    const STATUS_OVERDUE = "Overdue";
+    const STATUS_UNPAID = "Unpaid";
 
     const STOCK_SOURCE_OPENING_STOCK = "Opening Stock";
     const STOCK_SOLD = "sold";

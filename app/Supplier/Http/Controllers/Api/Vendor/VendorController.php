@@ -269,10 +269,13 @@ class VendorController extends Controller
                 $trans_name = $request->legal_name.' '.$reference_number;
                 //$ac_number = $vendor_account->account_number;
                 $account_number = $vendor_account->account_number;
+                
                 //
+                $ledger_support_document = $new_vendor->double_entry_support_document()->create(['trans_type'=>$trans_type]);
                 $transaction_id = $this->helper->getToken(10,'SOBP');
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_type,$transaction_id);
-                $support_doc = $new_vendor->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
+                $double_entry->supports()->save($ledger_support_document);
+                //$support_doc = $new_vendor->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
                 // $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$ac_number,'reference_number'=>$reference_number]);
                 // $support_doc = $new_vendor->double_entry_support_document()->save($support_doc);
                 $http_resp['results'] = $this->suppliers->transform_supplier($new_vendor);

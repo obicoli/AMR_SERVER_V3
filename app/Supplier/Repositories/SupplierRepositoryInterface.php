@@ -9,6 +9,7 @@ use App\Supplier\Models\SupplierAddress;
 use App\Supplier\Models\SupplierAsset;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
+use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierTerms;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,6 +21,8 @@ interface SupplierRepositoryInterface
     public function findByTransNumber($trans_number);
     public function create($inputs = []);
     public function update($inputs = [], $id);
+    public function transform_payment(SupplierPayment $supplierPayment);
+    public function transform_items(Model $model,$transaction=[]);
     public function transform_assets(SupplierAsset $supplierAsset);
     public function transform_supplier(Supplier $supplier, $detailed=null);
     public function transform_address(SupplierAddress $supplierAddress);

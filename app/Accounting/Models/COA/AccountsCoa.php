@@ -70,10 +70,12 @@ class AccountsCoa extends Model
     const TRANS_TYPE_SUPPLIER_PAYMENT = "Supplier Payment";
     const TRANS_TYPE_SUPPLIER_BILL = "Supplier Bill";
     const TRANS_TYPE_CUSTOMER_RECEIPT = "Customer Receipt";
+    const TRANS_TYPE_PAYMENT_RECEIPT = "Payment Receipt";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
     const TRANS_TYPE_SUPPLIER_OPENING_BALANCE = "Supplier Opening Balance";
     const TRANS_TYPE_CUSTOMER_OPENING_BALANCE = "Customer Opening Balance";
     const TRANS_TYPE_ACCOUNT_OPENING_BALANCE = "Account Opening Balance";
+    const TRANS_TYPE_BANK_OPENING_BALANCE = "Bank Opening Balance";
 
     const TRANS_NAME_OPEN_BALANCE = "Opening Balance";
     const TRANS_NAME_JOURNAL_ENTRY = "Journal Entry";

@@ -126,6 +126,9 @@ class BanksAccountsController extends Controller
             $bank = $this->banks->findByUuid($request->bank_id);
             $bank_branch = $this->bank_branches->findByUuid($request->branch_id);
             $bank_account_type = $this->bank_account_types->findByUuid($request->account_type_id);
+
+            $trans_type_opening_balance = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
+            $trans_type_bank_balance = AccountsCoa::TRANS_TYPE_BANK_OPENING_BALANCE;
             //Check if selected branch belongs to seletced bank
             $bank_branch = $bank->branches()->find($bank_branch->id);
             if(!$bank_branch){
@@ -156,6 +159,7 @@ class BanksAccountsController extends Controller
             */
             //(A). Create new bank account
             $new_bank_account = $company->bank_accounts()->create($inputs);
+            
             if($request->is_default){
                 //The newly created bank should be the operating bank i.e Default
                 $current_default = $company->bank_accounts()->where('is_default',true)->get()->first();
@@ -193,6 +197,8 @@ class BanksAccountsController extends Controller
                 $new_bank_account->ledger_account_id = $custom_chart_of_coa->id;
                 $new_bank_account->save();
             }
+
+            $ledger_support_document = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type_bank_balance]);
 
             //(C) OPENING BALANCES
             if($request->has('opening_balance') && $request->opening_balance>0){
@@ -232,6 +238,7 @@ class BanksAccountsController extends Controller
                 //Create the Three Status of this Transaction
                 $bank_inputs['transaction_date'] = $as_at;
                 $bank_inputs['type'] = AccountsCoa::AC_TYPE_ACCOUNT;
+                $bank_inputs['name'] = $trans_type_opening_balance;
                 $bank_inputs['reference'] = $reference_number;
                 $bank_inputs['received'] = $amount;
                 $bank_inputs['bank_account_id'] = $new_bank_account->id;
@@ -281,8 +288,9 @@ class BanksAccountsController extends Controller
                 $status = $companyUser->reconciled_transaction_state()->create($state_inputs);
                 //
                 $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-                $support_doc = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
-                    'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
+                $tax_support = $double_entry->supports()->save($new_bank_account);
+                // $support_doc = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
+                //     'reference_number'=>$reference_number,'account_number'=>$account_number,'voucher_id'=>$double_entry->id]);
                 // $support_doc = $double_entry->support_documents()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,
                 //     'reference_number'=>$reference_number,'account_number'=>$account_number]);
                 //$support_doc = $new_bank_account->double_entry_support_document()->save($support_doc);

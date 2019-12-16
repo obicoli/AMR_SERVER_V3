@@ -25,9 +25,13 @@ class BankTransaction extends Model
         'bank_account_id',
         'discount',
         'comment',
-        'status'
+        'status',
+        'name'
     ];
 
+    public function transactionable(){ 
+        return $this->morphTo();
+    }
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }

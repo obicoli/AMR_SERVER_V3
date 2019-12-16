@@ -3,6 +3,7 @@
 namespace App\Supplier\Repositories;
 
 use App\Accounting\Models\COA\AccountChartAccount;
+use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Repositories\AccountingRepository;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
@@ -26,6 +27,7 @@ use App\Supplier\Models\SupplierAddress;
 use App\Supplier\Models\SupplierAsset;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
+use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierTerms;
 use Illuminate\Support\Facades\DB;
 
@@ -66,6 +68,107 @@ class SupplierRepository implements SupplierRepositoryInterface
     }
     public function update($inputs = [], $id){
         return $this->model->find($id)->update($inputs);
+    }
+
+    public function transform_payment(SupplierPayment $supplierPayment){
+
+        $bill = $supplierPayment->supplierBills()->get()->first();
+        $bill_data = $this->transform_bill($bill);
+
+        $audit_trail = array();
+        $po_trails = $supplierPayment->payment_status()->get();
+        foreach ($po_trails as $po_trail) {
+            $temp_sta['id'] = $po_trail->uuid;
+            $temp_sta['status'] = $po_trail->status;
+            $temp_sta['type'] = $po_trail->type;
+            $temp_sta['notes'] = $po_trail->notes;
+            $temp_sta['date'] = date('Y-m-d H:i:s',\strtotime($po_trail->created_at));
+            $practice_user = $po_trail->responsible()->get()->first();
+            $temp_sta['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($audit_trail,$temp_sta);
+        }
+
+        return [
+            'id'=>$supplierPayment->uuid,
+            'payment_date'=>$supplierPayment->payment_date,
+            'payment_method'=>$supplierPayment->payment_method,
+            'amount'=>$supplierPayment->amount,
+            'status'=>$supplierPayment->status,
+            'settlement_type'=>$supplierPayment->settlement_type,
+            'notes'=>$supplierPayment->notes,
+            'reference_number'=>$supplierPayment->reference_number,
+            'trans_number'=>$supplierPayment->trans_number,
+            'bill'=>$bill_data,
+            'audit_trail'=>$audit_trail,
+        ];
+
+    }
+
+    public function transform_items(Model $model, $transaction=[]){
+
+        $items = $model->items()->get();
+        //Items
+        //$items = $purchaseOrder->items()->get();
+        $po_items = array();
+        $total_without_discount_and_tax = 0;
+        $total_discount = 0;
+        $total_taxe = 0;
+        foreach( $items as $item ){
+            //Get Product Item, Product Price,
+            $prod_item = $item->product_items()->get()->first();
+            $prod_price = $item->prices()->get()->first();
+            //Each Item can be attached to multiple taxe rates
+            //Get and Taxe and calculate if applied to this item
+            $taxes = array(); //Array to hold all taxes applied to this Estimate Item
+            $item_taxes = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)
+                ->table('po_item_taxations')
+                ->where('po_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
+            foreach($item_taxes as $item_taxe){
+                //Create Eloquent Object to be passed to Taxation Tranformer
+                $taxe_eloq = ProductTaxation::find($item_taxe->product_taxation_id);
+                $transformed_taxe = $this->productItem->transform_taxation($taxe_eloq);
+                //Replace the transformed taxes with exact values that were applied, this is because the taxe rates may have been updated after applied charged on sales transactins
+                $transformed_taxe['sales_rate'] = $item_taxe->sales_rate;
+                $transformed_taxe['purchase_rate'] = $item_taxe->purchase_rate;
+                $transformed_taxe['collected_on_sales'] = $item_taxe->collected_on_sales;
+                $transformed_taxe['collected_on_purchase'] = $item_taxe->collected_on_purchase;
+                array_push($taxes,$transformed_taxe);
+            }
+            //Calculate Total, Sub-totals, Discount Etc
+            $pricing = $this->productItem->transform_price($prod_price);
+            $pricing_after_taxe = $this->helpers->taxation_calculation( $this->productItem->transform_price($prod_price), $taxes );
+            $toty = $pricing['pack_cost'] * $item->qty;
+            $total_without_discount_and_tax += $toty;
+            $sub_discount = 0;
+            $sub_total_tax = 0;
+            if($item->discount_allowed){
+                $sub_discount = (($item->discount_allowed/100) * ($item->qty * $pricing['pack_cost']));
+            }
+            $total_discount += $sub_discount;
+            //Total Tax = Total Before Tax - Total After Tax
+            $total_b4_tax = ($pricing['pack_cost'] * $item->qty);
+            $total_after_tax = ($pricing_after_taxe['pack_cost'] * $item->qty);
+            $sub_total_tax = $total_b4_tax - $total_after_tax;
+            $total_taxe += $sub_total_tax;
+            //Adjustments
+            $adjustments = 0;
+            
+            //$temp_item['id'] = $item->uuid;
+            $temp_item = $this->productItem->transform_product_item($prod_item);
+            $temp_item['po_item_id'] = $item->uuid;
+            $temp_item['qty'] = $item->qty;
+            //$temp_item['product_item'] = $this->productItem->transform_product_item($prod_item);
+            //$temp_item['pricing'] = $pricing;
+            $temp_item['price_after_tax'] = $pricing_after_taxe;
+            $temp_item['line_taxation'] = $taxes;
+            $temp_item['line_discount'] = $sub_discount;
+            $temp_item['line_total_tax'] = $sub_total_tax;
+            $temp_item['line_total'] = 0;
+            $temp_item['amount'] = $toty;
+            $temp_item['adjustments'] = $adjustments;
+            array_push($po_items,$temp_item);
+        }
+        return $po_items;
     }
 
     public function transform_assets(SupplierAsset $supplierAsset){
@@ -405,15 +508,46 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     public function transform_bill(SupplierBill $supplierBill){
 
+        $po_statuses = $supplierBill->bill_status()->where('type','status')->get();
+        $trans_status = array();
+        foreach ($po_statuses as $po_status) {
+            $temp_status['id'] = $po_status->uuid;
+            $temp_status['status'] = $po_status->status;
+            $temp_status['type'] = $po_status->type;
+            $temp_status['notes'] = $po_status->notes;
+            $temp_status['date'] = $this->helpers->format_mysql_date($po_status->created_at);
+            $practice_user = $po_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+        
+        $cash_paid = $supplierBill->payments()->sum('amount');
+        $is_overdue = true;
+        if($supplierBill->status == Product::STATUS_PAID || $supplierBill->status==Product::STATUS_CLOSED){
+            $is_overdue = false;
+        }else{
+            if($this->helpers->isPastDate($supplierBill->bill_due_date)){
+                $is_overdue = true;
+            }
+        }
+
         return [
             'id' => $supplierBill->uuid,
             'notes' => $supplierBill->notes,
+            'net_total' => $supplierBill->net_total,
+            'grand_total' => $supplierBill->grand_total,
+            'total_tax' => $supplierBill->total_tax,
+            'cash_paid' => $cash_paid,
+            'is_overdue'=>$is_overdue,
+            'total_discount' => $supplierBill->total_discount,
             'taxation_option' => $supplierBill->taxation_option,
             'bill_date' => $this->helpers->format_mysql_date($supplierBill->bill_date,"j M Y"),
             'bill_due_date' => $this->helpers->format_mysql_date($supplierBill->bill_due_date,"j M Y"),
             'order_number' => $supplierBill->order_number,
             'trans_number' => $supplierBill->trans_number,
             'ref_number' => $supplierBill->ref_number,
+            'status' => $trans_status,
+            'vendor' => $this->transform_supplier($supplierBill->suppliers()->get()->first()),
         ];
 
     }

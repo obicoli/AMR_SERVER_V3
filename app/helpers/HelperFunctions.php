@@ -146,9 +146,9 @@ class HelperFunctions
 
     public function create_transaction_number($trans_type,$trans_number){
         if( \strlen($trans_number) < 3 ){
-            $trans_num = $trans_type.'-0000'.$trans_number;
+            $trans_num = $trans_type.'0000'.$trans_number;
         }else{
-            $trans_num = $trans_type.'-'.$trans_number;
+            $trans_num = $trans_type.''.$trans_number;
         }
         return $trans_num;
     }

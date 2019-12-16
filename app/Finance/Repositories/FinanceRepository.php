@@ -153,7 +153,7 @@ class FinanceRepository implements FinanceRepositoryInterface
             return true;
 
         }else{//Here create new reconciled transaction
-            //Link Bank Account Reconcilation to new Bank Transaction as Below
+            //Link "Bank Transaction" to Existing "Open Bank Account Reconcilation"
             $reconciled_transaction_inputs['bank_transaction_id'] = $bankTransaction->id;
             $reconciled_transaction_inputs['bank_account_id'] = $accountsBank->id;
             //
@@ -178,14 +178,6 @@ class FinanceRepository implements FinanceRepositoryInterface
             return $open_bank_reconciliation;
         }else{
             return $accountsBank->bank_reconciliations()->create($inputs);
-            // return $accountsBank->bank_reconciliations()->create([
-            //     'start_date'=>$start_date,
-            //     'reconciled_total'=>0,
-            //     'reconciled_previous'=>0,
-            //     'difference'=>0,
-            //     'status'=>AccountsCoa::RECONCILIATION_NOT_TICKED,
-            //     'notes'=>'Newly created bank transaction will be attached to this reconciliation, until it become closed(reconciled)'
-            // ]);
         }
     }
 
@@ -280,23 +272,40 @@ class FinanceRepository implements FinanceRepositoryInterface
         $account_number = null;
         $double_entry = [];
 
-        if( $bankTransaction->type == AccountsCoa::AC_TYPE_SUPPLIER ){
+        $ac_type_supplier = AccountsCoa::AC_TYPE_SUPPLIER;
+        $ac_type_customer = AccountsCoa::AC_TYPE_CUSTOMER;
+        $bank_trans_type = $bankTransaction->type;
+        $bank_trans_name = $bankTransaction->name;
 
-            //HERE THE SUPPORT DOCUMENT "transactionable" is Supplier
-            $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
-            // $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
-            //User Support Document to Find Account Holder
-            $accountHolder = $supportDoc->account_holders()->get()->first();
-            //Get Supplier,or Customer from AccountHolder
-            $account_owner = $accountHolder->owner()->get()->first();
-            $account_number = $accountHolder->account_number;
-            $selection['id'] = $account_owner->uuid;
-            $selection['name'] = $account_owner->display_as;
+        $trans_type_supplier_payment = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
+
+        if( $bank_trans_type == $ac_type_supplier ){
+
+            switch ($bank_trans_name) {
+                case $trans_type_supplier_payment:
+                    $payment = $bankTransaction->transactionable()->get()->first();
+                    $supplier = $payment->suppliers()->get()->first();
+                    $selection['id'] = $supplier->uuid;
+                    $selection['name'] = $supplier->legal_name;
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+
+            // //HERE THE SUPPORT DOCUMENT "transactionable" is Supplier
+            // $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
+            // // $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
+            // //User Support Document to Find Account Holder
+            // $accountHolder = $supportDoc->account_holders()->get()->first();
+            // //Get Supplier,or Customer from AccountHolder
+            // $account_owner = $accountHolder->owner()->get()->first();
+            // $account_number = $accountHolder->account_number;
 
             $suppliers = $company->vendors()->get();
             foreach($suppliers as $suppl){
                 $temp_suppl['id'] = $suppl->uuid;
-                $temp_suppl['name'] = $suppl->display_as;
+                $temp_suppl['name'] = $suppl->legal_name;
                 array_push($selections,$temp_suppl);
             }
             $amount = $bankTransaction->spent;
@@ -330,9 +339,9 @@ class FinanceRepository implements FinanceRepositoryInterface
 
             //HERE THE SUPPORT DOCUMENT "transactionable" is Chart of Accounts
             //Get Bank Account Transaction Occurred to
-            $bankAccount = $bankTransaction->bank_accounts()->get()->first();
+            //$bankAccount = $bankTransaction->bank_accounts()->get()->first();
             //Then Get Bank Account Ledger Account
-            $bankAccountLedger = $bankAccount->ledger_accounts()->get()->first();
+            $bankAccountLedger = $bankTransaction->transactionable()->get()->first();
             //This transaction occured on a Chart of Accounts
             $support_document = $bankAccountLedger->double_entry_support_document()->get()->first();
             //Get Double Entry
@@ -342,7 +351,6 @@ class FinanceRepository implements FinanceRepositoryInterface
             $selection['id'] = $bankAccountLedger->uuid;
             $selection['name'] = $bankAccountLedger->name;
             $amount = $double_entry->amount;
-
         }
 
         $vats['id'] = "id";
@@ -360,6 +368,7 @@ class FinanceRepository implements FinanceRepositoryInterface
             'discount'=>$bankTransaction->discount,
             'comment'=>$bankTransaction->comment,
             'type'=>$bankTransaction->type,
+            'name'=>$bankTransaction->name,
             'spent'=>$bankTransaction->spent,
             'received'=>$bankTransaction->received,
             'amount'=>$amount,

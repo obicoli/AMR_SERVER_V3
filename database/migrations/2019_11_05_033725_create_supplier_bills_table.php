@@ -19,23 +19,25 @@ class CreateSupplierBillsTable extends Migration
         Schema::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->create('supplier_bills', function (Blueprint $table) {
             $table->increments('id');
             $table->text('notes')->nullable();
+            $table->string('status')->nullable();
             $table->string('taxation_option')->nullable();
             $table->enum('bill_type',['Cash','Credit'])->default('Credit');
             $table->timestamp('bill_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('bill_due_date')->nullable();
             $table->string('order_number')->nullable()->index(); //trans_number
             $table->string('trans_number')->nullable(); //trans_number
-            $table->string('billable_type')->nullable()->index();
+            //$table->string('billable_type')->nullable()->index();
             $table->unsignedInteger('supplier_id')->index()->nullable();
-            $table->unsignedInteger('billed_id')->index()->nullable();
-            $table->unsignedInteger('payment_term_id')->nullable();
-            $table->string('billed_type')->nullable()->index();
-            $table->string('uuid');
 
-            $table->float('total_bill',32,2)->default(00.00);
-            $table->float('total_grand',32,2)->default(00.00);
+            $table->unsignedInteger('billed_id')->index()->nullable(); //This is mostly PO's
+            $table->string('billed_type')->nullable()->index();//This is mostly PO's
+
+            $table->unsignedInteger('payment_term_id')->nullable();
+            $table->string('uuid');
+            $table->float('net_total',32,2)->default(00.00);
+            $table->float('grand_total',32,2)->default(00.00);
             $table->float('total_tax',32,2)->default(00.00);
-            $table->float('discount_offered',32,2)->default(00.00);
+            $table->float('total_discount',32,2)->default(00.00);
 
             $table->string('supplier_invoice_number')->nullable();
             $table->string('delivery_form_number')->nullable();

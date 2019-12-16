@@ -25,19 +25,21 @@ class SupplierBill extends Model
         'supplier_id',
         'taxation_option',
         'notes',
-        'billable_type',
-
+        //'billable_type',
+        'payment_term_id',
         'bill_type',
-        'total_bill',
-        'total_grand',
+        'net_total',
+        'grand_total',
         'total_tax',
-        'discount_offered',
+        'total_discount',
         'supplier_invoice_number',
         'delivery_form_number',
     ];
+    public function suppliers(){ return $this->belongsTo(Supplier::class,'supplier_id','id'); }
     public function billable(){ return $this->morphTo(); } //This is Polymorphy
     public function items(){ return $this->hasMany(SupplierBillItem::class,'supplier_bill_id'); }
     public function bill_status(){ return $this->hasMany(SupplierBillStatus::class,'supplier_bill_id');}
+    public function payments(){ return $this->hasMany(SupplierPayment::class,'bill_id','id'); }
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }

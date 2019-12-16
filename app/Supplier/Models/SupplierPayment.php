@@ -2,6 +2,7 @@
 
 namespace App\Supplier\Models;
 
+use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Module\Module;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
@@ -15,7 +16,6 @@ class SupplierPayment extends Model
     protected $table = "supplier_payments"; 
     protected $fillable = [
         'supplier_id',
-        'trans_number',
         'bill_id',
         'ledger_account_id',
         'payment_date',
@@ -30,4 +30,6 @@ class SupplierPayment extends Model
 
     public function payment_status(){ return $this->hasMany(SupplierPaymentStatus::class,'supplier_payment_id','id');}
     public function suppliers(){ return $this->belongsTo(Supplier::class,'supplier_id','id'); }
+    public function supplierBills(){ return $this->belongsTo(SupplierBill::class,'bill_id','id'); }
+    public function bank_transactions(){ return $this->morphMany(BankTransaction::class,'transactionable','transactionable_type','transactionable_id'); }
 }

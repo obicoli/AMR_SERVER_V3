@@ -4,6 +4,7 @@ namespace App\Accounting\Models\Voucher;
 
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Models\COA\AccountsType;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
@@ -31,5 +32,8 @@ class AccountsVoucher extends Model
     public function credited(){return $this->belongsTo(AccountChartAccount::class,'credited','code');}
     public function debited(){return $this->belongsTo(AccountChartAccount::class,'debited','code');}
 
-
+    public function supports()
+    {
+        return $this->belongsToMany(AccountsSupport::class,'accounts_voucher_supports','voucher_id','support_id');
+    }
 }

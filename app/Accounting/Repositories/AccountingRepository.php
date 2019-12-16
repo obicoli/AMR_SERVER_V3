@@ -20,19 +20,25 @@ use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
+use App\Finance\Models\Banks\AccountsBank as BanksAccountsBank;
+use App\Finance\Repositories\FinanceRepository;
 use App\Models\Practice\Practice;
+use App\Supplier\Models\Supplier;
+use App\Supplier\Repositories\SupplierRepository;
 
 class AccountingRepository implements AccountingRepositoryInterface
 {
     protected $model;
     protected $helpers;
-    protected $customerRepository;
+    //protected $customerRepository;
+    //protected $supplierRepository;
 
     public function __construct( Model $model )
     {
         $this->model = $model;
         $this->helpers = new HelperFunctions();
-        $this->customerRepository = new CustomerRepository(new Customer());
+        // $this->customerRepository = new CustomerRepository(new Customer());
+        // $this->supplierRepository = new SupplierRepository( new Supplier() );
     }
 
     public function all(){
@@ -641,12 +647,30 @@ class AccountingRepository implements AccountingRepositoryInterface
         $transaction_name = "";
         $helper = new HelperFunctions();
         $debit = array();
+        $financeRepo = new FinanceRepository(new BanksAccountsBank());
+        $supplierRepo = new SupplierRepository( new Supplier() );
+        $support_doc = [];
+
+        $trans_customer_opening_balance = AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE;
+        $trans_supplier_opening_balance = AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE;
+        $trans_account_opening_balance = AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE;
+        $trans_bank_opening_balance = AccountsCoa::TRANS_TYPE_BANK_OPENING_BALANCE;
+        $trans_customer_receipt = AccountsCoa::TRANS_TYPE_CUSTOMER_RECEIPT;
+        $trans_discount_allowed = AccountsCoa::TRANS_TYPE_DISCOUNT_ALLOWED;
+        $trans_discount_received = AccountsCoa::TRANS_TYPE_DISCOUNT_RECEIVED;
+        $trans_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
+        $trans_payment_receipt = AccountsCoa::TRANS_TYPE_PAYMENT_RECEIPT;
+        $trans_opening_balance = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
+
         //Get support Document
-        $support_document = $accountsVoucher->support_documents()->get()->first();
+        $support_document = $accountsVoucher->supports()->get()->first();
+        Log::info($support_document);
         if($support_document){
             $transaction_type = $support_document->trans_type;
-            $transaction_name = $support_document->trans_name;
+            //$support_type = $support_document->trans_type;
+            //$transaction_name = $support_document->trans_name;
         }
+
         switch ($journal_type) {
 
             case AccountsCoa::BALANCE_CREDIT :
@@ -673,24 +697,63 @@ class AccountingRepository implements AccountingRepositoryInterface
                 
                 $trans_with['id'] = '';
                 $trans_with['name'] = '';
-                $support_type = $support_document->trans_type;
+                //$support_type = $support_document->trans_type;
                 $transactionable = $support_document->transactionable()->get()->first();
-                
-                if($support_type==AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE || $support_type==AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE){
-                    if($transactionable){
+                $document = null;
+
+                switch ($transaction_type) {
+                    case $trans_supplier_bill: // "transactionable" is "Bill"
+                        //$document = $this->supplierRepository->transform_bill($transactionable);
+                        $supplier = $transactionable->suppliers()->get()->first();
+                        $trans_with['id'] = $supplier->id;
+                        $trans_with['name'] = $supplier->legal_name;
+                        $support_doc['reference_number'] = $transactionable->trans_number;
+                        $support_doc['trans_type'] = $trans_supplier_bill;
+                        $bill = $supplierRepo->transform_bill($transactionable);
+                        $bill['items'] = $supplierRepo->transform_items($transactionable);
+                        $payments = $transactionable->payments()->get();
+                        $pay_list = array();
+                        foreach( $payments as $payment ){
+                            array_push($pay_list,$supplierRepo->transform_payment($payment));
+                        }
+                        $bill['payments'] = $pay_list;
+                        $support_doc['bill'] = $bill;
+                        break;
+                    case $trans_bank_opening_balance:
+                        $bank_account = $transactionable->bank_accounts()->get()->first();
+                        $trans_with['id'] = $bank_account->id;
+                        $trans_with['name'] = $bank_account->account_name;
+                        $support_doc['reference_number'] = $trans_opening_balance;
+                        $support_doc['trans_type'] = $trans_bank_opening_balance;
+                        $support_doc['bank_account'] = $financeRepo->transform_bank_accounts($bank_account);
+                        break;
+                    case $trans_supplier_opening_balance:
                         $trans_with['id'] = $transactionable->id;
                         $trans_with['name'] = $transactionable->legal_name;
-                    }
-                }elseif($support_type == AccountsCoa::TRANS_TYPE_ACCOUNT_OPENING_BALANCE){
-                    $trans_with['id'] = $transactionable->id;
-                    $trans_with['name'] = $transactionable->account_name;
-                }elseif( $support_type == AccountsCoa::TRANS_TYPE_CUSTOMER_RECEIPT || $support_type==AccountsCoa::TRANS_TYPE_DISCOUNT_ALLOWED ){
-                    $customer_account = $support_document->account_holders()->get()->first();
-                    $customer = $customer_account->owner()->get()->first();
-                    $trans_with['id'] = $customer->id;
-                    $trans_with['name'] = $customer->legal_name;
-                    $trans_with['customer'] = $this->customerRepository->transform_customer($customer);
+                        $support_doc['reference_number'] = $trans_opening_balance;
+                        $support_doc['trans_type'] = $trans_supplier_opening_balance;
+                        $support_doc['supplier'] = $supplierRepo->transform_supplier($transactionable);
+                        break;
+                    default:
+                        # code...
+                        break;
                 }
+                
+                // if($transaction_type==AccountsCoa::TRANS_TYPE_CUSTOMER_OPENING_BALANCE || $transaction_type==AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE){
+                //     if($transactionable){
+                //         $trans_with['id'] = $transactionable->id;
+                //         $trans_with['name'] = $transactionable->legal_name;
+                //     }
+                // }elseif($transaction_type == AccountsCoa::TRANS_TYPE_ACCOUNT_OPENING_BALANCE){
+                //     $trans_with['id'] = "";
+                //     $trans_with['name'] = "";
+                // }elseif( $transaction_type == AccountsCoa::TRANS_TYPE_CUSTOMER_RECEIPT || $transaction_type==AccountsCoa::TRANS_TYPE_DISCOUNT_ALLOWED ){
+                //     $customer_account = $support_document->account_holders()->get()->first();
+                //     $customer = $customer_account->owner()->get()->first();
+                //     $trans_with['id'] = $customer->id;
+                //     $trans_with['name'] = $customer->legal_name;
+                //     $trans_with['customer'] = $this->customerRepository->transform_customer($customer);
+                // }
 
                 $double_entry['debited'] = $accountsVoucher->debited;
                 $double_entry['credited'] = $accountsVoucher->credited;
@@ -703,7 +766,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $debit['amount'] = $accountsVoucher->amount;
                 $debit['trans_with'] = $trans_with;
                 $debit['double_entry'] = $double_entry;
-                $debit['support_document'] = $this->transform_support_document($support_document);
+                $debit['support_document'] = $support_doc;
                 $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,$company->date_format);
                 break;
             default:

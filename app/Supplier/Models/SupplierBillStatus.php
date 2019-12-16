@@ -18,7 +18,7 @@ class SupplierBillStatus extends Model
         'notes',
         'type'
     ];
-
+    public function responsible(){ return $this->morphTo();}
     public function supplier_bills(){ return $this->belongsTo(SupplierBill::class,'supplier_bill_id'); }
     
 }
