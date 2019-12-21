@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Product\ProductTaxation;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierTerms;
+use Exception;
 
 class BillController extends Controller
 {
@@ -134,8 +135,23 @@ class BillController extends Controller
 
     public function create(Request $request){
         //Log::info($request);
-        /*
 
+        $cash_basis_bill = AccountsCoa::BILL_TYPE_CASH;
+        $credit_basis_bill = AccountsCoa::BILL_TYPE_CREDIT;
+        $discount_received_allowed_ledger_code = AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE;
+        $account_type_supplier = AccountsCoa::AC_TYPE_SUPPLIER;
+        $partial_settlement = AccountsCoa::PAY_SETTLEMENT_PARTIAL;
+        $full_settlement = AccountsCoa::PAY_SETTLEMENT_FULL;
+        $payment_method_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
+        $payment_method_cash = AccountsCoa::PAY_METHOD_CASH;
+        $transaction_status_partial_paid = Product::STATUS_PARTIAL_PAID;
+        $transaction_status_paid = Product::STATUS_PAID;
+        $transaction_status_draft = Product::STATUS_DRAFT;
+        $transaction_status_open = Product::STATUS_OPEN;
+        $trans_type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
+        $trans_type_supplier_payment = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
+        $trans_type_payment_receipt = AccountsCoa::TRANS_TYPE_PAYMENT_RECEIPT;
+        /*
             When a business purchases goods on credit from a supplier the terms will stipulate
             the date on which the amount outstanding is to be paid. In addition the terms 
             will often allow a purchase discount to be taken if the 
@@ -163,8 +179,6 @@ class BillController extends Controller
             'supplier_id'=>'required',
             'notes'=>'required',
             'taxation_option'=>'required',
-            //'billable_type'=>'required',
-            //'order_number'=>'required',
             'bill_type'=>'required',
             'items'=>'required',
             'net_total'=>'required',
@@ -179,28 +193,52 @@ class BillController extends Controller
             return response()->json($http_resp,422);
         }
 
+
         if( $request->bill_type == Product::DOC_CASH_BILL ){
             $rule = [
-                'bank_account_id'=>'required',
-                'cheque_number'=>'required',
                 'cash_paid'=>'required',
                 'cash_balance'=>'required',
                 'payment_method'=>'required',
             ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
         }
-        $validation = Validator::make($request->payment,$rule,$this->helper->messages());
-        if ($validation->fails()){
-            $http_resp = $this->http_response['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-            return response()->json($http_resp,422);
+
+        if( $request->payment['payment_method'] == $payment_method_cheque ){
+            $rule = [
+                'bank_account_id'=>'required',
+                'cheque_number'=>'required',
+            ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
+        }
+
+        if( $request->payment['payment_method'] == $payment_method_cash ){
+            $rule = [
+                'ledger_account_id'=>'required',
+            ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
         }
 
         DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
-
             $user = $request->user();
             $company = $this->practices->find($request->user()->company_id);
             $practiceParent = $this->practices->findParent($company);
@@ -215,6 +253,9 @@ class BillController extends Controller
             $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
             $ledger_support_document = null;
             $bank_reference = $request->payment['cheque_number'];//This is the CHEQUE Number()
+            $action_taken = $request->action_taken;
+            $action_type_draft = Product::ACTIONS_SAVE_DRAFT;
+            $action_type_open = Product::ACTIONS_SAVE_OPEN;
 
             //Create new bill
             $inputs = $request->all();
@@ -230,20 +271,6 @@ class BillController extends Controller
             $bank_account = null;
             $bill_type = $request->bill_type;
             $currency = $request->currency;
-
-            $cash_basis_bill = AccountsCoa::BILL_TYPE_CASH;
-            $credit_basis_bill = AccountsCoa::BILL_TYPE_CREDIT;
-            $discount_received_allowed_ledger_code = AccountsCoa::AC_DISCOUNT_RECEIVED_REFUND_CODE;
-            $account_type_supplier = AccountsCoa::AC_TYPE_SUPPLIER;
-            $partial_settlement = AccountsCoa::PAY_SETTLEMENT_PARTIAL;
-            $full_settlement = AccountsCoa::PAY_SETTLEMENT_FULL;
-            $payment_method_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
-            $payment_method_cash = AccountsCoa::PAY_METHOD_CASH;
-            $transaction_status_partial_paid = Product::STATUS_PARTIAL_PAID;
-            $transaction_status_paid = Product::STATUS_PAID;
-            $trans_type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
-            $trans_type_supplier_payment = AccountsCoa::TRANS_TYPE_SUPPLIER_PAYMENT;
-            $trans_type_payment_receipt = AccountsCoa::TRANS_TYPE_PAYMENT_RECEIPT;
 
             if($finance_settings){
                 $payment_prefix = "PAY";
@@ -263,7 +290,7 @@ class BillController extends Controller
             if($payment_term){ $inputs['payment_term_id'] = $payment_term->id;}else{ $inputs['payment_term_id'] = $supplier->payment_term_id;}
             //Account used to pay this bill
             $ledger_ac_paid_this_bill = null;
-            if($request->payment['payment_method']==AccountsCoa::PAY_METHOD_CHEQUE){
+            if( $request->payment['payment_method']==$payment_method_cheque ){
                 $bank_account = $this->bankAccounts->findByUuid($request->payment['bank_account_id']);
                 $ledger_ac_paid_this_bill = $bank_account->ledger_accounts()->get()->first();
             }else{
@@ -276,7 +303,6 @@ class BillController extends Controller
             // if($finance_settings){ $bill_prefix = $finance_settings->bill_prefix; }else{ $bill_prefix = "BIL"; }
             $new_bill->trans_number = $this->helper->create_transaction_number($bill_prefix,$new_bill->id);
             $new_bill = $company->supplier_bills()->save($new_bill);
-
             /*
                 Cash Purchase Transaction Paid by Cheque, discount allowed, tax applied
 
@@ -325,7 +351,7 @@ class BillController extends Controller
                     ];
                     $item_taxation = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->table('bill_item_taxations')->insert($tax_inputs);
                 }
-                //Input-Tax on different "VAT type" is totalized below
+                //Input-Tax on different "VAT type" is totalized(Collected) as below
                 if( sizeof($items[$j]['applied_tax_rates']) ){
                     $applied_tax_id = $items[$j]['applied_tax_rates'][0];
                     $line_tax = $items[$j]['line_taxation'];
@@ -398,7 +424,12 @@ class BillController extends Controller
             $transaction_id = $this->helper->getToken(10,'SPAY');
             $debited_ac = $inventory_account->code;
             $trans_name = $notes;
-            $credited_ac = $ledger_ac_paid_this_bill->code;
+            if( $bill_type == $cash_basis_bill ){//Cash Basis
+                $credited_ac = $ledger_ac_paid_this_bill->code;
+            }else{//Credit Basis
+                $credited_ac = $supplier_ledger_ac->code;
+            }
+            //$credited_ac = $ledger_ac_paid_this_bill->code;
             $trans_type = $trans_type_supplier_payment;
             $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
             $support = $double_entry->supports()->save($ledger_support_document);
@@ -406,9 +437,9 @@ class BillController extends Controller
             //$support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entr->id]);
 
             //Here you record payment if this bill is a "Cash Basis"
+            $pay_inputs = [];
             if( $bill_type === $cash_basis_bill ){
                 //Check if fully settled
-                $pay_inputs = [];
                 if( $net_total == $cash_paid ){ //"Total Bill" was fully paid
                     $pay_inputs['status'] = $transaction_status_paid;
                     $pay_inputs['settlement_type'] = $full_settlement;
@@ -422,9 +453,11 @@ class BillController extends Controller
                     DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
                     DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
                     DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                    DB::connection(Module::MYSQL_DB_CONN)->rollBack();
                     return response()->json($http_resp,422);
                 }
-                if($bank_reference){
+                //
+                if($bank_reference && $payment_method == $payment_method_cheque){
                     $pay_reference = $bank_reference;
                 }else{
                     $pay_reference = $new_bill->trans_number;
@@ -445,23 +478,16 @@ class BillController extends Controller
                 //Here also record status of the bill
                 //Create the status  and attach it the user responsible
                 //Then attach it to estimate
-                $pay_inputs['notes'] = $bill_type." basis supplier bill created for ".$currency." ".number_format($net_total,2);
-                $bill_status = $company_user->bill_status()->create($pay_inputs);
-                $bill_status = $new_bill->bill_status()->save($bill_status);
-                $new_bill->status = $pay_inputs['status'];
-                $new_bill->save();
-
+                $pay_inputs['notes'] = "Bill created for ".$currency." ".number_format($net_total,2);
                 //Record Bank Transaction if Cheque was Used to pay this bill and attach to above "new_supplier_payment" as below
                 if( $bill_type==$cash_basis_bill && $payment_method == $payment_method_cheque){
                     $spent = $grand_total - $discount;
-                    
                     //Bank Transaction is Recorded
                     /*
                         Any Bank Transaction Recorded to the system, 
                         "reference_number" must be an issued reference number 
                         from the bank institution, this is important when it comes to bank reconciliation
                     */
-                    
                     $transactions['bank_account_id'] = $bank_account->id;
                     $transactions['transaction_date'] = $as_at;
                     $transactions['spent'] = $spent;
@@ -474,7 +500,6 @@ class BillController extends Controller
                     $transactions['comment'] = $notes;
                     $bank_transaction = $new_supplier_payment->bank_transactions()->create($transactions);//Create and Link this transaction to Supplier Payments
                     $bank_transaction = $company->bank_transactions()->save($bank_transaction);//Link transaction to a company
-
                     //$support = $double_entry->supports()->save($ledger_support_document);
                     //$support_doc = $bank_transaction->double_entry_support_document()->save($new_bill);
                     //Attach this bank transaction to an Open Bank Reconciliation as Below:
@@ -483,95 +508,28 @@ class BillController extends Controller
                     $bank_account_reconciliation = $this->bankTransactions->getOrCreateBankReconciliation($bank_account,$as_at,null);
                     $this->bankTransactions->reconcile_bank_transaction($company_user,$bank_account_reconciliation,$bank_transaction,$bank_account,null,AccountsCoa::RECONCILIATION_NOT_TICKED);
                 }
-
+            }else{
+                $pay_inputs['notes'] = "Bill created for ".$currency." ".number_format($net_total,2);
+                switch ( $action_taken ) {
+                    case $action_type_draft:
+                        $pay_inputs['status'] = $transaction_status_draft;
+                        break;
+                    default:
+                        $pay_inputs['status'] = $transaction_status_open;
+                        break;
+                }
             }
-            
-            
-            // $inputs = $request->all();
-            // $inputs['supplier_id'] = $supplier->id; //Link bill to supplier
-            // $new_bill = $this->supplierBills->create($inputs);
-            // //Generate and update Transaction number
-            // $new_bill->trans_number = $this->helper->create_transaction_number("BL",$new_bill->id);
-            // $new_bill->save();
-            // //Link this bill to a company
-            // $new_bill = $company->supplier_bills()->save($new_bill);
-            // //Status
-            // $status = [ 'status'=>Product::STATUS_DRAFT ];
-
-            // if($request->order_number){ //Bill is being created from an Order
-            //     if($request->billable_type === "PO"){
-            //         $purchase_order = $this->purchaseOrders->findByTransNumber($request->order_number);
-            //         //$purchase_order = $new_bill->billed()->save($new_bill);
-            //         //$new_bill = $new_bill->billed()->save($purchase_order);
-            //         //Link it to Billed id and Type
-            //         $new_bill = $purchase_order->bills()->save($purchase_order);
-            //         // $new_bill->billed_id = $purchase_order->id;
-            //         // $new_bill->billed_type = "App\Supplier\Models\PurchaseOrder";
-            //         // $new_bill->save();
-            //         //Make PO Status to Closed
-            //         $po_state = [
-            //             'status'=>Product::STATUS_CLOSED,
-            //             'notes'=>"Purchase Order marked as closed"
-            //         ];
-            //         $po_status = $company_user->po_status()->create($po_state);
-            //         $po_status = $purchase_order->po_status()->save($po_status);
-            //         //
-            //         $status['notes'] = "Bill raised for the Purchase Order ".$purchase_order->trans_number;
-            //     }
-            // }
-            // //
-            // if( $request->has("action_taken") ){
-            //     switch ($request->action_taken) {
-            //         case Product::ACTIONS_SAVE_DRAFT:
-            //             $status = [ 'status'=>Product::STATUS_DRAFT ];
-            //             break;
-            //         case Product::ACTIONS_SAVE_OPEN :
-            //             $status = [ 'status'=>Product::STATUS_OPEN ];
-            //             break;
-            //     }
-                // //Create the status  and attach it the user responsible
-                // //Then attach it to estimate
-                // $bill_status = $company_user->bill_status()->create($status);
-                // $bill_status = $new_bill->bill_status()->save($bill_status);
-            // }
-
-            // //Items
-            // $items = $request->items;
-            // for ($j=0; $j < sizeof($items); $j++) {
-                // $current_item = $items[$j];
-                // $product_item = $this->productItems->findByUuid($items[$j]['id']);
-                // $price = $this->product_pricing->createPrice($product_item->id,
-                // $company->id,$items[$j]['price']['unit_cost'],$items[$j]['price']['unit_retail_price'],
-                // $items[$j]['price']['pack_cost'],$items[$j]['price']['pack_retail_price'],$request->user()->id);
-                // $item_inputs = [
-                //     'supplier_bill_id'=>$new_bill->id,
-                //     'qty'=>$items[$j]['qty'],
-                //     'product_price_id'=>$price->id,
-                //     'product_item_id'=>$product_item->id,
-                // ];
-                // $bill_item = $new_bill->items()->create($item_inputs);
-                // $item_taxes = $current_item['taxes'];
-                // for ($i=0; $i < sizeof($item_taxes); $i++) { 
-                //     //get Tax from DB
-                //     $taxe = $this->productTaxations->findByUuid($item_taxes[$i]['id']);
-                //     $tax_inputs = [
-                //         'sales_rate'=>$taxe->sales_rate,
-                //         'purchase_rate'=>$taxe->purchase_rate,
-                //         'collected_on_sales'=>$taxe->collected_on_sales,
-                //         'collected_on_purchase'=>$taxe->collected_on_purchase,
-                //         'product_taxation_id'=>$taxe->id,
-                //         'bill_item_id'=>$bill_item->id,
-                //     ];
-                //     $item_taxation = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->table('bill_item_taxations')->insert($tax_inputs);
-                // }
-            // }
-
+            $bill_status = $company_user->bill_status()->create($pay_inputs);
+            $bill_status = $new_bill->bill_status()->save($bill_status);
+            $new_bill->status = $pay_inputs['status'];
+            $new_bill->save();
         }catch( \Exception $e ){
             $http_resp = $this->http_response['500'];
             DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             Log::info($e);
             return response()->json($http_resp,500);
         }
@@ -579,14 +537,127 @@ class BillController extends Controller
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 
-    public function show($uuid){
+    public function update(Request $request, $uuid){
+
         $http_resp = $this->http_response['200'];
-        $attachments = array();
+        $action = null;
+        if($request->has('action')){
+            $action = $request->action;
+        }else{
+            $rule = [
+                'bill_date'=>'required',
+                'bill_due_date'=>'required',
+                'supplier_id'=>'required',
+                'notes'=>'required',
+                'taxation_option'=>'required',
+                'bill_type'=>'required',
+                'items'=>'required',
+                'net_total'=>'required',
+                'grand_total'=>'required',
+                'total_tax'=>'required',
+                'total_discount'=>'required',
+            ];
+        }
+
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
+        try{
+
+            $user = $request->user();
+            $company = $this->practices->find($request->user()->company_id);
+            $practiceParent = $this->practices->findParent($company);
+            $company_user = $this->company_users->findByUserAndCompany($user,$company);
+            //$purchase_order = $this->purchaseOrders->findByUuid($uuid);
+            $bill = $this->supplierBills->findByUuid($uuid);
+
+            if($action){
+
+                switch ($action) {
+                    case Product::ACTIONS_SEND_MAIL:
+                        $subj = MailBox::BILL_SUBJECT;
+                        $send_to = $request->send_to;
+                        $status['status'] = Product::STATUS_OPEN;
+                        $status['type'] = "action";
+                        $status['notes'] = $subj." emailed to ".$send_to;
+                        //Schedule this Email to be Send
+                        $mailing_address['subject'] = $request->subject;
+                        $mailing_address['subject_type'] = $subj;
+                        $mailing_address['msg'] = $request->content;
+                        $mailing_address['email'] = $send_to;
+                        //$mailing_address['cc'] = $request->cc;
+                        $mailbox = $company->product_email_notifications()->create($mailing_address);
+                        //$mailbox = $company->product_email_notifications()->save($mailbox);
+                        $attachment = $mailbox->attatchments()->create(['attachment_type'=>MailBox::BILL_SUBJECT]);
+                        $attachment = $bill->mails_attachments()->save($attachment);
+                        //----
+                        $po_status = $company_user->bill_status()->create($status);
+                        $po_status = $bill->bill_status()->save($po_status);
+                        $http_resp['description'] = "Email successful sent!";
+                        break;
+                    case Product::ACTIONS_PRINT:
+                        $status['status'] = Product::STATUS_PRINTED;
+                        $status['notes'] = "Bill printed";
+                        $status['type'] = "action";
+                        $bil_status = $company_user->bill_status()->create($status);
+                        $bil_status = $bill->bill_status()->save($bil_status);
+                        break;
+                    default:
+                        //
+                        break;
+                }
+            }
+
+        }catch(Exception $e){
+            $http_resp = $this->http_response['500'];
+            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            Log::info($e);
+            return response()->json($http_resp,500);
+        }
+
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        return response()->json($http_resp);
+
+    }
+
+    public function show($uuid){
+        
+        $http_resp = $this->http_response['200'];
         $bill = $this->supplierBills->findByUuid($uuid);
+
+        $attachments = array();
+        $attachmens = $bill->assets()->get();
+        foreach($attachmens as $attachmen){
+            array_push($attachments,$this->supplierBills->transform_assets($attachmen));
+        }
+
+        $bill_trails = $bill->bill_status()->get();
+        $bill_audit_trails = array();
+        foreach ($bill_trails as $bill_trail) {
+            $temp_sta['id'] = $bill_trail->uuid;
+            $temp_sta['status'] = $bill_trail->status;
+            $temp_sta['type'] = $bill_trail->type;
+            $temp_sta['notes'] = $bill_trail->notes;
+            $temp_sta['date'] = date('Y-m-d H:i:s',\strtotime($bill_trail->created_at));
+            $practice_user = $bill_trail->responsible()->get()->first();
+            $temp_sta['signatory'] = $this->company_users->transform_user($practice_user);
+            array_push($bill_audit_trails,$temp_sta);
+        }
+
         $bill_data = $this->suppliers->transform_bill($bill);
+        $bill_data['audit_trails'] = $bill_audit_trails;
         $bill_data['attachments'] = $attachments;
         $bill_data['items'] = $this->suppliers->transform_items($bill,$bill_data);
         $http_resp['results'] = $bill_data;

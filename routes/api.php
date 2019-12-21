@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -272,7 +273,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/{uuid}', "Api\Practice\PracticeUserController@show");
             //Route::get('/practice/{practice_uuid}', "Api\Practice\PracticeUserController@practice");
             Route::delete('/{uuid}', "Api\Practice\PracticeUserController@destroy");
-
         });
 
         // Route::group( ['prefix'=>'stores' ], function (){
@@ -722,8 +722,18 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'bills' ], function (){
+
+            Route::group( ['prefix'=>'assets' ], function (){
+                Route::get('/', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@index");
+                Route::post('/', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@create");
+                Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@update");
+                Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@show");
+                Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@delete");
+            });
+
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@create");
+            Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillController@update");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillController@show");
         });
         //

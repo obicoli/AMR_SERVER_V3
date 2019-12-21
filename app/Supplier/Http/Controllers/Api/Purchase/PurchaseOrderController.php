@@ -79,8 +79,6 @@ class PurchaseOrderController extends Controller
 
         $http_resp = $this->http_response['200'];
         $action = null;
-        // Log::info($request);
-        // return response()->json($http_resp);
         if($request->has('action')){
             $action = $request->action;
         }else{
@@ -157,8 +155,8 @@ class PurchaseOrderController extends Controller
                         $mailing_address['msg'] = $request->content;
                         $mailing_address['email'] = $send_to;
                         //$mailing_address['cc'] = $request->cc;
-                        $mailbox = $practiceParent->product_email_notifications()->create($mailing_address);
-                        $mailbox = $company->product_email_notifications()->save($mailbox);
+                        $mailbox = $company->product_email_notifications()->create($mailing_address);
+                        //$mailbox = $company->product_email_notifications()->save($mailbox);
                         $attachment = $mailbox->attatchments()->create(['attachment_type'=>MailBox::PO_SUBJECT]);
                         $attachment = $purchase_order->mails_attachments()->save($attachment);
                         $purchase_order->status = $status['status'];

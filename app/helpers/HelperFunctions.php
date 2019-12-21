@@ -941,6 +941,7 @@ class HelperFunctions
             'account_number.required'=>'Bank Account number required!',
             'account_name.required'=>'Bank Account Holder required!',
             'bank_account.required'=>'Bank Account required!',
+            'ledger_account_id.required'=>'Ledger account is required!',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }
@@ -1430,6 +1431,9 @@ class HelperFunctions
         switch ($document_type) {
             case Product::DOC_PO:
                 $file_public = "/assets/company/".$company_id."/po/".$document_id;
+                break;
+            case Product::DOC_BILL:
+                $file_public = "/assets/company/".$company_id."/sbill/".$document_id;
                 break;
             default:
                 $file_public = "/assets/company/".$company_id."/logos";

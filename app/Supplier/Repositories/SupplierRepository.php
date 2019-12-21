@@ -522,10 +522,8 @@ class SupplierRepository implements SupplierRepositoryInterface
         }
         
         $cash_paid = $supplierBill->payments()->sum('amount');
-        $is_overdue = true;
-        if($supplierBill->status == Product::STATUS_PAID || $supplierBill->status==Product::STATUS_CLOSED){
-            $is_overdue = false;
-        }else{
+        $is_overdue = false;
+        if($supplierBill->status == Product::STATUS_OPEN || $supplierBill->status==Product::STATUS_PARTIAL_PAID){
             if($this->helpers->isPastDate($supplierBill->bill_due_date)){
                 $is_overdue = true;
             }

@@ -29,7 +29,7 @@ class AccountingTableSeeder extends Seeder
         //Government Tax Rates
         $compana = Practice::find(1);
         $parent_owner = $compana->owner()->get()->first();
-
+        
         $manual_vat = $parent_owner->product_taxations()->create(['name'=>'Manual VAT','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
         $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Manual VAT(capital goods)','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
         $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);

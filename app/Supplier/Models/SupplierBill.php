@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Models\Localization\Country;
+use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
 
 class SupplierBill extends Model
 {
@@ -35,6 +36,9 @@ class SupplierBill extends Model
         'supplier_invoice_number',
         'delivery_form_number',
     ];
+    public function assets(){
+        return $this->morphMany(SupplierAsset::class, 'owner');
+    }
     public function suppliers(){ return $this->belongsTo(Supplier::class,'supplier_id','id'); }
     public function billable(){ return $this->morphTo(); } //This is Polymorphy
     public function items(){ return $this->hasMany(SupplierBillItem::class,'supplier_bill_id'); }
@@ -43,5 +47,6 @@ class SupplierBill extends Model
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function mails_attachments(){ return $this->morphMany(NotificationInventoryMailAttach::class,'attachable','attachable_type','attachable_id'); }
     
 }

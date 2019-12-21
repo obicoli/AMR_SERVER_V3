@@ -39,7 +39,7 @@ class Product extends Model
     const STATUS_RECEIVED = "Received";
     const STATUS_ATTACHED = "Attached";
     const STATUS_PAID = "Paid";
-    const STATUS_PARTIAL_PAID = "Partial Paid";
+    const STATUS_PARTIAL_PAID = "Partially Paid";
     const STATUS_OVERDUE = "Overdue";
     const STATUS_UNPAID = "Unpaid";
 
@@ -67,6 +67,7 @@ class Product extends Model
 
     const DOC_GRN = "Goods Received Note";
     const DOC_PO = "Purchase Order";
+    const DOC_BILL = "Bill";
     const DOC_ESTIMATE = "Estimate";
     const DOC_CASH_BILL = "Cash";
     const DOC_CREDIT_BILL = "Credit";
