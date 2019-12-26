@@ -19,6 +19,7 @@ class SupplierPaymentStatus extends Model
         'notes',
         'type',
     ];
+    public function responsible(){ return $this->morphTo();}
     public function supplier_payments(){ return $this->belongsTo(SupplierPayment::class,'supplier_bill_id','id'); }
     
 }

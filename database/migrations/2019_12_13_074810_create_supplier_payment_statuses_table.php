@@ -22,7 +22,8 @@ class CreateSupplierPaymentStatusesTable extends Migration
             $table->string('uuid');
             $table->unsignedInteger('responsible_id')->nullable()->index();
             $table->string('responsible_type')->nullable()->index();
-            $table->string('status')->default('Paid')->index(); //product_requistions_id
+            $table->string('status')->default('Paid')->index();
+            $table->enum('type',['status','action'])->default('status');
             $table->softDeletes();
             Accountable::columns($table);
             $table->unsignedInteger('supplier_payment_id')->index()->nullable();

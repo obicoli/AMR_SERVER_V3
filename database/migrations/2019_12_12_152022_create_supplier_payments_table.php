@@ -19,7 +19,7 @@ class CreateSupplierPaymentsTable extends Migration
         Schema::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->create('supplier_payments', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('supplier_id')->index()->nullable();
-            $table->unsignedInteger('bill_id')->index()->nullable();
+            // $table->unsignedInteger('bill_id')->index()->nullable();
             $table->unsignedInteger('ledger_account_id')->index()->nullable();
             $table->timestamp('payment_date')->index()->nullable();
             $table->string('payment_method')->default('Cheque');

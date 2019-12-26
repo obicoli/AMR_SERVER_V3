@@ -68,6 +68,7 @@ class Product extends Model
     const DOC_GRN = "Goods Received Note";
     const DOC_PO = "Purchase Order";
     const DOC_BILL = "Bill";
+    const DOC_SUPPLIER_PAYMENT = "Supplier Payment";
     const DOC_ESTIMATE = "Estimate";
     const DOC_CASH_BILL = "Cash";
     const DOC_CREDIT_BILL = "Credit";

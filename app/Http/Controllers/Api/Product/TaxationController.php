@@ -167,10 +167,8 @@ class TaxationController extends Controller
         $http_resp = $this->http_response['200'];
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         try{
-
             $tax = $this->productTaxation->findByUuid($uuid);
             $tax->delete();
-
         }catch(\Exception $e){
             DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             Log::info($e);

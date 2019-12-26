@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Product\ProductTaxation;
 use App\Supplier\Models\SupplierBill;
+use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierTerms;
 use Exception;
 
@@ -83,6 +84,7 @@ class BillController extends Controller
         $this->companyTaxations = new PracticeRepository( new PracticeTaxation() );
         $this->bankTransactions = new FinanceRepository( new BankTransaction() );
         $this->accountDoubleEntries = new AccountingRepository( new AccountsVoucher() );
+        $this->supplierPayments = new SupplierRepository( new SupplierPayment() );
         //
         $this->status_overdue = Product::STATUS_OVERDUE;
         $this->status_open = Product::STATUS_OPEN;
@@ -523,6 +525,7 @@ class BillController extends Controller
             $bill_status = $new_bill->bill_status()->save($bill_status);
             $new_bill->status = $pay_inputs['status'];
             $new_bill->save();
+
         }catch( \Exception $e ){
             $http_resp = $this->http_response['500'];
             DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
@@ -577,9 +580,9 @@ class BillController extends Controller
 
             if($action){
 
+                $subj = MailBox::BILL_SUBJECT;
                 switch ($action) {
                     case Product::ACTIONS_SEND_MAIL:
-                        $subj = MailBox::BILL_SUBJECT;
                         $send_to = $request->send_to;
                         $status['status'] = Product::STATUS_OPEN;
                         $status['type'] = "action";
@@ -606,8 +609,22 @@ class BillController extends Controller
                         $bil_status = $company_user->bill_status()->create($status);
                         $bil_status = $bill->bill_status()->save($bil_status);
                         break;
-                    default:
-                        //
+                    case Product::ACTIONS_COMMENT:
+                        $status['status'] = Product::ACTIONS_COMMENT;
+                        $status['notes'] = $request->comment;
+                        $status['type'] = "action";
+                        $bill_status = $company_user->bill_status()->create($status);
+                        $bill_status = $bill->bill_status()->save($bill_status);
+                        $http_resp['description'] = "Comment successful added!";
+                        break;
+                    default: //Change status
+                        $status['status'] = $request->status;
+                        $status['notes'] = $subj." changed status";
+                        $bill_status = $company_user->bill_status()->create($status);
+                        $bill_status = $bill->bill_status()->save($bill_status);
+                        $bill->status = $request->status;
+                        $bill->save();
+                        $http_resp['description'] = "Status successful changed!";
                         break;
                 }
             }
@@ -637,6 +654,12 @@ class BillController extends Controller
         $http_resp = $this->http_response['200'];
         $bill = $this->supplierBills->findByUuid($uuid);
 
+        $payments = array();
+        $payments_made = $bill->payments()->get();
+        foreach($payments_made as $payment_made){
+            array_push($payments, $this->supplierPayments->transform_payment($payment_made));
+        }
+
         $attachments = array();
         $attachmens = $bill->assets()->get();
         foreach($attachmens as $attachmen){
@@ -656,9 +679,18 @@ class BillController extends Controller
             array_push($bill_audit_trails,$temp_sta);
         }
 
+        $journals = array();
+        $support_document = $bill->double_entry_support_document()->get()->first();
+        $journal_entries = $support_document->accounts_vouchers()->get();
+        foreach($journal_entries as $journal_entry){
+            array_push($journals,$this->accountDoubleEntries->create_journal_report($journal_entry));
+        }
+
         $bill_data = $this->suppliers->transform_bill($bill);
         $bill_data['audit_trails'] = $bill_audit_trails;
         $bill_data['attachments'] = $attachments;
+        $bill_data['payments'] = $payments;
+        $bill_data['journals'] = $journals;
         $bill_data['items'] = $this->suppliers->transform_items($bill,$bill_data);
         $http_resp['results'] = $bill_data;
         return response()->json($http_resp);

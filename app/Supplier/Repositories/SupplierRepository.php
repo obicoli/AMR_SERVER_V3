@@ -30,6 +30,7 @@ use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierTerms;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SupplierRepository implements SupplierRepositoryInterface
 {
@@ -72,8 +73,8 @@ class SupplierRepository implements SupplierRepositoryInterface
 
     public function transform_payment(SupplierPayment $supplierPayment){
 
-        $bill = $supplierPayment->supplierBills()->get()->first();
-        $bill_data = $this->transform_bill($bill);
+        // $bill = $supplierPayment->supplierBills()->get()->first();
+        // $bill_data = $this->transform_bill($bill);
 
         $audit_trail = array();
         $po_trails = $supplierPayment->payment_status()->get();
@@ -88,18 +89,32 @@ class SupplierRepository implements SupplierRepositoryInterface
             array_push($audit_trail,$temp_sta);
         }
 
+        $items = array();
+        $bills = $supplierPayment->supplierBills()->get();
+        // Log::info($pay_items);
+        foreach($bills as $bill){
+            //$bill = $pay_item->supplierBills()->get()->first(); //paymentItems
+            //$temp_data['id'] = $pay_item->uuid;
+            //$temp_data['amount'] = $pay_item->amount;
+            //$temp_data['bill'] = $this->transform_bill($bill);
+            $dat = $this->transform_bill($bill);
+            $dat['paid_amount'] = $bill->paymentItems()->where('supplier_payment_id',$supplierPayment->id)->sum('paid_amount');
+            array_push($items,$dat);
+        }
+
         return [
             'id'=>$supplierPayment->uuid,
-            'payment_date'=>$supplierPayment->payment_date,
+            'payment_date'=>$this->helpers->format_mysql_date($supplierPayment->payment_date),
             'payment_method'=>$supplierPayment->payment_method,
             'amount'=>$supplierPayment->amount,
-            'status'=>$supplierPayment->status,
             'settlement_type'=>$supplierPayment->settlement_type,
             'notes'=>$supplierPayment->notes,
+            'bills'=>$items,
+            'vendor'=>$this->transform_supplier($supplierPayment->suppliers()->get()->first()),
             'reference_number'=>$supplierPayment->reference_number,
             'trans_number'=>$supplierPayment->trans_number,
-            'bill'=>$bill_data,
-            'audit_trail'=>$audit_trail,
+            //'bill'=>$bill_data,
+            'audit_trails'=>$audit_trail,
         ];
 
     }
@@ -521,7 +536,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             array_push($trans_status,$temp_status);
         }
         
-        $cash_paid = $supplierBill->payments()->sum('amount');
+        $cash_paid = $supplierBill->paymentItems()->sum('paid_amount');
         $is_overdue = false;
         if($supplierBill->status == Product::STATUS_OPEN || $supplierBill->status==Product::STATUS_PARTIAL_PAID){
             if($this->helpers->isPastDate($supplierBill->bill_due_date)){

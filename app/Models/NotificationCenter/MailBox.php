@@ -14,6 +14,7 @@ class MailBox extends Model
 
     const GRN_SUBJECT = "Goods Received Note";
     const PO_SUBJECT = "Purchase Order";
+    const SPAYMENT_SUBJECT = "Supplier Payment";
     const BILL_SUBJECT = "Bill";
     const ESTIMATE_SUBJECT = "Estimate";
     const PO_MSG = "Please find our purchase order attached to this email.";

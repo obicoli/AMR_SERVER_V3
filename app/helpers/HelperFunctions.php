@@ -942,6 +942,7 @@ class HelperFunctions
             'account_name.required'=>'Bank Account Holder required!',
             'bank_account.required'=>'Bank Account required!',
             'ledger_account_id.required'=>'Ledger account is required!',
+            'payment_method.required'=>'Payment mode required!',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }
@@ -1239,7 +1240,7 @@ class HelperFunctions
             return date($date_format,strtotime($date_given));
         }else{
             //return date("D jS M Y h:i A",strtotime($date_given));
-            return date("jS M Y h:i a",strtotime($date_given));
+            return date("j M Y",strtotime($date_given));
         }
     }
 
@@ -1435,6 +1436,9 @@ class HelperFunctions
             case Product::DOC_BILL:
                 $file_public = "/assets/company/".$company_id."/sbill/".$document_id;
                 break;
+            case Product::DOC_SUPPLIER_PAYMENT:
+                $file_public = "/assets/company/".$company_id."/spayment/".$document_id;
+                break;
             default:
                 $file_public = "/assets/company/".$company_id."/logos";
                 break;
@@ -1453,10 +1457,7 @@ class HelperFunctions
             'file_server_root'=>$directory,
             'file_public_access'=>$file_public
         ];
-
     }
-
-
 
     public function delete_file($file_to_delete){
         if ( file_exists( $file_to_delete ) ){

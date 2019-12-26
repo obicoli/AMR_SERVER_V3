@@ -163,7 +163,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         if( $account_nature->name == AccountsCoa::ASSETS || $account_nature->name == AccountsCoa::EXPENSE ){
             return ($debited_total+$debit_parent_balance) - ($credited_total+$credited_parent_total);
         }else{
-            return ($credited_total+$credited_parent_total) + ($debited_total+$debit_parent_balance);
+            return ($credited_total+$credited_parent_total) - ($debited_total+$debit_parent_balance);
         }
         /*
             Calculate liability, equity and revenue account balances. 
@@ -664,11 +664,9 @@ class AccountingRepository implements AccountingRepositoryInterface
 
         //Get support Document
         $support_document = $accountsVoucher->supports()->get()->first();
-        Log::info($support_document);
+        //Log::info($support_document);
         if($support_document){
             $transaction_type = $support_document->trans_type;
-            //$support_type = $support_document->trans_type;
-            //$transaction_name = $support_document->trans_name;
         }
 
         switch ($journal_type) {
@@ -685,7 +683,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $debit['credited_parent'] = $accountsVoucher->credited_parent;
                 $debit['debited_parent'] = $accountsVoucher->debited_parent;
                 $debit['amount'] = $accountsVoucher->amount;
-                $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,"jS M Y");
+                $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,"j M Y");
                 $debit['trans_type'] = $transaction_type;
                 $debit['trans_name'] = $transaction_name;
                 $debit['trans_description'] = $transaction_name;
@@ -784,7 +782,7 @@ class AccountingRepository implements AccountingRepositoryInterface
                 $debit['credited_parent'] = $accountsVoucher->credited_parent;
                 $debit['debited_parent'] = $accountsVoucher->debited_parent;
                 $debit['amount'] = $accountsVoucher->amount;
-                $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,"jS M Y");
+                $debit['trans_date'] = $helper->format_mysql_date($accountsVoucher->voucher_date,"j M Y");
                 $debit['trans_type'] = $transaction_type;
                 $debit['trans_name'] = $transaction_name;
                 $debit['trans_description'] = $transaction_name;

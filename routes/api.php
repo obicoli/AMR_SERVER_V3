@@ -716,8 +716,16 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'payments' ], function (){
+            Route::group( ['prefix'=>'assets' ], function (){
+                Route::get('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentAssetControler@index");
+                Route::post('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentAssetControler@create");
+                Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentAssetControler@update");
+                Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentAssetControler@show");
+                Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentAssetControler@delete");
+            });
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@create");
+            Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@update");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Payments\PaymentController@show");
         });
 

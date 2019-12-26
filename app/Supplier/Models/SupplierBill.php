@@ -43,7 +43,9 @@ class SupplierBill extends Model
     public function billable(){ return $this->morphTo(); } //This is Polymorphy
     public function items(){ return $this->hasMany(SupplierBillItem::class,'supplier_bill_id'); }
     public function bill_status(){ return $this->hasMany(SupplierBillStatus::class,'supplier_bill_id');}
-    public function payments(){ return $this->hasMany(SupplierPayment::class,'bill_id','id'); }
+    public function payments(){ return $this->belongsToMany(SupplierPayment::class,'supplier_bill_payment','supplier_bill_id','supplier_payment_id'); }
+    //public function payments(){ return $this->hasMany(SupplierPayment::class,'bill_id','id'); }
+    public function paymentItems(){ return $this->hasMany(SupplierPaymentItem::class,'supplier_bill_id','id'); } //supplier_bill_id
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
