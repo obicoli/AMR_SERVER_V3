@@ -114,6 +114,14 @@ class BillController extends Controller
                     ->orderByDesc('created_at')
                     ->paginate(10);
                     break;
+                case "Supplier":
+                    $supplier = $this->suppliers->findByUuid($request->supplier_id);
+                    $bill_lists = $company->supplier_bills()
+                    ->where('status','!=',$this->status_paid)
+                    ->where('supplier_id',$supplier->id)
+                    ->orderByDesc('created_at')
+                    ->paginate(20);
+                    break;
                 default:
                     $bill_lists = $company->supplier_bills()
                     ->where('status',$request->filter_by)
@@ -187,6 +195,7 @@ class BillController extends Controller
             'grand_total'=>'required',
             'total_tax'=>'required',
             'total_discount'=>'required',
+            'ledger_account_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
@@ -251,7 +260,7 @@ class BillController extends Controller
             $inventory_account = $this->chartOfAccounts->findByUuid($request->ledger_account_id);
             //Get supplier and supplier Ledger Account
             $supplier = $this->suppliers->findByUuid($request->supplier_id);
-            $supplier_account = $supplier->account_holders()->get()->first();
+            //$supplier_account = $supplier->account_holders()->get()->first();
             $supplier_ledger_ac = $supplier->ledger_accounts()->get()->first();
             $ledger_support_document = null;
             $bank_reference = $request->payment['cheque_number'];//This is the CHEQUE Number()
@@ -261,6 +270,7 @@ class BillController extends Controller
 
             //Create new bill
             $inputs = $request->all();
+            $inputs['ledger_account_id'] = $inventory_account->id;
             $inputs['bill_date'] = $this->helper->format_lunox_date($inputs['bill_date']);
             $inputs['bill_due_date'] = $this->helper->format_lunox_date($inputs['bill_due_date']);
 
@@ -316,9 +326,9 @@ class BillController extends Controller
             */
 
             //1. Get all taxation collected on purchases in different tax VATs
-            $tax_registrations = $practiceParent->product_taxations()
-                ->where('collected_on_purchase',true)
-                ->get();
+            // $tax_registrations = $practiceParent->product_taxations()
+            //     ->where('collected_on_purchase',true)
+            //     ->get();
             $tax_id_array = array();
             $tax_value_array = array();
 
@@ -334,6 +344,7 @@ class BillController extends Controller
                 $item_inputs = [
                     'supplier_bill_id'=>$new_bill->id,
                     'qty'=>$items[$j]['qty'],
+                    'discount_rate'=>$items[$j]['discount_rate'],
                     'product_price_id'=>$price->id,
                     'product_item_id'=>$product_item->id,
                 ];

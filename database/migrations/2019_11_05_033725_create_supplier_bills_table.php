@@ -28,12 +28,11 @@ class CreateSupplierBillsTable extends Migration
             $table->string('trans_number')->nullable(); //trans_number
             //$table->string('billable_type')->nullable()->index();
             $table->unsignedInteger('supplier_id')->index()->nullable();
-
             $table->unsignedInteger('billed_id')->index()->nullable(); //This is mostly PO's
             $table->string('billed_type')->nullable()->index();//This is mostly PO's
-
             $table->unsignedInteger('payment_term_id')->nullable();
             $table->string('uuid');
+            $table->unsignedInteger('ledger_account_id')->nullable()->comment('Inventory Account');
             $table->float('net_total',32,2)->default(00.00);
             $table->float('grand_total',32,2)->default(00.00);
             $table->float('total_tax',32,2)->default(00.00);
@@ -41,7 +40,6 @@ class CreateSupplierBillsTable extends Migration
 
             $table->string('supplier_invoice_number')->nullable();
             $table->string('delivery_form_number')->nullable();
-
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch level: Facility created this
             $table->string('owning_type')->nullable()->index(); //Facility,Branch level: Facility created this
             \ByTestGear\Accountable\Accountable::columns($table);

@@ -363,7 +363,7 @@ class ProductReposity implements ProductReposityInterface
             //'exp_year' => '',
             //'description' => '',
             'amount' => 0,
-            'discount_allowed' => 0,
+            'discount_rate' => 0,
             'line_taxation' => 0,
             'line_exlusive' => 0,
             'line_total' => 0,

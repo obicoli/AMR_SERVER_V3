@@ -71,6 +71,7 @@ use App\Supplier\Models\Supplier;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
 use App\Supplier\Models\SupplierPayment;
+use App\Supplier\Models\SupplierReturn;
 use App\Supplier\Models\SupplierTerms;
 
 class Practice extends Model implements AccountableInterface
@@ -131,6 +132,7 @@ class Practice extends Model implements AccountableInterface
     public function purchase_orders(){ return $this->morphMany(PurchaseOrder::class,'owning','owning_type','owning_id'); }
     public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
     public function supplier_payments(){ return $this->morphMany(SupplierPayment::class,'owning','owning_type','owning_id'); }
+    public function supplier_returns(){ return $this->morphMany(SupplierReturn::class,'owning','owning_type','owning_id'); }
     //Supplier Integration ends here
 
     //Accounting Integration=================================================

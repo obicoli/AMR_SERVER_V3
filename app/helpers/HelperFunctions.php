@@ -1439,6 +1439,9 @@ class HelperFunctions
             case Product::DOC_SUPPLIER_PAYMENT:
                 $file_public = "/assets/company/".$company_id."/spayment/".$document_id;
                 break;
+            case Product::DOC_PURCHASE_RETURN:
+                $file_public = "/assets/company/".$company_id."/preturn/".$document_id;
+                break;
             default:
                 $file_public = "/assets/company/".$company_id."/logos";
                 break;

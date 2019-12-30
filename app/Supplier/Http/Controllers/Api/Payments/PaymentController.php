@@ -197,34 +197,60 @@ class PaymentController extends Controller
                 1. If "bill_number" is provided, no taxation and Discount Entries to be performed since they were entered during raising of bill
                 2. If "bill_number" is not provided, taxation and Discount Entries can be performed.
             */
-            
-            if($bill){
-                $net_total = $bill->net_total;
-                $total_payment = $bill->paymentItems()->sum('paid_amount'); //This what is so far paid on this bill
-                
-                $status_inputs['notes'] = "Payment of ".$currency." ".$cash_paid." made";
-                if( ($cash_paid==0) || (($cash_paid+$total_payment) > $net_total) ){
-                    $http_resp = $this->http_response['422'];
-                    DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                    DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                    DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-                    $http_resp['errors'] = ['Check amount paid!'];
-                    return response()->json($http_resp,422);
-                }elseif( ($cash_paid+$total_payment) < $net_total ){
-                    $status_inputs['status'] = Product::STATUS_PARTIAL_PAID;
-                }else{
-                    $status_inputs['status'] = Product::STATUS_PAID;
+            if($request->has('paid_bills')){
+                $paid_bills = $request->paid_bills;
+                $cash_paid_cons = $cash_paid;
+                for( $i=0; $i<sizeof($paid_bills); $i++){
+                    $bill = $this->bills->findByUuid($paid_bills[$i]);
+                    if( $cash_paid_cons > 0){
+                        $net_total = $bill->net_total;
+                        $total_payment = $bill->paymentItems()->sum('paid_amount'); //This what is so far paid on this bill
+                        $status_inputs['notes'] = "Payment of ".$currency." ".$cash_paid." made";
+                        $balance_to_pay = $net_total - $total_payment;
+
+                        // if( ($cash_paid==0) || (($cash_paid+$total_payment) > $net_total) ){
+                        //     $http_resp = $this->http_response['422'];
+                        //     DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+                        //     DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                        //     DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+                        //     $http_resp['errors'] = ['Check amount paid!'];
+                        //     return response()->json($http_resp,422);
+                        // }elseif( ($cash_paid+$total_payment) < $net_total ){
+                        //     $status_inputs['status'] = Product::STATUS_PARTIAL_PAID;
+                        // }else{
+                        //     $status_inputs['status'] = Product::STATUS_PAID;
+                        // }
+
+                        if( $cash_paid_cons >= $balance_to_pay  ){
+                            $status_inputs['status'] = Product::STATUS_PAID;
+                            // Log::info($cash_paid_cons);
+                            // Log::info($balance_to_pay);
+                            // Log::info(Product::STATUS_PAID);
+                            $cash_paid_cons -= $balance_to_pay;
+                            $paid_cons = $balance_to_pay;
+                            // Log::info($cash_paid_cons);
+                            // Log::info('---------------------------');
+                        }else{
+                            $status_inputs['status'] = Product::STATUS_PARTIAL_PAID;
+                            // Log::info($cash_paid_cons);
+                            // Log::info($balance_to_pay);
+                            // Log::info(Product::STATUS_PARTIAL_PAID);
+                            $paid_cons = $cash_paid_cons;
+                            $cash_paid_cons = 0;
+                            // Log::info($cash_paid_cons);
+                            // Log::info('---------------------------');
+                        }
+                        $bill_status = $company_user->bill_status()->create($status_inputs);
+                        $bill_status = $bill->bill_status()->save($bill_status);
+                        $bill->status = $status_inputs['status'];
+                        $bill->save();
+                        //Create Payment Item as below
+                        $item_inputs['bill_id'] = $bill->id;
+                        $item_inputs['supplier_payment_id'] = $new_supplier_payment->id;
+                        $item_inputs['paid_amount'] = $paid_cons;
+                        $bill_payment = $bill->paymentItems()->create($item_inputs);
+                    }
                 }
-                $bill_status = $company_user->bill_status()->create($status_inputs);
-                $bill_status = $bill->bill_status()->save($bill_status);
-                $bill->status = $status_inputs['status'];
-                $bill->save();
-                //Create Payment Item as below
-                $item_inputs['bill_id'] = $bill->id;
-                $item_inputs['supplier_payment_id'] = $new_supplier_payment->id;
-                //
-                $item_inputs['paid_amount'] = $cash_paid;
-                $bill_payment = $bill->paymentItems()->create($item_inputs);
             }
 
             //Bank was used to for this payment so record bank transaction
@@ -265,8 +291,8 @@ class PaymentController extends Controller
             $trans_type = $trans_type_supplier_payment;
             $transaction_id = $this->helper->getToken(10);
             $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
-            $ledger_support_document = $bill->double_entry_support_document()->get()->first();
-            $tax_support = $double_entry->supports()->save($ledger_support_document);
+            $ledger_support_document = $new_supplier_payment->double_entry_support_document()->create(['trans_type'=>$trans_type_supplier_payment]);
+            $support = $double_entry->supports()->save($ledger_support_document);
             $http_resp['description'] = "Payment successful created!";
 
         }catch(Exception $e){
@@ -368,7 +394,7 @@ class PaymentController extends Controller
 
         $http_resp = $this->http_response['200'];
         $payment = $this->supplierPayment->findByUuid($uuid);
-        $bill = $payment->supplierBills()->get()->first();
+        //$bill = $payment->supplierBills()->get()->first();
         $journals = array();
         $attachments = array();
         $attachmens = $payment->assets()->get();
@@ -376,13 +402,19 @@ class PaymentController extends Controller
             array_push($attachments,$this->supplierPayment->transform_assets($attachmen));
         }
 
-        if($bill){
-            $support_document = $bill->double_entry_support_document()->get()->first();
-            $journal_entries = $support_document->accounts_vouchers()->get();
-            foreach($journal_entries as $journal_entry){
-                array_push($journals,$this->accountDoubleEntries->create_journal_report($journal_entry));
-            }
+        // if($bill){
+        //     $support_document = $bill->double_entry_support_document()->get()->first();
+        //     $journal_entries = $support_document->accounts_vouchers()->get();
+        //     foreach($journal_entries as $journal_entry){
+        //         array_push($journals,$this->accountDoubleEntries->create_journal_report($journal_entry));
+        //     }
+        // }
+        $support_document = $payment->double_entry_support_document()->get()->first();
+        $journal_entries = $support_document->accounts_vouchers()->get();
+        foreach($journal_entries as $journal_entry){
+            array_push($journals,$this->accountDoubleEntries->create_journal_report($journal_entry));
         }
+
         $payment_data = $this->supplierPayment->transform_payment($payment);
         $payment_data['journals'] = $journals;
         $payment_data['attachments'] = $attachments;

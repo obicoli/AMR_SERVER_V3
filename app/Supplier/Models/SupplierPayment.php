@@ -2,6 +2,7 @@
 
 namespace App\Supplier\Models;
 
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Module\Module;
 use App\Traits\UuidTrait;
@@ -31,6 +32,9 @@ class SupplierPayment extends Model
 
     public function assets(){
         return $this->morphMany(SupplierAsset::class, 'owner');
+    }
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
     public function payment_status(){ return $this->hasMany(SupplierPaymentStatus::class,'supplier_payment_id','id');}
     public function suppliers(){ return $this->belongsTo(Supplier::class,'supplier_id','id'); }

@@ -26,7 +26,7 @@ class SupplierBill extends Model
         'supplier_id',
         'taxation_option',
         'notes',
-        //'billable_type',
+        'ledger_account_id',
         'payment_term_id',
         'bill_type',
         'net_total',
@@ -49,6 +49,7 @@ class SupplierBill extends Model
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function supplierReturns(){ return $this->belongsToMany(SupplierReturn::class,'supplier_bills_returns','supplier_return_id','supplier_bill_id'); }
     public function mails_attachments(){ return $this->morphMany(NotificationInventoryMailAttach::class,'attachable','attachable_type','attachable_id'); }
     
 }
