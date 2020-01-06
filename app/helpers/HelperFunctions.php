@@ -943,6 +943,8 @@ class HelperFunctions
             'bank_account.required'=>'Bank Account required!',
             'ledger_account_id.required'=>'Ledger account is required!',
             'payment_method.required'=>'Payment mode required!',
+            'vat_pin.required'=>'VAT number is required!',
+            'vat_return_id.required'=>'VAT period is required!',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }
@@ -1195,12 +1197,15 @@ class HelperFunctions
     }
 
     public function compare_two_dates($smaller_date, $bigger_date){
+        //This function required two dates( starting with 'before date' and 'after date' )
+        //It returns true if before date is smaller than after date, else it returns false
         $sm1 = date("Y-m-d", strtotime($smaller_date));
         $sm2 = date("Y-m-d", strtotime($bigger_date));
         if ( strtotime($sm2) > strtotime($sm1) ){
             return true;
         }
         return false;
+
     }
 
     public function getNextDay($duration_to_add){
@@ -1221,12 +1226,11 @@ class HelperFunctions
     }
 
     public function get_next_date($duration_to_add, $date=null){
-
         if($date){
-            return date('Y-m-d', strtotime(strftime($date, strtotime($duration_to_add))));
+            return date("Y-m-d", strtotime($duration_to_add, \strtotime($date)));
+            //return date('Y-m-d', strtotime(strftime($date, strtotime($duration_to_add))));
         }
         return date('M j Y', strtotime(strftime("%Y-%m-%d", strtotime($duration_to_add))));
-
     }
 
     public function format_mysql_date($date_given, $date_format=null){

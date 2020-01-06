@@ -60,7 +60,7 @@ class ChartOfAccountsController extends Controller
         $default_filter = $this->helper->get_default_filter();
         $filters['date_range'] = $default_filter['start'].' to '.$default_filter['end'];
         $results['filters'] = $filters;
-        $results['data'] = $this->accountChartAccount->transform_company_chart_of_account($coa,"detailed");
+        $results['data'] = $this->accountChartAccount->transform_company_chart_of_account($coa);
         $http_resp['results'] = $results;
         return response()->json($http_resp);
     }

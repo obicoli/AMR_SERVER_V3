@@ -7,6 +7,7 @@ use App\Finance\Models\Banks\AccountsBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Payments\AccountPaymentType;
+use App\Accounting\Models\Tax\AccountsVatReturn;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Assets\Models\Machines\Vehicle\Vehicle;
 use App\Contracts\AccountableInterface;
@@ -70,6 +71,7 @@ use App\Supplier\Models\PurchaseOrder;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
+use App\Supplier\Models\SupplierCredit;
 use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierReturn;
 use App\Supplier\Models\SupplierTerms;
@@ -133,9 +135,11 @@ class Practice extends Model implements AccountableInterface
     public function supplier_terms(){ return $this->morphMany(SupplierTerms::class,'owning','owning_type','owning_id'); }
     public function supplier_payments(){ return $this->morphMany(SupplierPayment::class,'owning','owning_type','owning_id'); }
     public function supplier_returns(){ return $this->morphMany(SupplierReturn::class,'owning','owning_type','owning_id'); }
+    public function supplier_credits(){ return $this->morphMany(SupplierCredit::class,'owning','owning_type','owning_id'); }
     //Supplier Integration ends here
 
     //Accounting Integration=================================================
+    public function taxReturns(){ return $this->morphMany(AccountsVatReturn::class,'owning','owning_type','owning_id'); }
     public function coas(){ return $this->morphMany(AccountsCoa::class,'owning','owning_type','owning_id'); }
     public function accounts_payment_methods(){ return $this->morphMany(AccountPaymentType::class,'owning','owning_type','owning_id'); }
     public function chart_of_accounts(){ return $this->morphMany(AccountChartAccount::class,'owning','owning_type','owning_id'); }

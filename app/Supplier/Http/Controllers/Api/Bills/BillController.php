@@ -184,8 +184,8 @@ class BillController extends Controller
         */
         $http_resp = $this->http_response['200'];
         $rule = [
-            'bill_date'=>'required',
-            'bill_due_date'=>'required',
+            'trans_date'=>'required',
+            'due_date'=>'required',
             'supplier_id'=>'required',
             'notes'=>'required',
             'taxation_option'=>'required',
@@ -271,10 +271,10 @@ class BillController extends Controller
             //Create new bill
             $inputs = $request->all();
             $inputs['ledger_account_id'] = $inventory_account->id;
-            $inputs['bill_date'] = $this->helper->format_lunox_date($inputs['bill_date']);
-            $inputs['bill_due_date'] = $this->helper->format_lunox_date($inputs['bill_due_date']);
+            $inputs['trans_date'] = $this->helper->format_lunox_date($inputs['trans_date']);
+            $inputs['due_date'] = $this->helper->format_lunox_date($inputs['due_date']);
 
-            $as_at = $this->helper->format_lunox_date($inputs['bill_date']);
+            $as_at = $this->helper->format_lunox_date($inputs['trans_date']);
             $notes = $request->notes;
             $discount = $request->total_discount;
             $grand_total = $request->grand_total;
@@ -337,13 +337,14 @@ class BillController extends Controller
             for ($j=0; $j < sizeof($items); $j++) {
                 //Process Items Here
                 $current_item = $items[$j];
+                $qty = $items[$j]['qty'];
                 $product_item = $this->productItems->findByUuid($items[$j]['id']);
                 $price = $this->product_pricing->createPrice($product_item->id,
                 $company->id,$items[$j]['price']['unit_cost'],$items[$j]['price']['unit_retail_price'],
                 $items[$j]['price']['pack_cost'],$items[$j]['price']['pack_retail_price'],$request->user()->id);
                 $item_inputs = [
                     'supplier_bill_id'=>$new_bill->id,
-                    'qty'=>$items[$j]['qty'],
+                    'qty'=>$qty,
                     'discount_rate'=>$items[$j]['discount_rate'],
                     'product_price_id'=>$price->id,
                     'product_item_id'=>$product_item->id,
@@ -351,6 +352,7 @@ class BillController extends Controller
                 $bill_item = $new_bill->items()->create($item_inputs);
                 //
                 $item_taxes = $current_item['applied_tax_rates'];
+                //Log::info($item_taxes);
                 for ($i=0; $i < sizeof($item_taxes); $i++) { 
                     //get Tax from DB
                     $taxe = $this->productTaxations->findByUuid($item_taxes[$i]);
@@ -368,12 +370,25 @@ class BillController extends Controller
                 if( sizeof($items[$j]['applied_tax_rates']) ){
                     $applied_tax_id = $items[$j]['applied_tax_rates'][0];
                     $line_tax = $items[$j]['line_taxation'];
+                    $line_tax_backend = 0;
+                    $vat_type = $this->productTaxations->findByUuid($applied_tax_id);
+                    if($vat_type->collected_on_purchase){
+                        $price = $product_item->price_record()->get()->first();
+                        if($vat_type->purchase_rate){
+                            $line_tax_backend = (($vat_type->purchase_rate/100) * $price->pack_cost) * $qty;
+                        }
+                    }
+                    //Log Discrepancy
+                    if($line_tax_backend != $line_tax){
+                        Log::info("Discrepancy: Bill No. ".$new_bill->trans_number." Front Tax ".$line_tax." Back Tax ".$line_tax_backend);
+                    }
+                    //
                     if( !in_array($applied_tax_id,$tax_id_array) ){
                         array_push($tax_id_array,$applied_tax_id);
-                        array_push($tax_value_array,$line_tax);
+                        array_push($tax_value_array,$line_tax_backend);
                     }else{
                         $key_is = array_search($applied_tax_id, $tax_id_array);
-                        $tax_value_array[$key_is] = $tax_value_array[$key_is] + $line_tax;
+                        $tax_value_array[$key_is] = $tax_value_array[$key_is] + $line_tax_backend;
                     }
                 }
             }
@@ -387,6 +402,8 @@ class BillController extends Controller
 
             //VAT Journal Entries
             //Accounting: tax collected
+            //Log::info($tax_value_array);
+            //Log::info($tax_id_array);
             if( sizeof($tax_id_array) ){
                 if( $bill_type == $cash_basis_bill ){//Cash Basis
                     $credited_ac = $ledger_ac_paid_this_bill->code;
@@ -409,6 +426,7 @@ class BillController extends Controller
                     $transaction_id = $this->helper->getToken(10,'BL');
                     $tax_double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
                     $tax_support = $tax_double_entry->supports()->save($ledger_support_document);
+                    //Log::info($tax_double_entry);
                     //$support_doc2 = $new_bill->double_entry_support_document()->create(['trans_type'=>$trans_type,'trans_name'=>$trans_name,'account_number'=>$account_holder_number,'reference_number'=>$reference_number,'voucher_id'=>$double_entry2->id]);
                     //$support_doc2 = $new_bill->double_entry_support_document()->save($support_doc2);
                 }
@@ -563,8 +581,8 @@ class BillController extends Controller
             $action = $request->action;
         }else{
             $rule = [
-                'bill_date'=>'required',
-                'bill_due_date'=>'required',
+                'trans_date'=>'required',
+                'due_date'=>'required',
                 'supplier_id'=>'required',
                 'notes'=>'required',
                 'taxation_option'=>'required',

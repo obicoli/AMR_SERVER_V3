@@ -38,6 +38,22 @@ class AccountChartAccount extends Model
     public function account_types(){ return $this->belongsTo(AccountsType::class,'accounts_type_id'); }
     public function accounts_natures(){ return $this->belongsTo(AccountsNature::class,'accounts_nature_id'); }
 
+    public function vouchers($code, $filters=[]){ 
+        if(sizeof($filters)){
+            return AccountsVoucher::where('credited',$code)
+            ->orWhere('debited',$code)
+            ->orWhere('credited_parent',$code)
+            ->orWhere('debited_parent',$code)
+            ->whereBetween('voucher_date',$filters)
+            ->get();
+        }else{
+            return AccountsVoucher::where('credited',$code)
+            ->orWhere('debited',$code)
+            ->orWhere('credited_parent',$code)
+            ->orWhere('debited_parent',$code)
+            ->get();
+        }
+    }
     public function credited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited','code'); }
     public function credited_parent_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited_parent','code'); }
     public function debited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'debited','code'); }

@@ -30,11 +30,15 @@ class AccountingTableSeeder extends Seeder
         $compana = Practice::find(1);
         $parent_owner = $compana->owner()->get()->first();
         
-        $manual_vat = $parent_owner->product_taxations()->create(['name'=>'Manual VAT','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
-        $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Manual VAT(capital goods)','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16]);
-        $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
-        $exept = $parent_owner->product_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0]);
-        $standard_rated = $parent_owner->product_taxations()->create(['name'=>'Standard Rated','agent_name'=>'KRA','purchase_rate'=>15,'sales_rate'=>15]);
+        $manual_vat = $parent_owner->product_taxations()->create(['name'=>'General Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>16,'sales_rate'=>16,'registration_number'=>'P051420000J']);
+        $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Other Rates','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>8,'sales_rate'=>8,'registration_number'=>'P051420000J']);
+        $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+        $exept = $parent_owner->product_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+
+        $manual_vat = $parent_owner->accounts_taxations()->create(['name'=>'General Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>16,'sales_rate'=>16,'registration_number'=>'P051420000J']);
+        $capital_goods = $parent_owner->accounts_taxations()->create(['name'=>'Other Rates','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>8,'sales_rate'=>8,'registration_number'=>'P051420000J']);
+        $zero_rated = $parent_owner->accounts_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+        $exept = $parent_owner->accounts_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
 
         // $manual_vat = $parent_owner->product_taxations()->create(['name'=>'KRA-Free','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'Capital Acquisitions - KRA-Free']);
         // $capital_goods = $parent_owner->product_taxations()->create(['name'=>'KRA','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16,'description'=>'Capital Acquisitions - KRA']);

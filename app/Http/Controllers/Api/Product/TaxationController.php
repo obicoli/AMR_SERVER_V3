@@ -66,7 +66,7 @@ class TaxationController extends Controller
             $temp_data['sales_rate'] = $taxe->sales_rate;
             $temp_data['amount'] = $taxe->amount;
             $temp_data['status'] = $taxe->status;
-            $temp_data['display_as'] = $taxe->name.'('.$taxe->sales_rate.'%)';
+            $temp_data['display_as'] = $taxe->name.' '.$taxe->category.'('.number_format($taxe->sales_rate,1).'%)';
             array_push($results,$temp_data);
         }
         $paged_data['data'] = $results;

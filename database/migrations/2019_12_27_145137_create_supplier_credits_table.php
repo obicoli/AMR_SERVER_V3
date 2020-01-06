@@ -20,10 +20,18 @@ class CreateSupplierCreditsTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('supplier_id')->index()->nullable();
             $table->timestamp('credit_date')->index()->nullable();
-            $table->float('amount',32,2)->default(00.00);
+            //$table->float('amount',32,2)->default(00.00);
             $table->string('notes')->nullable();
+            $table->string('status')->nullable();
             $table->string('reference_number')->nullable();
             $table->string('trans_number')->nullable();
+
+            $table->float('net_total',32,2)->default(00.00);
+            $table->float('grand_total',32,2)->default(00.00);
+            $table->float('total_tax',32,2)->default(00.00);
+            $table->float('total_discount',32,2)->default(00.00);
+            $table->string('taxation_option')->nullable();
+
             $table->unsignedInteger('owning_id')->nullable()->index();
             $table->string('owning_type')->nullable()->index();
             $table->string('uuid');

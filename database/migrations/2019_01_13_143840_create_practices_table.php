@@ -24,7 +24,7 @@ class CreatePracticesTable extends Migration
             $table->boolean('mail_verified')->default(false);
             $table->boolean('phone_verified')->default(false);
             $table->string('address')->nullable();
-            $table->string('date_format')->default('jS M Y');
+            $table->string('date_format')->default('d/m/Y');
             $table->enum('category',['Main','Branch'])->default('Branch');
             $table->string('description')->nullable();
             $table->string('city')->nullable()->index();

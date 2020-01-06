@@ -44,8 +44,12 @@ class Supplier extends Model
         'ledger_account_id',
         'website',
         'fax',
-        'status'
+        'status',
+        'category'
     ];
+
+    //Transactions
+    public function supplier_bills(){ return $this->hasMany(SupplierBill::class,'supplier_id','id'); }
 
     // public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
     public function account_holders(){ return $this->morphMany(AccountsHolder::class, 'owner','owner_type','owner_id'); }

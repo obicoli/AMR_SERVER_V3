@@ -23,11 +23,6 @@
 ##https://accounting.sageone.co.za/Dashboard/MyWorkspace.aspx
 ##https://accounting-simplified.com/accounting-for-sales-tax-on-purchases.html
 ##https://www.double-entry-bookkeeping.com/accounts-payable/purchase-discount/
-##0714637166-Wendy
-##0790408534-Betty Allsops
-##0714637166-RabeccA (real Photo, What you see is what you Get )
-##0794796255-Halimah   a   27 years old  Kenyan Escort   from Roysambu - Trm - Nairobi, KENYA
-##LISA_ Real Pic. What You see is what yo get Phone: 0758903951
 
 ## Inventory Module:
 [Vouchers](http://localhost)

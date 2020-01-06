@@ -19,7 +19,7 @@ class PurchaseOrder extends Model
         'terms',
         'trans_number',
         'notes',
-        'po_date',
+        'trans_date',
         'po_due_date',
         'ship_to',
         'taxation_option',

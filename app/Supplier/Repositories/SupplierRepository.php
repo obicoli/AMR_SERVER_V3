@@ -27,6 +27,7 @@ use App\Supplier\Models\SupplierAddress;
 use App\Supplier\Models\SupplierAsset;
 use App\Supplier\Models\SupplierBill;
 use App\Supplier\Models\SupplierCompany;
+use App\Supplier\Models\SupplierCredit;
 use App\Supplier\Models\SupplierPayment;
 use App\Supplier\Models\SupplierReturn;
 use App\Supplier\Models\SupplierTerms;
@@ -70,6 +71,32 @@ class SupplierRepository implements SupplierRepositoryInterface
     }
     public function update($inputs = [], $id){
         return $this->model->find($id)->update($inputs);
+    }
+
+    public function transform_supplier_credit(SupplierCredit $supplierCredit){
+
+        $po_statuses = $supplierCredit->trails()->where('type','status')->get();
+        $trans_status = array();
+        foreach ($po_statuses as $po_status) {
+            $temp_status['id'] = $po_status->uuid;
+            $temp_status['status'] = $po_status->status;
+            $temp_status['type'] = $po_status->type;
+            $temp_status['notes'] = $po_status->notes;
+            $temp_status['date'] = $this->helpers->format_mysql_date($po_status->created_at);
+            $practice_user = $po_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+
+        return [
+            'id'=>$supplierCredit->uuid,
+            'credit_date'=>$this->helpers->format_mysql_date($supplierCredit->credit_date),
+            'trans_number'=>$supplierCredit->trans_number,
+            'net_total'=>$supplierCredit->net_total,
+            'applied_total'=>0,
+            'status'=>$trans_status,
+            'vendor'=>$this->transform_supplier($supplierCredit->suppliers()->get()->first()),
+        ];
     }
 
     public function transform_purchase_return(SupplierReturn $supplierReturn){
@@ -142,6 +169,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             'payment_method'=>$supplierPayment->payment_method,
             'amount'=>$supplierPayment->amount,
             'settlement_type'=>$supplierPayment->settlement_type,
+            'document_name'=>Product::DOC_SUPPLIER_PAYMENT,
             'notes'=>$supplierPayment->notes,
             'bills'=>$items,
             'vendor'=>$this->transform_supplier($supplierPayment->suppliers()->get()->first()),
@@ -201,6 +229,8 @@ class SupplierRepository implements SupplierRepositoryInterface
                 $transformed_taxe['collected_on_purchase'] = $item_taxe->collected_on_purchase;
                 array_push($taxes,$transformed_taxe);
             }
+
+            $temp_item['taxes'] = $taxes;
             //Calculate Total, Sub-totals, Discount Etc
             $pricing = $this->productItem->transform_price($prod_price);
             $pricing_after_taxe = $this->helpers->taxation_calculation( $this->productItem->transform_price($prod_price), $taxes );
@@ -561,6 +591,7 @@ class SupplierRepository implements SupplierRepositoryInterface
             'total_grand' => 0,
             'po_due_date' => date('Y-m-d',\strtotime($purchaseOrder->po_due_date)),//$this->helpers->format_mysql_date(,"j M Y"),
             'status' => $trans_status,
+            'document_name' => Product::DOC_PO,
             'bills' => null,
             'ship_to' => $purchaseOrder->ship_to,
             'shipping' => $shipping,
@@ -595,7 +626,7 @@ class SupplierRepository implements SupplierRepositoryInterface
         $cash_paid = $supplierBill->paymentItems()->sum('paid_amount');
         $is_overdue = false;
         if($supplierBill->status == Product::STATUS_OPEN || $supplierBill->status==Product::STATUS_PARTIAL_PAID){
-            if($this->helpers->isPastDate($supplierBill->bill_due_date)){
+            if($this->helpers->isPastDate($supplierBill->due_date)){
                 $is_overdue = true;
             }
         }
@@ -608,12 +639,12 @@ class SupplierRepository implements SupplierRepositoryInterface
             'grand_total' => $supplierBill->grand_total,
             'total_tax' => $supplierBill->total_tax,
             'cash_paid' => $cash_paid,
-            'display_as'=>$supplierBill->trans_number.' | '.$this->helpers->format_mysql_date($supplierBill->bill_date,"j M Y").' | '.number_format($supplierBill->net_total,2),
+            'display_as'=>$supplierBill->trans_number.' | '.$this->helpers->format_mysql_date($supplierBill->trans_date,"j M Y").' | '.number_format($supplierBill->net_total,2),
             'is_overdue'=>$is_overdue,
             'total_discount' => $supplierBill->total_discount,
             'taxation_option' => $supplierBill->taxation_option,
-            'bill_date' => $this->helpers->format_mysql_date($supplierBill->bill_date,"j M Y"),
-            'bill_due_date' => $this->helpers->format_mysql_date($supplierBill->bill_due_date,"j M Y"),
+            'trans_date' => $this->helpers->format_mysql_date($supplierBill->trans_date,"j M Y"),
+            'due_date' => $this->helpers->format_mysql_date($supplierBill->due_date,"j M Y"),
             'order_number' => $supplierBill->order_number,
             'trans_number' => $supplierBill->trans_number,
             'ref_number' => $supplierBill->ref_number,

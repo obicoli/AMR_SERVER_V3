@@ -86,7 +86,7 @@ class VendorController extends Controller
 
     public function create(Request $request){
 
-        Log::info($request);
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'salutation'=>'required',
@@ -108,6 +108,7 @@ class VendorController extends Controller
             'account_type_id'=>'required',
             'account_number'=>'required',
             'account_name'=>'required',
+            'category'=>'required',
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){

@@ -18,7 +18,8 @@ class CreateSupplierCreditItemsTable extends Migration
         Schema::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->dropIfExists('supplier_credit_items');
         Schema::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->create('supplier_credit_items', function (Blueprint $table) {
             $table->increments('id');
-            $table->float('qty')->default(00.00);
+            $table->float('qty',16,2)->default(00.00);
+            $table->float('line_discount',16,2)->default(00.00);
             $table->unsignedInteger('supplier_credit_id')->index();
             $table->unsignedInteger('product_price_id')->index();
             $table->unsignedInteger('product_item_id')->index();

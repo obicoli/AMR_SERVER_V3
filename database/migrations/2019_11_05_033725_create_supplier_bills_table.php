@@ -22,8 +22,8 @@ class CreateSupplierBillsTable extends Migration
             $table->string('status')->nullable();
             $table->string('taxation_option')->nullable();
             $table->enum('bill_type',['Cash','Credit'])->default('Credit');
-            $table->timestamp('bill_date')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->timestamp('bill_due_date')->nullable();
+            $table->timestamp('trans_date')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('due_date')->nullable();
             $table->string('order_number')->nullable()->index(); //trans_number
             $table->string('trans_number')->nullable(); //trans_number
             //$table->string('billable_type')->nullable()->index();

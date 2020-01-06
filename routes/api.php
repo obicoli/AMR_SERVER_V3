@@ -563,6 +563,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
     });
 
     Route::group( ['prefix'=>'accounting' ], function (){
+
         Route::group( ['prefix'=>'types' ], function (){
             Route::post('/', "Api\Product\Accounts\ProductAccountTypeController@create");
             Route::post('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@update");
@@ -587,12 +588,27 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::group( ['prefix'=>'accounts' ], function (){
             Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Accounts\AccountHolderController@show");
         });
+
         Route::group( ['prefix'=>'reports' ], function (){
             Route::get('/journals', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@journals");
             Route::get('/ledgers', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@ledgers");
             Route::get('/trail_balance', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@trail_balance");
             Route::get('/balance_sheet', "\App\Accounting\Http\Controllers\Api\Reports\ReportsController@balance_sheet");
         });
+
+        Route::group( ['prefix'=>'taxation' ], function (){
+            Route::group( ['prefix'=>'returns' ], function (){
+                Route::group( ['prefix'=>'payments' ], function (){
+                    Route::get('/', "\App\Accounting\Http\Controllers\Api\Tax\VATPaymentController@index");
+                    Route::post('/', "\App\Accounting\Http\Controllers\Api\Tax\VATPaymentController@create");
+                    Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Tax\VATPaymentController@show");
+                });
+                Route::get('/', "\App\Accounting\Http\Controllers\Api\Tax\TaxReturnController@index");
+                Route::post('/', "\App\Accounting\Http\Controllers\Api\Tax\TaxReturnController@create");
+                Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Tax\TaxReturnController@show");
+            });
+        });
+
         Route::get('/initializations', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@initials");
     });
 
@@ -691,11 +707,11 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
     Route::group( ['prefix'=>'suppliers' ], function (){
 
         Route::group( ['prefix'=>'credits' ], function (){
-            Route::get('/', "\App\Supplier\Http\Controllers\Api\Credit\CreditController@index");
-            Route::post('/', "\App\Supplier\Http\Controllers\Api\Credit\CreditController@create");
-            Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credit\CreditController@update");
-            Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credit\CreditController@show");
-            Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credit\CreditController@destroy");
+            Route::get('/', "\App\Supplier\Http\Controllers\Api\Credits\VendorCreditController@index");
+            Route::post('/', "\App\Supplier\Http\Controllers\Api\Credits\VendorCreditController@create");
+            Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credits\VendorCreditController@update");
+            Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credits\VendorCreditController@show");
+            Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Credits\VendorCreditController@destroy");
         });
 
         Route::group( ['prefix'=>'purchases' ], function (){

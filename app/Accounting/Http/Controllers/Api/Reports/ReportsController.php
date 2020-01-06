@@ -40,6 +40,26 @@ class ReportsController extends Controller
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
     }
 
+    public function vat_returns(Request $request){
+        Log::info($request);
+        $http_resp = $this->http_response['200'];
+        if($request->has('return_opening')){
+            $rule = [
+                'frequency'=>'required',
+                'vat_pin'=>'required',
+                'last_period_end_date'=>'required',
+                'last_submission_due_date'=>'required',
+                'next_submission_due_date'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
+        }
+    }
+
     public function journals(Request $request){
         $http_resp = $this->http_response['200'];
         $res = array();

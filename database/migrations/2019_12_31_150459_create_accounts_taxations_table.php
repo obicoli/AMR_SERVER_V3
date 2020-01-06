@@ -4,8 +4,9 @@ use App\Models\Module\Module;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use ByTestGear\Accountable\Accountable;
 
-class CreateProductTaxationsTable extends Migration
+class CreateAccountsTaxationsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,8 +15,8 @@ class CreateProductTaxationsTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_taxations');
-        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->create('product_taxations', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_taxations');
+        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->create('accounts_taxations', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->index();
             $table->string('agent_name')->nullable()->index();
@@ -47,6 +48,6 @@ class CreateProductTaxationsTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_taxations');
+        Schema::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->dropIfExists('accounts_taxations');
     }
 }

@@ -21,6 +21,7 @@ use App\Models\Product\Supply\ProductSupplyState;
 use Laravel\Passport\HasApiTokens;
 use App\Supplier\Models\PurchaseOrderStatus;
 use App\Supplier\Models\SupplierBillStatus;
+use App\Supplier\Models\SupplierCreditStatus;
 use App\Supplier\Models\SupplierPaymentStatus;
 use App\Supplier\Models\SupplierReturnStatus;
 
@@ -81,6 +82,7 @@ class PracticeUser extends Model
     public function bill_status(){ return $this->morphMany(SupplierBillStatus::class,'responsible','responsible_type','responsible_id'); }
     public function payment_status(){ return $this->morphMany(SupplierPaymentStatus::class,'responsible','responsible_type','responsible_id'); }
     public function return_status(){ return $this->morphMany(SupplierReturnStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function supplier_credit_status(){ return $this->morphMany(SupplierCreditStatus::class,'responsible','responsible_type','responsible_id'); }
     //Banking/Finance Integration
     public function reconciled_transaction_state(){ return $this->morphMany(ReconciledTransactionState::class,'responsible','responsible_type','responsible_id'); }
 

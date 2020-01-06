@@ -57,7 +57,9 @@ class Product extends Model
 
     const ACTIONS_SAVE_DRAFT = "Save As Draft";
     const ACTIONS_SAVE_SEND = "Save & Send";
-    const ACTIONS_SAVE_OPEN = "Open";
+    const ACTIONS_SAVE_NEW = "Save & New";
+    const ACTIONS_SAVE_OPEN = "Save As Open";
+    const ACTIONS_SAVE_CLOSE = "Save & Close";
     const ACTIONS_SEND_MAIL = "Send Mail";
     const ACTIONS_PRINT = "Print";
     const ACTIONS_COMMENT = "Comment";

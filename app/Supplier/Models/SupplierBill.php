@@ -21,8 +21,8 @@ class SupplierBill extends Model
     protected $fillable = [
         'order_number',
         'trans_number',
-        'bill_date',
-        'bill_due_date',
+        'trans_date',
+        'due_date',
         'supplier_id',
         'taxation_option',
         'notes',

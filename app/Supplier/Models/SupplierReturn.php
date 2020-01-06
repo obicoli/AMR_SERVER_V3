@@ -19,7 +19,7 @@ class SupplierReturn extends Model
         'supplier_id',
         'trans_number',
         'notes',
-        'return_date',
+        'trans_date',
         'taxation_option',
         'net_total',
         'grand_total',

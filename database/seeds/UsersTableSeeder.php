@@ -394,7 +394,7 @@ class UsersTableSeeder extends Seeder
             $user1 = User::create([
                 'email'                          => 'master@amref.com',
                 'mobile'                          => '254709098765',
-                'password'                       => Hash::make('master123'),
+                'password'                       => Hash::make('0987654321'),
                 'status'                      => 'Activated',
             ]);
             // $user2 = User::create([
@@ -430,7 +430,7 @@ class UsersTableSeeder extends Seeder
                 'mobile' => '254709098765',
                 'other_name' => 'Doe',
                 'gender' => 'Male',
-                'password' => Hash::make('master123'),
+                'password' => Hash::make('0987654321'),
                 'address' => 'Nairobi, Kenya',
                 //'department_id' => $user1->id,
             ]);

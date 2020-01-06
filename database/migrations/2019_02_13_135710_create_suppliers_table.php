@@ -37,6 +37,7 @@ class CreateSuppliersTable extends Migration
             $table->string("email")->index()->nullable();
             $table->string("mobile")->index()->nullable();
             $table->unsignedInteger("currency_id")->index()->nullable();
+            $table->enum('category',['Local','International'])->default('Local');
             //$table->string("address")->nullable();
             $table->boolean("status")->default(true); //old_invoice_payment_auto_locate
             $table->boolean("old_invoice_payment_auto_locate")->default(false); //

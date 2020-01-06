@@ -20,7 +20,7 @@ class SupplierPayment extends Model
         'supplier_id',
         'bill_id',
         'ledger_account_id',
-        'payment_date',
+        'trans_date',
         'payment_method',
         'amount',
         'status',

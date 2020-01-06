@@ -24,7 +24,7 @@ class CreateAccountsVouchersTable extends Migration
             $table->string('debited_parent')->index()->nullable();
             $table->float('amount',16,2)->default(00.00);
             $table->string('notes')->nullable();
-            $table->string('voucher_date');
+            $table->timestamp('voucher_date');
             $table->unsignedInteger('owner_id')->nullable()->index();
             $table->string('owner_type')->nullable()->index();
             $table->string('uuid');

@@ -357,7 +357,7 @@ class ProductReposity implements ProductReposityInterface
             'store_location'=>$productItem->unit_storage_location,
             'price'=>$price,
             'price_after_tax'=>$price,
-            'qty' => 0,//from here are transactional
+            'qty' => 1,//from here are transactional
             //'batch_number' => '',
             //'exp_month' => '',
             //'exp_year' => '',

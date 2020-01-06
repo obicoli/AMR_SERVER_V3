@@ -4,6 +4,7 @@ namespace App\Models\Hospital;
 
 // use App\Hrs\Models\HrsEmployee;
 
+use App\Accounting\Models\Tax\AccountsTaxation;
 use App\Assets\Models\Machines\Vehicle\Vehicle;
 use App\Hrs\Models\Employee\HrsEmployee;
 use App\Models\Practice\PracticeProductItem;
@@ -86,6 +87,9 @@ class Hospital extends Model
         'activated',
         'registration_number',
     ];
+
+    //Accountings
+    public function accounts_taxations(){ return $this->morphMany(AccountsTaxation::class,'owner','owner_type','owner_id'); }
 
     //ASSETS
     public function vehicles(){return $this->morphMany(Vehicle::class,'owner','owner_type','owner_id');}

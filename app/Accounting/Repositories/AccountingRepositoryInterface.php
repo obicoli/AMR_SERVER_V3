@@ -11,9 +11,11 @@ use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\COA\AccountsNature;
 use App\Accounting\Models\COA\AccountsType;
 use App\Accounting\Models\Payments\AccountPaymentType;
+use App\Accounting\Models\Tax\AccountsVatReturn;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Models\Practice\Practice;
+use App\Models\Product\ProductTaxation;
 use Illuminate\Database\Eloquent\Model;
 
 interface AccountingRepositoryInterface
@@ -22,6 +24,7 @@ interface AccountingRepositoryInterface
     public function find($id);
     public function findByUuid($uuid);
     public function findByCode($code);
+    public function findByVATPin($pin);
     public function findByName($name);
     public function findByDefaultCode($code);
     public function create($inputs = []);
@@ -29,12 +32,15 @@ interface AccountingRepositoryInterface
     public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[], Model $account_owner);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
+    public function get_account_balances(AccountChartAccount $accountChartAccount, $filters=[] );
     public function calculate_account_balance(AccountChartAccount $accountChartAccount,$filters=[]);
     // public function transform_bank(AccountMasterBank $accountMasterBank);
     // public function transform_bank_accounts(AccountsBank $accountsBank);
     // public function transform_bank_branch( AccountMasterBankBranch $accountMasterBankBranch );
+    public function transform_tax_return(AccountsVatReturn $accountsVatReturn);
+    public function transform_vat_type(ProductTaxation $productTaxation);
     public function transform_payment_type(AccountPaymentType $accountPaymentType);
-    public function transform_company_chart_of_account(AccountChartAccount $accountChartAccount,$detailed_report=null, $filters=[]);
+    public function transform_company_chart_of_account(AccountChartAccount $accountChartAccount, $filters=[]);
     public function transform_account_type(AccountsType $accountsType);
     public function transform_account_nature(AccountsNature $accountsNature);
     public function transform_default_coa(AccountsCoa $accountsCoa);
