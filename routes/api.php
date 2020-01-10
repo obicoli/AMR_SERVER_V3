@@ -762,7 +762,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'bills' ], function (){
-
             Route::group( ['prefix'=>'assets' ], function (){
                 Route::get('/', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@index");
                 Route::post('/', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@create");
@@ -770,7 +769,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
                 Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@show");
                 Route::delete('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillAssetControler@delete");
             });
-
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Bills\BillController@create");
             Route::post('/{uuid}', "\App\Supplier\Http\Controllers\Api\Bills\BillController@update");
@@ -790,13 +788,14 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Vendor\CompanyController@create");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\CompanyController@show");
         });
-
         //companies
         Route::group( ['prefix'=>'terms' ], function (){
             Route::get('/', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@index");
             Route::post('/', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@create");
             Route::get('/{uuid}', "\App\Supplier\Http\Controllers\Api\Vendor\TermsController@show");
         });
+
+        Route::get('/reports', "\App\Supplier\Http\Controllers\Api\Vendor\VendorController@reports");
 
     });
 

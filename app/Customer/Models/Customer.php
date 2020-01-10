@@ -26,8 +26,8 @@ class Customer extends Model
         'notes',
         'status',
         'first_name',
-        'other_name',
-        'middle_name',
+        //'other_name',
+        'last_name',
         //'company',
         'postal_code',
         'country',
@@ -55,11 +55,12 @@ class Customer extends Model
         'old_invoice_receipt_auto_locate',
         'accept_electronic_invoices',
         'cash_sale_customer',
-        'document_sending_by',
+        //'document_sending_by',
         'default_discount',
         'default_price_id',
         'default_vat_id',
-        'ledger_account_id'
+        'ledger_account_id',
+        'tax_reg_number'
     ];
 
     public function owning(){ return $this->morphTo();} //Branch level

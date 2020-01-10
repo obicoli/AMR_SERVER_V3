@@ -23,6 +23,7 @@ interface AccountingRepositoryInterface
     public function all();
     public function find($id);
     public function findByUuid($uuid);
+    public function getByUuid($uuid);
     public function findByCode($code);
     public function findByVATPin($pin);
     public function findByName($name);

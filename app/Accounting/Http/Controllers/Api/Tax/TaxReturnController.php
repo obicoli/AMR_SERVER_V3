@@ -39,6 +39,7 @@ class TaxReturnController extends Controller
     protected $helper;
     protected $accountsTaxations;
     protected $suppliers;
+    protected $vatTypes;
 
     protected $type_supplier_bill;
 
@@ -50,6 +51,7 @@ class TaxReturnController extends Controller
         $this->helper = new HelperFunctions();
         $this->accountsTaxations = new AccountingRepository(new ProductTaxation());
         $this->suppliers = new SupplierRepository( new Supplier() );
+        $this->vatTypes = new AccountingRepository( new ProductTaxation() );
 
         $this->type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
     }
@@ -92,14 +94,39 @@ class TaxReturnController extends Controller
 
         $http_resp = $this->http_response['200'];
         $user = $request->user();
+        $vat_return_array = array();
         //return response()->json($http_resp);
         $company = $this->practices->find($user->company_id);
         $date_format = $company->date_format;
+        $vatType = null;
 
-        $vat_return = $this->accountsVatReturn->findByUuid($uuid);
+        if($request->has('filters')){
+            $custom_filters = json_decode($request->filters,true);
+            Log::info($custom_filters);
+            if($custom_filters['view_by']=='VAT Period'){
+                $vat_return = $this->accountsVatReturn->findByUuid($custom_filters['vat_return_id']);
+                if(!$vat_return){
+                    $http_resp['results'] = $vat_return_array;
+                    return response()->json($http_resp);
+                }
+            }
+            //
+            $vatType = $this->vatTypes->findByUuid($custom_filters['vat_type_id']);
+            if($vatType){
+                $vat_types = $this->accountsTaxations->getByUuid($vatType->uuid);
+            }else{
+                $vat_types = $this->accountsTaxations->all();
+            }
+        }else {
+            $vat_return = $this->accountsVatReturn->findByUuid($uuid);
+            $vat_types = $this->accountsTaxations->all();
+        }
+        //Get all VAT Types
+        
         $vat_return_array = $this->accountsVatReturn->transform_tax_return($vat_return);
         $vat_return_array['total_output_transactions'] = 0;
         $vat_return_array['total_input_transactions'] = 0;
+        ///////////////////////////////////////////////////
         $vat_period = null;
         if($vat_return->status == "Open"){
             $vat_period = "Current";
@@ -111,45 +138,31 @@ class TaxReturnController extends Controller
         $filters['end'] = $vat_return->period_due_date;
         //
         $transactions = array();
-        //Get all VAT Types
-        $vat_types = $this->accountsTaxations->all();
-        //$vat_type_array = array();
+        
         foreach( $vat_types as $vat_type ){
-
             $vat_type_array = $this->accountsVatReturn->transform_vat_type($vat_type);
-
-            // $vat_type_array['input_vat_total'] = 0;
-            // $vat_type_array['input_excl_total'] = 0;
-            // $vat_type_array['input_incl_total'] = 0;
-
-            // $vat_type_array['output_vat_total'] = 0;
-            // $vat_type_array['output_excl_total'] = 0;
-            // $vat_type_array['output_incl_total'] = 0;
-
             $vat_type_array['vat_total'] = 0;
             $vat_type_array['excl_total'] = 0;
             $vat_type_array['incl_total'] = 0;
-
+            //
             $vat_type_array['loc_supplier_excl_total'] = 0;
             $vat_type_array['loc_supplier_incl_total'] = 0;
             $vat_type_array['loc_supplier_vat_total'] = 0;
-
+            //
             $vat_type_array['int_supplier_excl_total'] = 0;
             $vat_type_array['int_supplier_incl_total'] = 0;
             $vat_type_array['int_supplier_vat_total'] = 0;
-
+            //
             $outputs_transactions = array();
             $inputs_transactions = array();
             //Find Company Taxation Record
             $company_taxation = $company->practice_taxations()->where('product_taxation_id',$vat_type->id)->get()->first();
             $company_taxation_ledger_ac = $company_taxation->ledger_accounts()->get()->first();
-            // Log::info($company_taxation);
-            // Log::info($company_taxation_ledger_ac);
+            
             //Vouchers on a given VAT Type during VAT Period
             $vouchers = $company_taxation_ledger_ac->vouchers($company_taxation_ledger_ac->code,$filters);
             //
             foreach( $vouchers as $voucher ){
-
                 $support = $voucher->supports()->get()->first();
                 $support_type = $support->trans_type;
                 $transactionable = $support->transactionable()->get()->first();
@@ -158,6 +171,9 @@ class TaxReturnController extends Controller
                 $line_vat = 0;
                 $line_incl = 0;
                 $line_excl = 0;
+
+                $total_incl = $transactionable->net_total;
+                $total_excl = $total_incl;
                 
                 foreach($transactionable_items as $transactionable_item){
 
@@ -168,16 +184,16 @@ class TaxReturnController extends Controller
                         ->where('bill_item_id',$transactionable_item->id)
                         ->where('product_taxation_id', $vat_type->id)
                         ->get();
-                        //Log::info($price);
                     $line_incl = $pack_cost * $qty;
                     $line_excl = $line_incl;
                     foreach($taxed_rates as $taxed_rate){
                         if($taxed_rate->purchase_rate > 0){
-                             $line_vat += ( (($taxed_rate->purchase_rate/100)*$pack_cost) * $qty );
+                            $line_vat += ( (($taxed_rate->purchase_rate/100)*$pack_cost) * $qty );
                         }
                     }
                     $line_excl = $line_incl - $line_vat;
                 }
+                $total_excl = $total_incl - $line_vat;
 
                 // $line_tax = $transactionable->total_tax;
                 // $line_net_tot = $transactionable->net_total;
@@ -187,8 +203,8 @@ class TaxReturnController extends Controller
                 $temp_trans['trans_number'] = $transactionable->trans_number;
                 $temp_trans['vat_period'] = $vat_period;
                 $temp_trans['description'] = $support_type;
-                $temp_trans['inclusive'] = $line_incl;
-                $temp_trans['exclusive'] = $line_excl;
+                $temp_trans['inclusive'] = $total_incl;
+                $temp_trans['exclusive'] = $total_excl;
                 $temp_trans['vat_amount'] = $line_vat;
                 
                 switch ($support_type) {
@@ -197,19 +213,19 @@ class TaxReturnController extends Controller
                         $temp_trans['creditor_debtor_account'] = $this->suppliers->transform_supplier($supplier);
                         if($supplier->category == "Local"){
                             $vat_type_array['loc_supplier_vat_total'] += $line_vat;
-                            $vat_type_array['loc_supplier_excl_total'] += $line_excl;
-                            $vat_type_array['loc_supplier_incl_total'] += $line_incl;
+                            $vat_type_array['loc_supplier_excl_total'] += $total_excl;
+                            $vat_type_array['loc_supplier_incl_total'] += $total_incl;
                         }else{
                             $vat_type_array['int_supplier_vat_total'] += $line_vat;
-                            $vat_type_array['int_supplier_excl_total'] += $line_excl;
-                            $vat_type_array['int_supplier_incl_total'] += $line_incl;
+                            $vat_type_array['int_supplier_excl_total'] += $total_excl;
+                            $vat_type_array['int_supplier_incl_total'] += $total_incl;
                         }
                         $vat_type_array['vat_total'] += $line_vat;
-                        $vat_type_array['excl_total'] += $line_excl;
-                        $vat_type_array['incl_total'] += $line_incl;
+                        $vat_type_array['excl_total'] += $total_excl;
+                        $vat_type_array['incl_total'] += $total_incl;
                         $vat_return_array['total_input_tax'] += $line_vat;
-                        $vat_return_array['total_purchases_incl'] += $line_incl;
-                        $vat_return_array['total_purchases_excl'] += $line_excl;
+                        $vat_return_array['total_purchases_incl'] += $total_incl;
+                        $vat_return_array['total_purchases_excl'] += $total_excl;
                         array_push($inputs_transactions,$temp_trans);
                         $vat_return_array['total_input_transactions'] += 1;
                         break;
@@ -224,8 +240,17 @@ class TaxReturnController extends Controller
         }
         $vat_return_array['transactions'] = $transactions;
         $http_resp['results'] = $vat_return_array;
+        ///////////////////////////////////////////////////
         return response()->json($http_resp);
     }
+
+    public function reports(Request $request){
+        $http_resp = $this->http_response['200'];
+        Log::info($request);
+        return response()->json($http_resp);
+    }
+
+
 
     public function create(Request $request){
         //Log::info($request);

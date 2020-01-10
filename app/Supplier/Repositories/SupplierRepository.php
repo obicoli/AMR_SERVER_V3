@@ -290,15 +290,20 @@ class SupplierRepository implements SupplierRepositoryInterface
         
         //This supplier has accounting account number that keep track of all payments made to him/her 
         $account_holder = $supplier->account_holders()->get()->first();
-        $account = [
-            'id'=>$account_holder->uuid,
-            'account_type'=>$account_holder->account_type,
-            'account_number'=>$account_holder->account_number,
-            'name'=>$account_holder->name,
-            'main'=>$account_holder->main,
-            'bonus'=>$account_holder->bonus,
-            'balance'=>$account_holder->balance,
-        ];
+        if($account_holder){
+            $account = [
+                'id'=>$account_holder->uuid,
+                'account_type'=>$account_holder->account_type,
+                'account_number'=>$account_holder->account_number,
+                'name'=>$account_holder->name,
+                'main'=>$account_holder->main,
+                'bonus'=>$account_holder->bonus,
+                'balance'=>$account_holder->balance,
+            ];
+        }else{
+            $account = [];
+        }
+        
 
         //This are Billing or Shipping address specified during account creation
         $addresses = [];
@@ -368,6 +373,7 @@ class SupplierRepository implements SupplierRepositoryInterface
                 'email'=>$supplier->email,
                 'phone'=>$supplier->phone,
                 'mobile'=>$supplier->mobile,
+                'category'=>$supplier->category,
                 'account'=>$account,
                 'currency'=>$currency,
                 'balance'=>$balance,

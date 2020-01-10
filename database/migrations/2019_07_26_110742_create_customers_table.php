@@ -43,6 +43,7 @@ class CreateCustomersTable extends Migration
             $table->unsignedInteger('currency_id')->nullable();
             $table->string('salutation')->nullable()->index();
             $table->string('legal_name')->nullable();
+            $table->string('tax_reg_number')->nullable();
             $table->string('display_as');
             $table->string('document_sending_by')->default("Email");
             $table->float("default_discount",32,2)->default(00.00)->index();

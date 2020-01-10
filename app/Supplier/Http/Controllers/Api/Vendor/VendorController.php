@@ -116,54 +116,47 @@ class VendorController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
+
+        //
+        $company = $this->practices->find($request->user()->company_id);
+        //Check if email is already taken
+        $inputs = $request->all();
+        if( $company->vendors()->where('email',$request->email)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["Email address already in use"];
+            return response()->json($http_resp,422);
+        }
+        //Check if mobile is already taken
+        $encoded_mobile = $this->helper->encode_mobile($request->mobile,"KE");
+        //
+        if(!$encoded_mobile){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["Invalid or missing mobile number!"];
+            return response()->json($http_resp,422);
+        }
+        //
+        if( $company->vendors()->where('mobile',$encoded_mobile)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["Mobile already in use"];
+            return response()->json($http_resp,422);
+        }
+
+        if( $company->vendors()->where('tax_reg_number',$request->tax_reg_number)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["Tax registration number already in use!"];
+            return response()->json($http_resp,422);
+        }
+
+        if( $company->vendors()->where('legal_name',$request->legal_name)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["Contact/Legal name already in use!"];
+            return response()->json($http_resp,422);
+        }
+
         DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
-            //
-            $company = $this->practices->find($request->user()->company_id);
-            //Check if email is already taken
-            $inputs = $request->all();
-            if( $company->vendors()->where('email',$request->email)->get()->first() ){
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ["Email address already in use"];
-                return response()->json($http_resp,422);
-            }
-            //Check if mobile is already taken
-            $encoded_mobile = $this->helper->encode_mobile($request->mobile,"KE");
-            //
-            if(!$encoded_mobile){
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ["Invalid or missing mobile number!"];
-                return response()->json($http_resp,422);
-            }
-            //
-            if( $company->vendors()->where('mobile',$encoded_mobile)->get()->first() ){
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ["Mobile already in use"];
-                return response()->json($http_resp,422);
-            }
-
-            if( $company->vendors()->where('tax_reg_number',$request->tax_reg_number)->get()->first() ){
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ["Tax registration number already in use!"];
-                return response()->json($http_resp,422);
-            }
-
-            if( $company->vendors()->where('legal_name',$request->legal_name)->get()->first() ){
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ["Contact/Legal name already in use!"];
-                return response()->json($http_resp,422);
-            }
+            
 
             //Get Vendor Company
             // $vendor_company = $this->supplierCompanies->findByUuid($request->company);
@@ -172,10 +165,14 @@ class VendorController extends Controller
 
             //Attach to currency
             $currecy = $this->countries->findByUuid($request->currency_id);
-            $inputs['currency_id'] = $currecy->id;
+            if($currecy){
+                $inputs['currency_id'] = $currecy->id;
+            }
             //Attach Payment Terms
             $payment_term = $this->paymentTerms->findByUuid($request->payment_term_id);
-            $inputs['payment_term_id'] = $payment_term->id;
+            if($payment_term){
+                $inputs['payment_term_id'] = $payment_term->id;
+            }
             //Attach to VAT
             if($request->vat_id){
                 $tax = $this->taxations->findByUuid($request->vat_id);
@@ -186,13 +183,13 @@ class VendorController extends Controller
             //Attach this vendor to a company
             $new_vendor = $company->vendors()->save($new_vendor);
             //Attach this Vendor to Account
-            $ac_inputs = $request->all();
-            $ac_inputs['name'] = $new_vendor->first_name;
-            $ac_inputs['account_type'] = Account::AC_SUPPLIERS;
-            $ac_inputs['account_number'] = strtoupper($this->helper->getToken(10));
-            $ac_inputs['balance'] = 0;
-            $ac_inputs['practice_id'] = $company->id;
-            $vendor_account = $new_vendor->account_holders()->create($ac_inputs);
+            // $ac_inputs = $request->all();
+            // $ac_inputs['name'] = $new_vendor->first_name;
+            // $ac_inputs['account_type'] = Account::AC_SUPPLIERS;
+            // $ac_inputs['account_number'] = strtoupper($this->helper->getToken(10));
+            // $ac_inputs['balance'] = 0;
+            // $ac_inputs['practice_id'] = $company->id;
+            // $vendor_account = $new_vendor->account_holders()->create($ac_inputs);
             //Attach addresses to this account
             //Log::info($request);
             $bil_add = $request->billing;
@@ -247,9 +244,9 @@ class VendorController extends Controller
                 }
                 // $vendor_account->balance = $request->balance;
                 // $vendor_account->save();//Update Account Holder Balance
-                $amount = $request->opening_balance;
-                $vendor_account->balance = $amount;
-                $vendor_account->save(); //Update Account Holder Balance
+                // $amount = $request->opening_balance;
+                // $vendor_account->balance = $amount;
+                // $vendor_account->save(); //Update Account Holder Balance
                 //Accounting Transactions starts here
                 /*
                     Since we are creating supplier with Opening Balance:
@@ -263,13 +260,13 @@ class VendorController extends Controller
                 //Get company Accounts Payables
                 $debited_ac = $other_expense->code;
                 $credited_ac = $custom_chart_of_coa->code;
-                //$amount = $request->balance;
+                $amount = $request->opening_balance;
                 $as_at = $this->helper->format_lunox_date($request->as_of);
                 $trans_type = AccountsCoa::TRANS_TYPE_SUPPLIER_OPENING_BALANCE;
                 $reference_number = AccountsCoa::TRANS_TYPE_OPENING_BALANCE;
                 $trans_name = $request->legal_name.' '.$reference_number;
                 //$ac_number = $vendor_account->account_number;
-                $account_number = $vendor_account->account_number;
+                //$account_number = $vendor_account->account_number;
                 
                 //
                 $ledger_support_document = $new_vendor->double_entry_support_document()->create(['trans_type'=>$trans_type]);
@@ -483,6 +480,31 @@ class VendorController extends Controller
         $supplier = $this->suppliers->findByUuid($uuid);
         $supplier->delete();
         $http_resp['results'] = $this->suppliers->transform_supplier($supplier);
+        return response()->json($http_resp);
+    }
+
+    public function reports(Request $request){
+
+        $http_resp = $this->http_response['200'];
+        $results = array();
+        $company = $this->practices->find($request->user()->company_id);
+        $custom_filters = json_decode($request->filters,true);
+        Log::info($company);
+        switch ($custom_filters['report_name']) {
+            case 'List of Suppliers':
+                $vendors = $company->vendors()->orderByDesc('created_at')->paginate(100);
+                $paged_data = $this->helper->paginator($vendors,$company);
+                foreach( $vendors as $vendor){
+                    array_push($results, $this->suppliers->transform_supplier($vendor));
+                }
+                $paged_data['data'] = $results;
+                $http_resp['results'] = $paged_data;
+                break;
+            
+            default:
+                # code...
+                break;
+        }
         return response()->json($http_resp);
     }
 

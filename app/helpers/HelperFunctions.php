@@ -50,10 +50,17 @@ use Illuminate\Support\Facades\Log;
 
 class HelperFunctions
 {
-    public function get_default_filter(Model $company=null){
-        $first = date("Y-m-d", strtotime("first day of this month"));
-        $last = date("Y-m-d", strtotime("last day of this month"));
-        $today = date("Y-m-d");
+    public function get_default_filter($company=null){
+        if($company){
+            $date_format = $company->date_format;
+            $first = date($date_format, strtotime("first day of this month"));
+            $last = date($date_format, strtotime("last day of this month"));
+            $today = date($date_format);
+        }else{
+            $first = date("Y-m-d", strtotime("first day of this month"));
+            $last = date("Y-m-d", strtotime("last day of this month"));
+            $today = date("Y-m-d");
+        }
         return [
             'start'=>$first,
             'last'=>$last,
@@ -862,7 +869,12 @@ class HelperFunctions
 
     }
 
-    public function paginator($data){
+    public function paginator($data,$company=null){
+
+        $filters = $this->get_default_filter();
+        if($company){
+            $filters = $this->get_default_filter($company);
+        }
         return [
             'pagination' => [
                 'total' => $data->total(),
@@ -873,7 +885,7 @@ class HelperFunctions
                 'to' => $data->lastItem()
             ],
             'data' => [],
-            'filters' => $this->get_default_filter(),
+            'filters' => $filters,
         ];
     }
 

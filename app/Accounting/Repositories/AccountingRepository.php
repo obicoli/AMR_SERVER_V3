@@ -53,6 +53,9 @@ class AccountingRepository implements AccountingRepositoryInterface
     public function findByUuid($uuid){
         return $this->model->all()->where('uuid',$uuid)->first();
     }
+    public function getByUuid($uuid){
+        return $this->model->all()->where('uuid',$uuid);
+    }
     public function findByCode($code){
         return $this->model->all()->where('code',$code)->first();
     }

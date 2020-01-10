@@ -26,7 +26,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
     protected $helpers;
     protected $companyUser;
     protected $productItem;
-    //protected $accountings;
+    protected $accounts;
 
     public function __construct(Model $model)
     {
@@ -34,7 +34,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
         $this->helpers = new HelperFunctions();
         $this->companyUser = new PracticeRepository( new Practice() );
         $this->productItem = new ProductReposity( new ProductItem() );
-        //$this->accountings = new AccountingRepository( new AccountChartAccount() );
+        $this->accounts = new AccountingRepository( new AccountChartAccount() );
     }
 
     public function all(){}
@@ -55,10 +55,8 @@ class CustomerRepository implements CustomerRepositoryInterface{
         }
 
         $balance = 0;
-        $customer_account = $customer->account_holders()->get()->first();
-        if($customer_account){
-            $balance = $customer_account->balance;
-        }
+        $ledger_ac = $customer->ledger_accounts()->get()->first();
+        $balance = $this->accounts->calculate_account_balance($ledger_ac);
 
         return [
             'id'=>$customer->uuid,
@@ -66,8 +64,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'last_name'=>$customer->last_name,
             'legal_name'=>$customer->legal_name,
             'salutation'=>$customer->salutation,
-            'display_as'=>$customer->legal_name,
-            //'company'=>$customer->company,
+            'display_as'=>$customer->salutation.' '.$customer->first_name.' '.$customer->last_name,
             'postal_code'=>$customer->postal_code,
             'country'=>$customer->country,
             'email'=>$customer->email,
@@ -78,7 +75,6 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'city' => $customer->city,
             'address' => $customer->address,
             'postal_code' => $customer->postal_code,
-            'prefered_payment'=>'$customer->phone',
             'business_id' => $customer->business_id,
             'status' => $customer->status,
             'balance' => $balance,
