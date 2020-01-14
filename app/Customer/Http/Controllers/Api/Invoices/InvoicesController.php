@@ -28,6 +28,9 @@ use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Accounting\Repositories\AccountingRepository;
+use App\Finance\Models\Banks\AccountsBank;
+use App\Finance\Models\Banks\BankTransaction;
+use App\Finance\Repositories\FinanceRepository;
 
 class InvoicesController extends Controller
 {
@@ -44,6 +47,8 @@ class InvoicesController extends Controller
     protected $productTaxations;
     protected $customerTerms;
     protected $accountDoubleEntries;
+    protected $bankAccounts;
+    protected $bankTransactions;
 
     public function __construct(CustomerInvoice $customerInvoice)
     {
@@ -60,6 +65,8 @@ class InvoicesController extends Controller
         $this->productTaxations = new ProductReposity( new ProductTaxation() );
         $this->customerTerms = new CustomerRepository( new CustomerTerms() );
         $this->accountDoubleEntries = new AccountingRepository( new AccountsVoucher() );
+        $this->bankAccounts = new FinanceRepository( new AccountsBank());
+        $this->bankTransactions = new FinanceRepository( new BankTransaction() );
     }
 
     public function index(Request $request){
@@ -123,8 +130,31 @@ class InvoicesController extends Controller
             $inputs['overal_discount_rate'] = 0;
         }
 
-        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
+        /* Bank Ledger AC Received the Paid Amount */
+        $bank_ledger_ac_received = null;
+        if($request->sales_basis == "Cash"){
+            $rule = [
+                'cash_paid'=>'required',
+                'cash_balance'=>'required',
+                'bank_account_id'=>'required',
+                'cheque_number'=>'required',
+            ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+            if ( $validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }else{
+                $bank_account = $this->bankAccounts->findByUuid($request->payment['bank_account_id']);
+                $bank_ledger_ac_received = $bank_account->ledger_accounts()->get()->first();
+            }
+        }
+
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
             /*
                 Accounting and journal entry for credit sales include 2 accounts, "debtor" and "sales."
@@ -140,6 +170,7 @@ class InvoicesController extends Controller
             $practiceParent = $this->practices->findParent($company);
             $finance_settings = $company->practice_finance_settings()->get()->first(); //
             $invoice_prefix = $finance_settings->inv_prefix;
+            $payment_prefix = "PAY-";
             $company_user = $this->company_users->find($request->user()->company_id); //Get current user
             $customer = $this->customers->findByUuid($request->customer_id);
             $invoice_basis_type = $request->sales_basis;
@@ -158,10 +189,6 @@ class InvoicesController extends Controller
                 $inputs['customer_id'] = $customer->id;
                 $customer_ledger_ac = $customer->ledger_accounts()->get()->first();
             }
-            
-            /* Bank Ledger AC Received the Paid Amount */
-            $bank_ledger_ac_received = null;
-            
 
             $payment_term = $this->customerTerms->findByUuid($request->payment_term_id);
             if($payment_term){
@@ -335,18 +362,69 @@ class InvoicesController extends Controller
                 $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
                 $support = $double_entry->supports()->save($ledger_support_document);
             }
+
+            if( $invoice_basis_type == $cash_basis_invoice ){
+                //Record this payment into Payments table as below
+                $notes = "Payment for Invoice ".$new_invoice->trans_number;
+                $cash_paid = $request->payment['cash_paid'];
+                $pay_reference = $new_invoice->trans_number;
+                $pay_inputs['amount'] = $cash_paid;
+                $pay_inputs['customer_invoice_id'] = $new_invoice->id;
+                $pay_inputs['customer_id'] = $customer->id;
+                $pay_inputs['trans_date'] = $as_at;
+                $pay_inputs['ledger_account_id'] = $bank_ledger_ac_received->id;
+                //$pay_inputs['payment_method'] = $payment_method;
+                $pay_inputs['notes'] = $notes;
+                $pay_inputs['reference_number'] = $pay_reference;
+                $pay_inputs['trans_number'] = $payment_prefix;
+                $new_customer_payment = $company->customer_payments()->create($pay_inputs);
+                $new_customer_payment->trans_number = $this->helper->create_transaction_number($payment_prefix,$new_customer_payment->id);
+                $new_customer_payment->save();
+                //Bank Transaction recorded below:
+                $received = $net_total - $discount_allowed;
+                $account_type_customer = AccountsCoa::AC_TYPE_CUSTOMER;
+                $trans_type_customer_payment = AccountsCoa::TRANS_TYPE_CUSTOMER_PAYMENT;
+                $bank_reference = $request->payment['cheque_number'];
+                //Bank Transaction is Recorded
+                /*
+                    Any Bank Transaction Recorded to the system, 
+                    "reference_number" must be an issued reference number 
+                    from the bank institution, this is important when it comes to bank reconciliation
+                */
+                $transactions['bank_account_id'] = $bank_account->id;
+                $transactions['transaction_date'] = $as_at;
+                //$transactions['spent'] = $spent;
+                $transactions['received'] = $received;
+                $transactions['type'] = $account_type_customer;
+                $transactions['name'] = $trans_type_customer_payment;
+                $transactions['payee'] = $customer->legal_name;
+                $transactions['description'] = $notes;
+                $transactions['reference'] = $bank_reference;
+                $transactions['discount'] = $discount_allowed;
+                $transactions['comment'] = $notes;
+                $bank_transaction = $new_customer_payment->bank_transactions()->create($transactions);//Create and Link this transaction to Customer Payments
+                $bank_transaction = $company->bank_transactions()->save($bank_transaction);//Link transaction to a company
+                $bank_account_reconciliation = $this->bankTransactions->getOrCreateBankReconciliation($bank_account,$as_at,null);
+                $this->bankTransactions->reconcile_bank_transaction($company_user,$bank_account_reconciliation,$bank_transaction,$bank_account,null,AccountsCoa::RECONCILIATION_NOT_TICKED);
+            }
             
             $http_resp['description'] = "Customer invoice successful created!";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
-            DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             Log::info($e);
             return response()->json($http_resp,500);
         }
         //
-        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
         return response()->json($http_resp);
         
     }

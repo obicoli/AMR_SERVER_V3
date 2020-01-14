@@ -81,6 +81,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_CUSTOMER_OPENING_BALANCE = "Customer Opening Balance";
     const TRANS_TYPE_ACCOUNT_OPENING_BALANCE = "Account Opening Balance";
     const TRANS_TYPE_BANK_OPENING_BALANCE = "Bank Opening Balance";
+    const TRANS_TYPE_CUSTOMER_PAYMENT = "Customer Payment";
 
     const TRANS_NAME_OPEN_BALANCE = "Opening Balance";
     const TRANS_NAME_JOURNAL_ENTRY = "Journal Entry";
