@@ -17,7 +17,6 @@ class CustomerTerms extends Model
         'name',
         'notes'
     ];
-
     public function owning(){ return $this->morphTo();} //Branch level
     public function customers(){ return $this->hasMany(Customer::class,'customer_terms_id'); }
 }

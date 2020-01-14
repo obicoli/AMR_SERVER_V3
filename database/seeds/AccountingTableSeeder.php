@@ -198,7 +198,8 @@ class AccountingTableSeeder extends Seeder
         $owner_equity->default_accounts()->create(['code'=>614,'sys_default'=>true,'name'=>"Share capital"]);
         $owner_equity->default_accounts()->create(['code'=>615,'sys_default'=>true,'name'=>"Treasury Shares"]);
         //10. iNCOME
-        $income->default_accounts()->create(['code'=>901,'sys_default'=>true,'name'=>"Discounts/Refunds Given"]);
+        //$income->default_accounts()->create(['code'=>901,'sys_default'=>true,'name'=>"Discounts/Refunds Given"]);
+        $income->default_accounts()->create(['code'=>901,'sys_default'=>true,'name'=>"Discount Received"]);
         $income->default_accounts()->create(['code'=>902,'sys_default'=>true,'name'=>"Non-Profit Income"]);
         $income->default_accounts()->create(['code'=>903,'sys_default'=>true,'name'=>"Other Primary Income"]);
         $income->default_accounts()->create(['code'=>904,'sys_default'=>true,'name'=>"Revenue - General"]);
@@ -256,12 +257,14 @@ class AccountingTableSeeder extends Seeder
         $expenses->default_accounts()->create(['code'=>1129,'sys_default'=>true,'name'=>"Travel expenses - selling expense"]);
         $expenses->default_accounts()->create(['code'=>1130,'sys_default'=>true,'name'=>"Unapplied Cash Bill Payment Expense"]);
         $expenses->default_accounts()->create(['code'=>1131,'sys_default'=>true,'name'=>"Utilities"]);
+        //$expenses->default_accounts()->create(['code'=>1132,'sys_default'=>true,'name'=>""]);
         //Other Expenses
-        $other_expense->default_accounts()->create(['code'=>1201,'sys_default'=>true,'name'=>"Amortisation"]);
+        $other_expense->default_accounts()->create(['code'=>1201,'sys_default'=>true,'name'=>"Discount Allowed"]);
         $other_expense->default_accounts()->create(['code'=>1202,'sys_default'=>true,'name'=>"Depreciation"]);
         $other_expense->default_accounts()->create(['code'=>1203,'sys_default'=>true,'name'=>"Exchange Gain or Loss"]);
         $other_expense->default_accounts()->create(['code'=>1204,'sys_default'=>true,'name'=>"Other Expense"]);
         $other_expense->default_accounts()->create(['code'=>1205,'sys_default'=>true,'name'=>"Penalties and settlements"]);
+        $other_expense->default_accounts()->create(['code'=>1206,'sys_default'=>true,'name'=>"Amortisation"]);
         //END==============================================================
 
 

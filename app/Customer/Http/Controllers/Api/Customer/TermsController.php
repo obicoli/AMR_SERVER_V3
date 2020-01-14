@@ -39,23 +39,21 @@ class TermsController extends Controller
         $this->http_response = Config::get('response.http');
         $this->helper = new HelperFunctions();
         $this->practices = new PracticeRepository( new Practice());
-        //$this->customers = new CustomerRepository($customers);
-        //$this->customer_terms = new CustomerRepository(new CustomerTerms());
-        // $this->payment_methods = new AccountingRepository(new AccountPaymentType());
-        // $this->accountingVouchers = new AccountingRepository(new AccountsVoucher());
-        // $this->countries = new AccountingRepository( new Country() );
     }
 
     public function index(Request $request){
-
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        $customers = $company->customer_terms()->get();
-        foreach($customers as $customer){
-            array_push($results,$this->customerTerms->transform_term($customer) );
+        $customer_terms = $company->customer_terms()->orderByDesc('created_at')->paginate(100);
+        //Log::info($customer_terms);
+        $paged_data = $this->helper->paginator($customer_terms);
+        foreach($customer_terms as $customer_term){
+            array_push($results,$this->customerTerms->transform_term($customer_term) );
         }
-        $http_resp['results'] = $results;
+        $paged_data['data'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 

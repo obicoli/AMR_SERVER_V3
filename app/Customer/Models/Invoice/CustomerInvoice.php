@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Customer\Models\Quote;
+namespace App\Customer\Models\Invoice;
 
+use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
 use App\Models\Module\Module;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
@@ -10,19 +11,13 @@ use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Estimate extends Model
+class CustomerInvoice extends Model
 {
-    use SoftDeletes,UuidTrait,Accountable;
+    use SoftDeletes, UuidTrait, Accountable;
     protected $connection = Module::MYSQL_CUSTOMER_DB_CONN;
-    const ACCEPTED = "Accepted";
-    const DECLINED = "Declined";
-    const DRAFT = "Draft";
-    const SENT = "Sent";
-    const VIEWD = "Viewed";
-    const INVOICED = "Invoiced";
-    const EXPIRED = "Expired";
-    protected $table = "estimates";
+    protected $table = "customer_invoices";
     protected $fillable = [
+        'extracted_from',
         'trans_number',
         'reference_number',
         'trans_date',
@@ -36,14 +31,16 @@ class Estimate extends Model
         'grand_total',
         'total_tax',
         'total_discount',
-        'taxation_option',
-        'payment_term_id'
+        'overal_discount',
+        'overal_discount_rate',
+        'payment_term_id',
+        'sales_basis'
     ];
 
-    public function items(){ return $this->hasMany(EstimateItems::class,'estimate_id'); }
-    public function owning(){ return $this->morphTo();} //Branch level
-    //public function customer(){ return $this->morphTo();}
-    public function customers(){ return $this->belongsTo(Customer::class,'customer_id','id'); }
-    public function estimate_status(){ return $this->hasMany(EstimateStatus::class,'estimate_id');}
+    public function double_entry_support_document(){
+        return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
+    }
+    public function invoiceStatus(){ return $this->hasMany(CustomerInvoiceStatus::class,'customer_invoice_id','id');}
+    public function items(){ return $this->hasMany(CustomerInvoiceItem::class,'customer_invoice_id','id'); }
     public function mails_attachments(){ return $this->morphMany(NotificationInventoryMailAttach::class,'attachable','attachable_type','attachable_id'); }
 }

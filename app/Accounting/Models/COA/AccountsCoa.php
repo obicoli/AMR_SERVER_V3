@@ -37,6 +37,7 @@ class AccountsCoa extends Model
     const AC_INVENTORY_CODE = 107; //DO NOT EDIT OR CHANGE
     const AC_PAYABLE_CODE = 301; //DO NOT EDIT OR CHANGE
     const AC_DISCOUNT_RECEIVED_REFUND_CODE = 901; //DO NOT EDIT OR CHANGE
+    const AC_DISCOUNT_ALLOWED_CODE = 1201; //DO NOT EDIT OR CHANGE
     const AC_RECEIVABLE_CODE = 102; //DO NOT EDIT OR CHANGE
     const AC_SALES_CODE = 906; //DO NOT EDIT OR CHANGE
     const AC_COST_OF_SALES_CODE = 1004; //DO NOT EDIT OR CHANGE
@@ -56,6 +57,7 @@ class AccountsCoa extends Model
     const COST_OF_GOODS = "Cost of goods";
     const SALARY = "Salary";
     const CASH = "Cash";
+    const CREDIT = "Credit";
 
     const AC_CAPITAL_CODE = 301;
     const AC_OPENING_BALANCE_EQUITY = "Opening Balance Equity";
@@ -73,6 +75,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_CUSTOMER_RECEIPT = "Customer Receipt";
     const TRANS_TYPE_PAYMENT_RECEIPT = "Payment Receipt";
     const TRANS_TYPE_VAT_PAYMENT = "VAT Payment";
+    const TRANS_TYPE_TAX_INVOICE = "Tax Invoice";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
     const TRANS_TYPE_SUPPLIER_OPENING_BALANCE = "Supplier Opening Balance";
     const TRANS_TYPE_CUSTOMER_OPENING_BALANCE = "Customer Opening Balance";

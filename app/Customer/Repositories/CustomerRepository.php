@@ -8,11 +8,15 @@ use App\Accounting\Repositories\AccountingRepository;
 use Illuminate\Database\Eloquent\Model;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Customer;
+use App\Customer\Models\CustomerAddress;
+use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
 use App\helpers\HelperFunctions;
+use App\Models\Localization\Country;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeUser;
+use App\Models\Product\Product;
 use App\Models\Product\ProductItem;
 use App\Models\Product\ProductTaxation;
 use App\Repositories\Practice\PracticeRepository;
@@ -46,6 +50,56 @@ class CustomerRepository implements CustomerRepositoryInterface{
         return $this->model->create($inputs);
     }
 
+    public function transform_sales_order(CustomerSalesOrder $customerSalesOrder){
+
+        //Estimate Status Changes
+        $company = $customerSalesOrder->owning()->get()->first();
+        $date_format = $company->date_format;
+        $est_statuses = $customerSalesOrder->salesorderStatus()->get();
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['note'] = $est_status->note;
+            $temp_status['date'] = $this->helpers->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+
+        //Estimate Customer
+        $custom = $customerSalesOrder->customers()->get()->first();
+        $customer = null;
+        if($custom){
+            $customer = $this->transform_customer($custom);
+        }
+
+        return [
+            'id'=>$customerSalesOrder->uuid,
+            'trans_number'=>$customerSalesOrder->trans_number,
+            'reference_number'=>$customerSalesOrder->reference_number,
+            'document_name'=>Product::DOC_SALES_ORDER,
+            'trans_date'=>$this->helpers->format_mysql_date($customerSalesOrder->trans_date,$date_format),
+            'due_date'=>$this->helpers->format_mysql_date($customerSalesOrder->due_date,$date_format),
+            'shipping_charges'=>$customerSalesOrder->shipping_charges,
+            'adjustment_charges'=>$customerSalesOrder->adjustment_charges,
+            'notes'=>$customerSalesOrder->notes,
+            'terms_condition'=>$customerSalesOrder->terms_condition,
+            'status' => $trans_status,
+            'customer' => $customer,
+            //'items' => $est_items,
+            'taxation_option'=>$customerSalesOrder->taxation_option,
+            'net_total' => $customerSalesOrder->net_total,
+            'grand_total'=>$customerSalesOrder->grand_total,
+            'total_discount' => \round( $customerSalesOrder->total_discount,2 ),
+            'total_tax' => $customerSalesOrder->total_tax,
+            'paid_amount' => 0,
+            'display_as'=>$customerSalesOrder->trans_number.' | '.$this->helpers->format_mysql_date($customerSalesOrder->trans_date,$date_format),
+            //'pricing' => $pricing,
+        ];
+
+    }
+
     public function transform_customer(Customer $customer, $detailed=null){
 
         $customer_term = $customer->customer_terms()->get()->first();
@@ -57,6 +111,17 @@ class CustomerRepository implements CustomerRepositoryInterface{
         $balance = 0;
         $ledger_ac = $customer->ledger_accounts()->get()->first();
         $balance = $this->accounts->calculate_account_balance($ledger_ac);
+
+        $addresses = [];
+        $addreses = $customer->addresses()->get();
+        foreach($addreses as $addrese){
+            if($addrese->type == Product::BILLING_ADDRESS ){
+                $addresses['billing'] = $this->transform_address($addrese);
+            }
+            if($addrese->type == Product::SHIPPING_ADDRESS ){
+                $addresses['shipping'] = $this->transform_address($addrese);
+            }
+        }
 
         return [
             'id'=>$customer->uuid,
@@ -78,23 +143,62 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'business_id' => $customer->business_id,
             'status' => $customer->status,
             'balance' => $balance,
+            'tax_reg_number'=>$customer->tax_reg_number,
+            'credit_limit'=>$customer->credit_limit,
+            'addresses'=>$addresses,
         ];
 
     }
 
-    public function transform_term(CustomerTerms $customerTerms){
+    public function transform_address(CustomerAddress $customerAddress){
 
+        if(!$customerAddress){
+            return null;
+        }
+        $country = null;
+        $countr = $customerAddress->countries()->get()->first();
+        if( $countr ){
+            $country = $this->transform_country( $countr );
+        }
+        return [
+            'id'=>$customerAddress->uuid,
+            'type'=>$customerAddress->type,
+            'address'=>$customerAddress->address,
+            'region'=>$customerAddress->region,
+            'city'=>$customerAddress->city,
+            'postal_code'=>$customerAddress->postal_code,
+            'zip_code'=>$customerAddress->zip_code,
+            'phone'=>$customerAddress->phone,
+            'state'=>$customerAddress->state,
+            'fax'=>$customerAddress->fax,
+            'country'=>$country,
+        ];
+    }
+
+    public function transform_country(Country $country){
+        return [
+            'id'=>$country->uuid,
+            'name'=>$country->name,
+            'code'=>$country->code,
+            'currency'=>$country->currency,
+            'currency_sympol'=>$country->currency_sympol,
+            'display_as'=>$country->currency_sympol."-".$country->currency,
+        ];
+    }
+
+    public function transform_term(CustomerTerms $customerTerms){
         return [
             'id' => $customerTerms->uuid,
             'notes' => $customerTerms->notes,
             'name' => $customerTerms->name,
         ];
-
     }
 
     public function transform_estimate(Estimate $estimate){
 
         //Estimate Status Changes
+        $company = $estimate->owning()->get()->first();
+        $date_format = $company->date_format;
         $est_statuses = $estimate->estimate_status()->get();
         $trans_status = array();
         foreach ($est_statuses as $est_status) {
@@ -108,31 +212,77 @@ class CustomerRepository implements CustomerRepositoryInterface{
         }
 
         //Estimate Customer
-        $custom = $estimate->customer()->get()->first();
+        $custom = $estimate->customers()->get()->first();
         $customer = null;
         if($custom){
             $customer = $this->transform_customer($custom);
         }
 
-        //Items & Totals
-        $items = $estimate->items()->get();
-        $est_items = array();
+        return [
+            'id'=>$estimate->uuid,
+            'trans_number'=>$estimate->trans_number,
+            'reference_number'=>$estimate->reference_number,
+            'document_name'=>Product::DOC_QUOTATION,
+            'trans_date'=>$this->helpers->format_mysql_date($estimate->trans_date,$date_format),
+            'due_date'=>$this->helpers->format_mysql_date($estimate->due_date,$date_format),
+            'shipping_charges'=>$estimate->shipping_charges,
+            'adjustment_charges'=>$estimate->adjustment_charges,
+            'notes'=>$estimate->notes,
+            'terms_condition'=>$estimate->terms_condition,
+            'status' => $trans_status,
+            'customer' => $customer,
+            //'items' => $est_items,
+            'taxation_option'=>$estimate->taxation_option,
+            'net_total' => $estimate->net_total,
+            'grand_total'=>$estimate->grand_total,
+            'total_discount' => \round( $estimate->total_discount,2 ),
+            'total_tax' => $estimate->total_tax,
+            'paid_amount' => 0,
+            'display_as'=>$estimate->trans_number.' | '.$this->helpers->format_mysql_date($estimate->trans_date,$date_format),
+            //'pricing' => $pricing,
+        ];
+    }
+
+    public function transform_items(Model $model, $transaction=[]){
+
+        $items = $model->items()->get();
+        //Items
+        //$items = $purchaseOrder->items()->get();
+        
+        $po_items = array();
         $total_without_discount_and_tax = 0;
         $total_discount = 0;
         $total_taxe = 0;
         foreach( $items as $item ){
             //Get Product Item, Product Price,
             $prod_item = $item->product_items()->get()->first();
+            $temp_item = $this->productItem->transform_product_item($prod_item);
             $prod_price = $item->prices()->get()->first();
             //Each Item can be attached to multiple taxe rates
             //Get and Taxe and calculate if applied to this item
             $taxes = array(); //Array to hold all taxes applied to this Estimate Item
-            $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
-                ->table('estimate_item_taxations')
-                ->where('estimate_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
+            switch ($transaction['document_name']) {
+                case Product::DOC_QUOTATION:
+                    $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
+                    ->table('estimate_item_taxations')
+                    ->where('estimate_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
+                    break;
+                    case Product::DOC_SALES_ORDER:
+                    $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
+                    ->table('salesorder_item_taxations')
+                    ->where('sales_order_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
+                    break;
+                default:
+                    $item_taxes = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)
+                    ->table('po_item_taxations')
+                    ->where('po_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
+                    break;
+            }
+            
             foreach($item_taxes as $item_taxe){
                 //Create Eloquent Object to be passed to Taxation Tranformer
                 $taxe_eloq = ProductTaxation::find($item_taxe->product_taxation_id);
+                array_push($temp_item['applied_tax_rates'],$taxe_eloq->uuid);
                 $transformed_taxe = $this->productItem->transform_taxation($taxe_eloq);
                 //Replace the transformed taxes with exact values that were applied, this is because the taxe rates may have been updated after applied charged on sales transactins
                 $transformed_taxe['sales_rate'] = $item_taxe->sales_rate;
@@ -141,11 +291,14 @@ class CustomerRepository implements CustomerRepositoryInterface{
                 $transformed_taxe['collected_on_purchase'] = $item_taxe->collected_on_purchase;
                 array_push($taxes,$transformed_taxe);
             }
+
+            $temp_item['taxes'] = $taxes;
             //Calculate Total, Sub-totals, Discount Etc
             $pricing = $this->productItem->transform_price($prod_price);
             $pricing_after_taxe = $this->helpers->taxation_calculation( $this->productItem->transform_price($prod_price), $taxes );
             $toty = $pricing['pack_retail_price'] * $item->qty;
             $total_without_discount_and_tax += $toty;
+            //Log::info($pricing_after_taxe);
             $sub_discount = 0;
             $sub_total_tax = 0;
             if($item->discount_allowed){
@@ -157,42 +310,28 @@ class CustomerRepository implements CustomerRepositoryInterface{
             $total_after_tax = ($pricing_after_taxe['pack_retail_price'] * $item->qty);
             $sub_total_tax = $total_b4_tax - $total_after_tax;
             $total_taxe += $sub_total_tax;
-
             //Adjustments
             $adjustments = 0;
-
-            $temp_item['id'] = $item->id;
+            
+            //$temp_item['id'] = $item->uuid;
+            //$temp_item = $this->productItem->transform_product_item($prod_item);
+            $temp_item['po_item_id'] = $item->uuid;
             $temp_item['qty'] = $item->qty;
-            $temp_item['product_item'] = $this->productItem->transform_product_item($prod_item);
-            $temp_item['pricing'] = $pricing;
-            $temp_item['pricing_after_taxe'] = $pricing_after_taxe;
-            $temp_item['line_taxation'] = $taxes;
+            $temp_item['discount_rate'] = $item->discount_rate;
+            //$temp_item['product_item'] = $this->productItem->transform_product_item($prod_item);
+            //$temp_item['pricing'] = $pricing;
+            $temp_item['line_taxation'] = $sub_total_tax;
+            $temp_item['price_after_tax'] = $pricing_after_taxe;
+            //$temp_item['line_taxation'] = $taxes;
             $temp_item['line_discount'] = $sub_discount;
             $temp_item['line_total_tax'] = $sub_total_tax;
-            $temp_item['line_total'] = $toty;
+            $temp_item['line_total'] = $toty - $sub_discount;
+            $temp_item['amount'] = $toty;
             $temp_item['adjustments'] = $adjustments;
-            array_push($est_items,$temp_item);
+            $temp_item['line_exclusive'] = $total_after_tax;
+            array_push($po_items,$temp_item);
         }
-
-        return [
-            'id'=>$estimate->uuid,
-            'trans_number'=>$estimate->trans_number,
-            'ref_number'=>$estimate->ref_number,
-            'estimate_date'=>$this->helpers->format_mysql_date($estimate->estimate_date,"j M Y"),
-            'expiry_date'=>$this->helpers->format_mysql_date($estimate->expiry_date,"j M Y"),
-            'shipping_charges'=>$estimate->shipping_charges,
-            'adjustment_charges'=>$estimate->adjustment_charges,
-            'notes'=>$estimate->notes,
-            'terms_condition'=>$estimate->terms_condition,
-            'trans_status' => $trans_status,
-            'customer' => $customer,
-            'items' => $est_items,
-            'total' => $total_without_discount_and_tax,
-            'discount_allowed' => \round( $total_discount,2 ),
-            'taxe_collected' => $total_taxe,
-            'paid_amount' => 0
-            //'pricing' => $pricing,
-        ];
+        return $po_items;
     }
 
     public function company_terms_initialization(Model $company){

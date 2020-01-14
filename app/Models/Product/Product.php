@@ -22,6 +22,7 @@ class Product extends Model
     const STATUS_DRAFT = "Draft";
     const STATUS_DELIVERED = "Delivered";
     const STATUS_PENDING = "Pending";
+    const STATUS_PENDING_APPROVAL = "Pending Approval";
     const STATUS_SUBMITTED = "Submitted";
     const STATUS_PARTIAL_DELIVERED = "Partial Delivered";
     const STATUS_EXCESS_DELIVERED = "Excess Delivered";
@@ -42,6 +43,7 @@ class Product extends Model
     const STATUS_PARTIAL_PAID = "Partially Paid";
     const STATUS_OVERDUE = "Overdue";
     const STATUS_UNPAID = "Unpaid";
+    const STATUS_ACCEPTED = "Accepted";
 
     const STOCK_SOURCE_OPENING_STOCK = "Opening Stock";
     const STOCK_SOLD = "sold";
@@ -75,6 +77,9 @@ class Product extends Model
     const DOC_ESTIMATE = "Estimate";
     const DOC_CASH_BILL = "Cash";
     const DOC_CREDIT_BILL = "Credit";
+
+    const DOC_QUOTATION = "Quation";
+    const DOC_SALES_ORDER = "Sales Order";
 
     protected $fillable = [
         'name',

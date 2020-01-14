@@ -1,6 +1,8 @@
 <?php
 namespace App\Models\Practice;
 
+use App\Customer\Models\Invoice\CustomerInvoiceStatus;
+use App\Customer\Models\Orders\CustomerSalesOrderStatus;
 use App\Customer\Models\Quote\EstimateStatus;
 use App\Finance\Models\Banks\ReconciledTransactionState;
 use App\Models\His\Rtc\HisRtcUserTrack;
@@ -77,6 +79,9 @@ class PracticeUser extends Model
     public function requisition_status_responsible(){ return $this->morphMany(ProductRequisitionMovement::class,'responsible','responsible_type','responsible_id'); }
     //Estimates
     public function estimate_status(){ return $this->morphMany(EstimateStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function salesorder_status(){ return $this->morphMany(CustomerSalesOrderStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function customer_invoice_status(){ return $this->morphMany(CustomerInvoiceStatus::class,'responsible','responsible_type','responsible_id'); }
+    //
     //PO
     public function po_status(){ return $this->morphMany(PurchaseOrderStatus::class,'responsible','responsible_type','responsible_id'); }
     public function bill_status(){ return $this->morphMany(SupplierBillStatus::class,'responsible','responsible_type','responsible_id'); }

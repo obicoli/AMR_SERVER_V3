@@ -672,12 +672,28 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     Route::group( ['prefix'=>'customers' ], function (){
 
+        Route::group( ['prefix'=>'invoices' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@delete");
+        });
+
         Route::group( ['prefix'=>'estimates' ], function (){
             Route::get('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@index");
             Route::post('/', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@create");
             Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@update");
             Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@show");
             Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Estimate\EstimateController@delete");
+        });
+
+        Route::group( ['prefix'=>'sales_orders' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Salesorder\SalesorderController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Salesorder\SalesorderController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Salesorder\SalesorderController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Salesorder\SalesorderController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Salesorder\SalesorderController@delete");
         });
 
         Route::group( ['prefix'=>'debtors' ], function (){

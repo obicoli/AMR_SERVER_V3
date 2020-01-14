@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use ByTestGear\Accountable\Accountable;
 
-class CreateEstimateStatusesTable extends Migration
+class CreateCustomerInvoiceStatusesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,8 +15,8 @@ class CreateEstimateStatusesTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('estimate_statuses');
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('estimate_statuses', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_invoice_statuses');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('customer_invoice_statuses', function (Blueprint $table) {
             $table->increments('id');
             $table->string('note')->nullable();
             $table->string('uuid');
@@ -26,7 +26,7 @@ class CreateEstimateStatusesTable extends Migration
             $table->enum('type',['status','action'])->default('status');
             $table->softDeletes();
             Accountable::columns($table);
-            $table->unsignedInteger('estimate_id')->index()->nullable();
+            $table->unsignedInteger('customer_invoice_id')->index()->nullable();
             $table->timestamps();
         });
     }
@@ -38,6 +38,6 @@ class CreateEstimateStatusesTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('estimate_statuses');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_invoice_statuses');
     }
 }

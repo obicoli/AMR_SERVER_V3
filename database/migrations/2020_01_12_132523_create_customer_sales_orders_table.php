@@ -7,7 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-class CreateEstimatesTable extends Migration
+class CreateCustomerSalesOrdersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -16,8 +16,8 @@ class CreateEstimatesTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('estimates');
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('estimates', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_sales_orders');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('customer_sales_orders', function (Blueprint $table) {
             $table->increments('id');
             $table->string('trans_number')->nullable();
             $table->string('reference_number')->nullable();
@@ -26,20 +26,24 @@ class CreateEstimatesTable extends Migration
             $table->timestamp('due_date')->nullable();
             $table->float('shipping_charges',16,2)->default(0);
             $table->float('adjustment_charges',16,2)->default(0);
+            $table->float('overal_discount_rate',8,2)->default(0.0);
+            $table->boolean('overal_discount')->default(false);
             $table->text('notes')->nullable();
+            $table->enum('taxation_option',['Inclusive of Tax','Exclusive of Tax','Out of scope of Tax'])->default('Inclusive of Tax');
             $table->text('terms_condition')->nullable();
             $table->unsignedInteger('payment_type_id')->nullable()->index();
             $table->unsignedInteger('salesman_id')->nullable()->index(); //Salesperson: Polymorphy Relation
             $table->string('salesman_type')->nullable()->index();//Salesperson: Polymorphy Relation
             $table->string('uuid');
             $table->unsignedInteger('customer_id')->nullable()->index(); //Customer: Polymorphy Relation
+            $table->unsignedInteger('estimate_id')->nullable()->index();
+            $table->foreign('estimate_id')->references('id')->on('estimates')->onDelete('cascade');
+            $table->unsignedInteger('payment_term_id')->nullable()->index();
 
             $table->float('net_total',32,2)->default(00.00);
             $table->float('grand_total',32,2)->default(00.00);
             $table->float('total_tax',32,2)->default(00.00);
             $table->float('total_discount',32,2)->default(00.00);
-            $table->unsignedInteger('payment_term_id')->nullable()->index();
-            $table->enum('taxation_option',['Inclusive of Tax','Exclusive of Tax','Out of scope of Tax'])->default('Inclusive of Tax');
             
             //$table->string('customer_type')->nullable()->index();//Customer: Polymorphy Relation
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch level: Facility created this
@@ -57,6 +61,6 @@ class CreateEstimatesTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('estimates');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_sales_orders');
     }
 }

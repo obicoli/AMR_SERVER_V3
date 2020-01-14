@@ -18,6 +18,8 @@ class MailBox extends Model
     const PURCHASE_RETURN_SUBJECT = "Purchase Return";
     const BILL_SUBJECT = "Bill";
     const ESTIMATE_SUBJECT = "Estimate";
+    const SALES_ORDER_SUBJECT = "Sales Order";
+    const TAX_INVOICE_SUBJECT = "Tax Invoice";
     const PO_MSG = "Please find our purchase order attached to this email.";
     const EST_MSG = "Please find our estimate attached to this email.";
     const GRN_MSG = "Please find our Goods Received Note attached to this email.";

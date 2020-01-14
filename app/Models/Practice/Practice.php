@@ -13,6 +13,8 @@ use App\Assets\Models\Machines\Vehicle\Vehicle;
 use App\Contracts\AccountableInterface;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerTerms;
+use App\Customer\Models\Invoice\CustomerInvoice;
+use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Hrs\Models\Employee\HrsEmployee;
@@ -150,6 +152,8 @@ class Practice extends Model implements AccountableInterface
 
     //Customer Integration===========Starts=============
     public function estimates(){ return $this->morphMany(Estimate::class,'owning','owning_type','owning_id'); }
+    public function customerSalesorder(){ return $this->morphMany(CustomerSalesOrder::class,'owning','owning_type','owning_id'); }
+    public function customerInvoices(){ return $this->morphMany(CustomerInvoice::class,'owning','owning_type','owning_id'); }
     public function customer_terms(){ return $this->morphMany(CustomerTerms::class,'owning','owning_type','owning_id'); }
     public function customers(){ return $this->morphMany(Customer::class,'owning','owning_type','owning_id'); }
     //Customer Integration===========Ends=============
