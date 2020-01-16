@@ -37,7 +37,9 @@ class Estimate extends Model
         'total_tax',
         'total_discount',
         'taxation_option',
-        'payment_term_id'
+        'payment_term_id',
+        'overal_discount_rate',
+        'overal_discount'
     ];
 
     public function items(){ return $this->hasMany(EstimateItems::class,'estimate_id'); }

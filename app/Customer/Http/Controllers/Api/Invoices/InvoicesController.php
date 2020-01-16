@@ -77,16 +77,35 @@ class InvoicesController extends Controller
         $invoices = $company->customerInvoices()->orderByDesc('created_at')->paginate(10);
         $paged_data = $this->helper->paginator($invoices);
         foreach($invoices as $invoice){
-            array_push($results,$this->customerSalesOrder->transform_sales_order($invoice));
+            array_push($results,$this->customerSalesOrder->transform_invoices($invoice));
         }
         $paged_data['data'] = $results;
         $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
+    public function show(Request $request,$uuid){
+        $http_resp = $this->http_response['200'];
+        $payments = array();
+        $journals = array();
+        $payments = array();
+        $audit_trails = array();
+        $items = array();
+        $invoice = $this->customerInvoice->findByUuid($uuid);
+        $payment_term = $invoice->payment_terms()->get()->first();
+        $invoice_data = $this->customerInvoice->transform_invoices($invoice);
+        $invoice_data['payment_term'] = $this->customerInvoice->transform_term($payment_term);
+        $invoice_data['journals'] = $journals;
+        $invoice_data['payments'] = $payments;
+        $invoice_data['audit_trails'] = $audit_trails;
+        $invoice_data['items'] = $this->customerInvoice->transform_items($invoice,$invoice_data);
+        $http_resp['results'] = $invoice_data;
+        return response()->json($http_resp);
+    }
+
     public function create(Request $request){
 
-        //Log::info($request);
+        Log::info($request);
         $inputs = $request->all();
         $http_resp = $this->http_response['200'];
         $rule = [
@@ -150,7 +169,7 @@ class InvoicesController extends Controller
             }
         }
 
-        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
@@ -181,6 +200,8 @@ class InvoicesController extends Controller
             //$discount_allowed = $request->total_discount;
             $net_total = $request->net_total;
             $total_tax = $request->total_tax;
+            $currency = $request->currency;
+            $mapped_estimate = $this->estimates->findByUuid($request->estimate_id);
 
             //Ledger accounts
             $customer_ledger_ac = null; /*  A/C Receivable */
@@ -201,7 +222,7 @@ class InvoicesController extends Controller
             
             //Status updates
             $draft_status = Product::STATUS_DRAFT;
-            $status = $draft_status;
+            $status = null;
             switch ( $request->action_taken ) {
                 case Product::ACTIONS_SAVE_DRAFT:
                     $status = Product::STATUS_DRAFT;
@@ -234,13 +255,7 @@ class InvoicesController extends Controller
                     $status = Product::STATUS_PENDING;
                     break;
             }
-            $status_inputs['status'] = $status;
-            $status_inputs['type'] = 'status';
-            $invoice_status = $company_user->customer_invoice_status()->create($status_inputs);
-            $invoice_status = $new_invoice->invoiceStatus()->save($invoice_status);
-            $new_invoice->status = $status_inputs['status'];
-            $new_invoice->save();
-
+            
             //Items & Taxations
             $tax_id_array = array();
             $tax_value_array = array();
@@ -307,7 +322,6 @@ class InvoicesController extends Controller
 
             //ACCOUNTINGS: Journal Entries
             if($status != $draft_status ){ //Perform Accounting Double Entries only if Status is not a DRAFT
-                
                 /*  Company Sales A/C-  */
                 $sales_ledger_account = $company->chart_of_accounts()->where('default_code',$sales_ac_code)->get()->first();
                 /* Company Discount Allowed*/
@@ -406,12 +420,33 @@ class InvoicesController extends Controller
                 $bank_transaction = $company->bank_transactions()->save($bank_transaction);//Link transaction to a company
                 $bank_account_reconciliation = $this->bankTransactions->getOrCreateBankReconciliation($bank_account,$as_at,null);
                 $this->bankTransactions->reconcile_bank_transaction($company_user,$bank_account_reconciliation,$bank_transaction,$bank_account,null,AccountsCoa::RECONCILIATION_NOT_TICKED);
+                $status = Product::STATUS_PAID;
+            }
+
+            $status_inputs['status'] = $status;
+            $status_inputs['type'] = 'status';
+            $invoice_status = $company_user->customer_invoice_status()->create($status_inputs);
+            $invoice_status = $new_invoice->invoiceStatus()->save($invoice_status);
+            $new_invoice->status = $status_inputs['status'];
+            $new_invoice->save();
+
+            //Map to Estimate if this invoice is Extracted from the Estimate
+            if($mapped_estimate){
+                $inputs['estimate_id'] = $mapped_estimate->id;
+                $invoiced_status = Product::STATUS_INVOICED;
+                $estimate_status_inputs['status'] = $invoiced_status;
+                $estimate_status_inputs['type'] = 'status';
+                $estimate_status_inputs['notes'] = 'Quotation invoiced for '.$currency.' '.$net_total;
+                $estimate_status = $company_user->estimate_status()->create($estimate_status_inputs);
+                $estimate_status = $mapped_estimate->estimate_status()->save($estimate_status);
+                $mapped_estimate->status = $invoiced_status;
+                $mapped_estimate->save();
             }
             
             $http_resp['description'] = "Customer invoice successful created!";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
-            DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
@@ -420,12 +455,11 @@ class InvoicesController extends Controller
             return response()->json($http_resp,500);
         }
         //
-        DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
-        
     }
 }

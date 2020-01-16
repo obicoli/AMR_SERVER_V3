@@ -44,6 +44,7 @@ return array(
     'App\\Console\\Commands\\WebSocketServer' => $baseDir . '/app/Console/Commands/WebSocketServer.php',
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Contracts\\AccountableInterface' => $baseDir . '/app/Contracts/AccountableInterface.php',
+    'App\\CustomerPayment' => $baseDir . '/app/CustomerPayment.php',
     'App\\Customer\\Http\\Controllers\\Api\\Customer\\CustomerController' => $baseDir . '/app/Customer/Http/Controllers/Api/Customer/CustomerController.php',
     'App\\Customer\\Http\\Controllers\\Api\\Customer\\TermsController' => $baseDir . '/app/Customer/Http/Controllers/Api/Customer/TermsController.php',
     'App\\Customer\\Http\\Controllers\\Api\\Estimate\\EstimateController' => $baseDir . '/app/Customer/Http/Controllers/Api/Estimate/EstimateController.php',

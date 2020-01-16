@@ -899,7 +899,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/', "Api\Product\ProductCategoryController@create");
             Route::delete('/{uuid}', "Api\Product\ProductCategoryController@destroy");
             Route::post('/{uuid}', "Api\Product\ProductCategoryController@update");
-            Route::get('/practice/{practice_uuid}', "Api\Product\ProductCategoryController@practice");
+            //Route::get('/practice/{practice_uuid}', "Api\Product\ProductCategoryController@practice");
         });
 
         Route::group( ['prefix'=>'items' ], function (){

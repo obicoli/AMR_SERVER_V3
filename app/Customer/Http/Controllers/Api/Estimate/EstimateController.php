@@ -76,7 +76,9 @@ class EstimateController extends Controller
     }
 
     public function create(Request $request){
+
         //Log::info($request);
+        $inputs = $request->all();
         $http_resp = $this->http_response['200'];
         $rule = [
             'customer_id'=>'required',
@@ -115,11 +117,32 @@ class EstimateController extends Controller
             }
         }
 
+        if($request->overal_discount){
+            $rule = [
+                'overal_discount_rate'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+            if ( $validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }elseif($request->overal_discount_rate>0){
+                $discount_allowed = ($request->overal_discount_rate/100) * $request->net_total;
+            }else{
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ['Overal discount rate is required!'];
+                return response()->json($http_resp,422);
+            }
+        }else{
+            //overal_discount_rate
+            $inputs['overal_discount_rate'] = 0;
+        }
+
         DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
 
-            $inputs = $request->all();
+            
             $inputs['due_date'] = $this->helper->format_lunox_date($inputs['due_date']);
             $inputs['trans_date'] = $this->helper->format_lunox_date($inputs['trans_date']);
             $company = $this->practices->find($request->user()->company_id); //Get the company
@@ -173,12 +196,7 @@ class EstimateController extends Controller
                     break;
             }
 
-            $status_inputs['status'] = $status;
-            $status_inputs['type'] = 'status';
-            $estimate_status = $company_user->estimate_status()->create($status_inputs);
-            $estimate_status = $new_estimate->estimate_status()->save($estimate_status);
-            $new_estimate->status = $status_inputs['status'];
-            $new_estimate->save();
+            
 
             //Process and save Estimate Items
             $items = $request->items;
@@ -215,6 +233,13 @@ class EstimateController extends Controller
                     $item_taxation = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->table('estimate_item_taxations')->insert($tax_inputs);
                 }
             }
+
+            $status_inputs['status'] = $status;
+            $status_inputs['type'] = 'status';
+            $estimate_status = $company_user->estimate_status()->create($status_inputs);
+            $estimate_status = $new_estimate->estimate_status()->save($estimate_status);
+            $new_estimate->status = $status_inputs['status'];
+            $new_estimate->save();
 
             // $inputs = $request->except(['customer_id']);
             // 
@@ -310,10 +335,14 @@ class EstimateController extends Controller
         $estimate = $this->estimates->findByUuid($uuid);
         //audit_trails
         $audit_trails = array();
+        $invoices = array();
+        $salesorders = array();
         $estimate_data = $this->estimates->transform_estimate($estimate);
         $items = $this->estimates->transform_items($estimate,$estimate_data);
         $estimate_data['audit_trails'] = $audit_trails;
         $estimate_data['items'] = $items;
+        $estimate_data['invoices'] = $invoices;
+        $estimate_data['salesorders'] = $salesorders;
         $http_resp['results'] = $estimate_data;
         return response()->json($http_resp);
 

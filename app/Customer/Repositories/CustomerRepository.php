@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerAddress;
+use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
 use App\helpers\HelperFunctions;
@@ -48,6 +49,54 @@ class CustomerRepository implements CustomerRepositoryInterface{
     }
     public function create($inputs = []){
         return $this->model->create($inputs);
+    }
+
+    public function transform_invoices(CustomerInvoice $customerInvoice){
+
+        $company = $customerInvoice->owning()->get()->first();
+        $date_format = $company->date_format;
+        $est_statuses = $customerInvoice->invoiceStatus()->get();
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['note'] = $est_status->note;
+            $temp_status['date'] = $this->helpers->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+
+        //Estimate Customer
+        $custom = $customerInvoice->customers()->get()->first();
+        $customer = null;
+        if($custom){
+            $customer = $this->transform_customer($custom);
+        }
+        return [
+            'id'=>$customerInvoice->uuid,
+            'trans_number'=>$customerInvoice->trans_number,
+            'reference_number'=>$customerInvoice->reference_number,
+            'document_name'=>Product::DOC_TAX_INVOICE,
+            'overal_discount'=>$customerInvoice->overal_discount,
+            'trans_date'=>$this->helpers->format_mysql_date($customerInvoice->trans_date,$date_format),
+            'due_date'=>$this->helpers->format_mysql_date($customerInvoice->due_date,$date_format),
+            'shipping_charges'=>$customerInvoice->shipping_charges,
+            'adjustment_charges'=>$customerInvoice->adjustment_charges,
+            'notes'=>$customerInvoice->notes,
+            'terms_condition'=>$customerInvoice->terms_condition,
+            'status' => $trans_status,
+            'customer' => $customer,
+            //'items' => $est_items,
+            'taxation_option'=>$customerInvoice->taxation_option,
+            'net_total' => $customerInvoice->net_total,
+            'grand_total'=>$customerInvoice->grand_total,
+            'total_discount' => \round( $customerInvoice->total_discount,2 ),
+            'total_tax' => $customerInvoice->total_tax,
+            'paid_amount' => 0,
+            'display_as'=>$customerInvoice->trans_number.' | '.$this->helpers->format_mysql_date($customerInvoice->trans_date,$date_format),
+            //'pricing' => $pricing,
+        ];
     }
 
     public function transform_sales_order(CustomerSalesOrder $customerSalesOrder){
@@ -93,6 +142,8 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'grand_total'=>$customerSalesOrder->grand_total,
             'total_discount' => \round( $customerSalesOrder->total_discount,2 ),
             'total_tax' => $customerSalesOrder->total_tax,
+            'overal_discount' => $customerSalesOrder->overal_discount,
+            'overal_discount_rate' => $customerSalesOrder->overal_discount_rate,
             'paid_amount' => 0,
             'display_as'=>$customerSalesOrder->trans_number.' | '.$this->helpers->format_mysql_date($customerSalesOrder->trans_date,$date_format),
             //'pricing' => $pricing,
@@ -187,11 +238,16 @@ class CustomerRepository implements CustomerRepositoryInterface{
     }
 
     public function transform_term(CustomerTerms $customerTerms){
-        return [
-            'id' => $customerTerms->uuid,
-            'notes' => $customerTerms->notes,
-            'name' => $customerTerms->name,
-        ];
+        if($customerTerms){
+            return [
+                'id' => $customerTerms->uuid,
+                'notes' => $customerTerms->notes,
+                'name' => $customerTerms->name,
+            ];
+        }else{
+            return null;
+        }
+        
     }
 
     public function transform_estimate(Estimate $estimate){
@@ -199,7 +255,9 @@ class CustomerRepository implements CustomerRepositoryInterface{
         //Estimate Status Changes
         $company = $estimate->owning()->get()->first();
         $date_format = $company->date_format;
-        $est_statuses = $estimate->estimate_status()->get();
+        $est_statuses = $estimate->estimate_status()
+            ->where('type','status')
+            ->get();
         $trans_status = array();
         foreach ($est_statuses as $est_status) {
             $temp_status['id'] = $est_status->uuid;
@@ -237,6 +295,8 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'grand_total'=>$estimate->grand_total,
             'total_discount' => \round( $estimate->total_discount,2 ),
             'total_tax' => $estimate->total_tax,
+            'overal_discount_rate' => $estimate->overal_discount_rate,
+            'overal_discount' => $estimate->overal_discount,
             'paid_amount' => 0,
             'display_as'=>$estimate->trans_number.' | '.$this->helpers->format_mysql_date($estimate->trans_date,$date_format),
             //'pricing' => $pricing,
@@ -272,8 +332,13 @@ class CustomerRepository implements CustomerRepositoryInterface{
                     ->table('salesorder_item_taxations')
                     ->where('sales_order_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
                     break;
+                    case Product::DOC_TAX_INVOICE:
+                        $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
+                    ->table('customer_invoice_item_taxations')
+                    ->where('customer_invoice_item_id',$item->id)->get();
+                    break;
                 default:
-                    $item_taxes = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)
+                    $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
                     ->table('po_item_taxations')
                     ->where('po_item_id',$item->id)->get(); //Get all Taxes applied to this Estimate Item
                     break;

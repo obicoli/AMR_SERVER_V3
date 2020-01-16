@@ -653,6 +653,7 @@ class ComposerStaticInita560abb871cdaf081ed20aa1cb45b556
         'App\\Console\\Commands\\WebSocketServer' => __DIR__ . '/../..' . '/app/Console/Commands/WebSocketServer.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Contracts\\AccountableInterface' => __DIR__ . '/../..' . '/app/Contracts/AccountableInterface.php',
+        'App\\CustomerPayment' => __DIR__ . '/../..' . '/app/CustomerPayment.php',
         'App\\Customer\\Http\\Controllers\\Api\\Customer\\CustomerController' => __DIR__ . '/../..' . '/app/Customer/Http/Controllers/Api/Customer/CustomerController.php',
         'App\\Customer\\Http\\Controllers\\Api\\Customer\\TermsController' => __DIR__ . '/../..' . '/app/Customer/Http/Controllers/Api/Customer/TermsController.php',
         'App\\Customer\\Http\\Controllers\\Api\\Estimate\\EstimateController' => __DIR__ . '/../..' . '/app/Customer/Http/Controllers/Api/Estimate/EstimateController.php',

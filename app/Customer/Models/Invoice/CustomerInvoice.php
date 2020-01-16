@@ -4,6 +4,7 @@ namespace App\Customer\Models\Invoice;
 
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
+use App\Customer\Models\CustomerTerms;
 use App\Models\Module\Module;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
 use App\Traits\UuidTrait;
@@ -40,7 +41,10 @@ class CustomerInvoice extends Model
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function customers(){ return $this->belongsTo(Customer::class,'customer_id','id'); }
+    public function owning(){ return $this->morphTo();} //Branch level
     public function invoiceStatus(){ return $this->hasMany(CustomerInvoiceStatus::class,'customer_invoice_id','id');}
     public function items(){ return $this->hasMany(CustomerInvoiceItem::class,'customer_invoice_id','id'); }
     public function mails_attachments(){ return $this->morphMany(NotificationInventoryMailAttach::class,'attachable','attachable_type','attachable_id'); }
+    public function payment_terms(){ return $this->belongsTo(CustomerTerms::class,'payment_term_id','id'); }
 }

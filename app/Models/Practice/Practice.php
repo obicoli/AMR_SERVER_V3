@@ -12,6 +12,7 @@ use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Assets\Models\Machines\Vehicle\Vehicle;
 use App\Contracts\AccountableInterface;
 use App\Customer\Models\Customer;
+use App\Customer\Models\CustomerPayment;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Orders\CustomerSalesOrder;
@@ -150,7 +151,8 @@ class Practice extends Model implements AccountableInterface
     public function account_holders(){ return $this->hasMany(AccountHolder::class,'practice_id'); }
     //Accounting Integration Ends============================================
 
-    //Customer Integration===========Starts=============
+    //Customer Integration===========Starts============= 54
+    public function customer_payments(){ return $this->morphMany(CustomerPayment::class,'owning','owning_type','owning_id'); }
     public function estimates(){ return $this->morphMany(Estimate::class,'owning','owning_type','owning_id'); }
     public function customerSalesorder(){ return $this->morphMany(CustomerSalesOrder::class,'owning','owning_type','owning_id'); }
     public function customerInvoices(){ return $this->morphMany(CustomerInvoice::class,'owning','owning_type','owning_id'); }

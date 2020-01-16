@@ -19,4 +19,6 @@ class CustomerInvoiceStatus extends Model
         'notes',
         'type'
     ];
+    public function responsible(){ return $this->morphTo();}
+    public function invoces(){ return $this->belongsTo(CustomerInvoice::class,'customer_invoice_id','id'); }
 }

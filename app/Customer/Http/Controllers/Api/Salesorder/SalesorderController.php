@@ -79,6 +79,8 @@ class SalesorderController extends Controller
 
     public function create(Request $request){
 
+        Log::info($request);
+
         $inputs = $request->all();
         $http_resp = $this->http_response['200'];
         $rule = [
@@ -127,6 +129,8 @@ class SalesorderController extends Controller
             $sales_order_prefix = $finance_settings->so_prefix;
             $company_user = $this->company_users->find($request->user()->company_id); //Get current user
             $customer = $this->customers->findByUuid($request->customer_id);
+            $currency = $request->currency;
+            $net_total = $request->net_total;
             if($customer){
                 $inputs['customer_id'] = $customer->id;
             }
@@ -134,14 +138,24 @@ class SalesorderController extends Controller
             if($estimate){
                 $inputs['estimate_id'] = $estimate->id;
                 $accepted_status = Product::STATUS_ACCEPTED;
-                if($estimate->status != $accepted_status){
+                $invoiced_status = Product::STATUS_INVOICED;
+                $closed_status = Product::STATUS_CLOSED;
+                if( $estimate->status==$invoiced_status || $estimate->status==$closed_status ){
+                    //this is an action but not status
+                    $estimate_status_inputs['status'] = $accepted_status;
+                    $estimate_status_inputs['type'] = 'action';
+                }elseif($estimate->status == $accepted_status){
+                    $estimate_status_inputs['status'] = $accepted_status;
+                    $estimate_status_inputs['type'] = 'action';
+                }else{
                     $estimate_status_inputs['status'] = $accepted_status;
                     $estimate_status_inputs['type'] = 'status';
-                    $estimate_status = $company_user->estimate_status()->create($estimate_status_inputs);
-                    $estimate_status = $estimate->estimate_status()->save($estimate_status);
                     $estimate->status = $accepted_status;
                     $estimate->save();
                 }
+                $estimate_status_inputs['notes'] = 'Sales Order created for '.$currency.' '.number_format($net_total,2);
+                $estimate_status = $company_user->estimate_status()->create($estimate_status_inputs);
+                $estimate_status = $estimate->estimate_status()->save($estimate_status);
             }
             $payment_term = $this->customerTerms->findByUuid($request->payment_term_id);
             if($payment_term){

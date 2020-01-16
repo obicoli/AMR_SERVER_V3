@@ -33,6 +33,8 @@ class CreateEstimatesTable extends Migration
             $table->string('salesman_type')->nullable()->index();//Salesperson: Polymorphy Relation
             $table->string('uuid');
             $table->unsignedInteger('customer_id')->nullable()->index(); //Customer: Polymorphy Relation
+            $table->boolean('overal_discount')->default(false);
+            $table->float('overal_discount_rate',8,2)->default(0);
 
             $table->float('net_total',32,2)->default(00.00);
             $table->float('grand_total',32,2)->default(00.00);

@@ -34,7 +34,13 @@ class ProductCategoryController extends Controller
     }
 
     public function index(Request $request){
-
+        $http_resp = $this->http_response['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $categories = $this->productCategory->getCategories($company);
+        $paged_data = $this->helper->paginator($categories);
+        $paged_data['data'] = $this->productCategory->transform_collection($categories);
+        $http_resp['results'] = $paged_data;
+        return response()->json($http_resp);
     }
     //practice
     public function practice($practice_uuid){

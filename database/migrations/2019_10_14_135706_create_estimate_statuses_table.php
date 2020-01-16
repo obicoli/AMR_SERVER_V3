@@ -18,7 +18,7 @@ class CreateEstimateStatusesTable extends Migration
         Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('estimate_statuses');
         Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('estimate_statuses', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('note')->nullable();
+            $table->string('notes')->nullable();
             $table->string('uuid');
             $table->unsignedInteger('responsible_id')->nullable()->index();
             $table->string('responsible_type')->nullable()->index();
