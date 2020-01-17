@@ -74,7 +74,19 @@ class InvoicesController extends Controller
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id); //Get the company
-        $invoices = $company->customerInvoices()->orderByDesc('created_at')->paginate(10);
+        if($request->has('unpaid_customer_invoice')){
+            $partial_paid_status = Product::STATUS_PARTIAL_PAID;
+            $unpaid_status = Product::STATUS_UNPAID;
+            $customer = $this->customers->findByUuid($request->unpaid_customer_invoice);
+            $invoices = $customer->customerInvoices()
+                ->where('status',$partial_paid_status)
+                ->orWhere('status',$unpaid_status)
+                ->orderByDesc('created_at')
+                ->paginate(100);
+        }else{
+            $invoices = $company->customerInvoices()->orderByDesc('created_at')->paginate(10);
+        }
+        
         $paged_data = $this->helper->paginator($invoices);
         foreach($invoices as $invoice){
             array_push($results,$this->customerSalesOrder->transform_invoices($invoice));
@@ -189,11 +201,12 @@ class InvoicesController extends Controller
             $practiceParent = $this->practices->findParent($company);
             $finance_settings = $company->practice_finance_settings()->get()->first(); //
             $invoice_prefix = $finance_settings->inv_prefix;
-            $payment_prefix = "PAY-";
+            $payment_prefix = "RCP-";
             $company_user = $this->company_users->find($request->user()->company_id); //Get current user
             $customer = $this->customers->findByUuid($request->customer_id);
             $invoice_basis_type = $request->sales_basis;
             $cash_basis_invoice = AccountsCoa::CASH;
+            $unpaid_status = Product::STATUS_UNPAID;
             $ledger_support_document = null;
             $discount_allowed_ledger_ac = null;
             $trans_type = AccountsCoa::TRANS_TYPE_TAX_INVOICE;
@@ -424,6 +437,11 @@ class InvoicesController extends Controller
                 $status = Product::STATUS_PAID;
             }
 
+            if($status != $draft_status ){
+                if($invoice_basis_type != $cash_basis_invoice){
+                    $status = $unpaid_status;
+                }
+            }
             $status_inputs['status'] = $status;
             $status_inputs['type'] = 'status';
             $invoice_status = $company_user->customer_invoice_status()->create($status_inputs);
@@ -461,7 +479,6 @@ class InvoicesController extends Controller
                 $new_invoice->extractable_from = "Sales Order";
                 $new_invoice->save();
             }
-            
             $http_resp['description'] = "Customer invoice successful created!";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];

@@ -4,6 +4,7 @@ namespace App\Customer\Repositories;
 
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerAddress;
+use App\Customer\Models\CustomerPayment;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Orders\CustomerSalesOrder;
@@ -18,6 +19,7 @@ interface CustomerRepositoryInterface{
     public function find($id);
     public function findByUuid($uuid);
     public function create($inputs = []);
+    public function transform_payment(CustomerPayment $customerPayment);
     public function transform_invoices(CustomerInvoice $customerInvoice);
     public function transform_sales_order(CustomerSalesOrder $customerSalesOrder);
     public function transform_customer(Customer $customer,$detailed=null);

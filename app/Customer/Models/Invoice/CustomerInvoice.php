@@ -39,10 +39,13 @@ class CustomerInvoice extends Model
         'extractable_from'
     ];
 
+    public function customerPayments(){
+        return $this->belongsToMany(CustomerPayment::class,'customer_invoice_payments','customer_invoice_id','customer_payment_id');
+    }
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
-    public function customerPayments(){ return $this->hasMany(CustomerPayment::class,'customer_invoice_id','id'); }
+    //public function customerPayments(){ return $this->hasMany(CustomerPayment::class,'customer_invoice_id','id'); }
     public function extractable(){ return $this->morphTo();}
     public function customers(){ return $this->belongsTo(Customer::class,'customer_id','id'); }
     public function owning(){ return $this->morphTo();} //Branch level

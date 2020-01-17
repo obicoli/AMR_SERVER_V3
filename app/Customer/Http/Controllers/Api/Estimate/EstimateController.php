@@ -356,7 +356,9 @@ class EstimateController extends Controller
         $invoices = array();
         $invoices_list = $estimate->invoices()->orderByDesc('created_at')->get();
         foreach($invoices_list as $invoices_lis){
-            array_push($invoices,$this->customerInvoices->transform_invoices($invoices_lis));
+            $temp_inv = $this->customerInvoices->transform_invoices($invoices_lis);
+            $temp_inv['items'] = $this->customerInvoices->transform_items($invoices_lis,$temp_inv);
+            array_push($invoices,$temp_inv);
         }
         //
         $salesorders = array();

@@ -6,6 +6,7 @@ use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
+use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Invoice\CustomerRetainerInvoice;
 use App\Customer\Models\Quote\Estimate;
 use App\Finance\Models\Banks\BankTransaction;
@@ -32,6 +33,12 @@ class CustomerPayment extends Model
         'reference_number',
         'trans_number',
     ];
+
+    public function customerInvoices(){
+        return $this->belongsToMany(CustomerInvoice::class,'customer_invoice_payments','customer_payment_id','customer_invoice_id');
+    }
+
+    public function owning(){ return $this->morphTo();} //Branch level
 
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');

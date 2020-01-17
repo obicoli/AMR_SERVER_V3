@@ -1336,6 +1336,74 @@ class HelperFunctions
         return $results;
     }
 
+    public function pastDateBy($last_date_appeared, $time_zone = "Africa/Nairobi"){
+
+        date_default_timezone_set($time_zone);
+        $results = "";
+        if ($last_date_appeared){
+            // Declare and define two dates
+            //$before_date = date("Y-m-d H:i:s",strtotime($last_date_appeared));
+            $before_date = strtotime($last_date_appeared);
+            $current_date = strtotime(date("Y-m-d H:i:s"));
+            // Formulate the Difference between two dates
+            $diff = abs($current_date - $before_date);
+            // To get the year divide the resultant date into
+            // total seconds in a year (365*60*60*24)
+            $years = floor($diff / (365*60*60*24));
+            // To get the month, subtract it with years and
+            // divide the resultant date into
+            // total seconds in a month (30*60*60*24)
+            $months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
+
+            // To get the day, subtract it with years and
+            // months and divide the resultant date into
+            // total seconds in a days (60*60*24)
+            $days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));
+
+            // To get the hour, subtract it with years,
+            // months & seconds and divide the resultant
+            // date into total seconds in a hours (60*60)
+            $hours = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24) / (60*60));
+
+            // To get the minutes, subtract it with years,
+            // months, seconds and hours and divide the
+            // resultant date into total seconds i.e. 60
+            $minutes = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60)/ 60);
+
+            // To get the minutes, subtract it with years,
+            // months, seconds, hours and minutes
+            $seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - $days*60*60*24 - $hours*60*60 - $minutes*60));
+
+            if ($years > 0){
+                // Prints the day, date, month, year, time, am or pm e.g. Tue 7th Aug 2018 10:21 am: D jS M Y h:i A
+                $results = $years." year(s)";
+                //$results = date("jS M Y",strtotime($last_date_appeared));
+            }elseif($months > 0){
+                $results = $months." month(s)";
+            }elseif ($days > 0){
+                if ($days == 1){
+                    $results = $days." day";
+                }elseif( ($days > 7) && ($days < 14) ){
+                    $results = " a week ago";
+                }else{
+                    $results = $days." days";
+                }
+            }elseif($hours > 0){
+                if ($hours == 1){
+                    $results = "an hour ago";
+                }else{
+                    $results = $hours." hours";
+                }
+
+            }elseif ( $minutes > 0){
+                //$results = "left ".$minutes." mins ago";
+            }else{
+                //$results = "left ".$seconds." secs ago";
+            }
+        }
+        return $results;
+    }
+
     public function postedOn($last_date_appeared, $time_zone = "Africa/Nairobi"){
 
         date_default_timezone_set($time_zone);

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerAddress;
+use App\Customer\Models\CustomerPayment;
 use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
@@ -51,6 +52,22 @@ class CustomerRepository implements CustomerRepositoryInterface{
         return $this->model->create($inputs);
     }
 
+    public function transform_payment(CustomerPayment $customerPayment){
+
+        $company = $customerPayment->owning()->get()->first();
+        $date_format = $company->date_format;
+        return [
+            'id'=>$customerPayment->uuid,
+            'trans_number'=>$customerPayment->trans_number,
+            'reference_number'=>$customerPayment->reference_number,
+            'amount'=>$customerPayment->amount,
+            'unlocated_amount'=>0,
+            'customer'=>$this->transform_customer($customerPayment->customers()->get()->first()),
+            'trans_date'=>$this->helpers->format_mysql_date($customerPayment->trans_date,$date_format),
+        ];
+
+    }
+
     public function transform_invoices(CustomerInvoice $customerInvoice){
 
         $company = $customerInvoice->owning()->get()->first();
@@ -73,6 +90,15 @@ class CustomerRepository implements CustomerRepositoryInterface{
         if($custom){
             $customer = $this->transform_customer($custom);
         }
+
+        $is_overdue = null;
+        if($customerInvoice->status == Product::STATUS_OPEN || $customerInvoice->status==Product::STATUS_UNPAID || $customerInvoice->status==Product::STATUS_PARTIAL_PAID){
+            if($this->helpers->isPastDate($customerInvoice->due_date)){
+                $is_overdue = $this->helpers->pastDateBy($customerInvoice->due_date);
+                $is_overdue = "Overdue ".$is_overdue;
+            }
+        }
+
         return [
             'id'=>$customerInvoice->uuid,
             'trans_number'=>$customerInvoice->trans_number,
@@ -87,7 +113,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'terms_condition'=>$customerInvoice->terms_condition,
             'status' => $trans_status,
             'customer' => $customer,
-            //'items' => $est_items,
+            'is_overdue'=>$is_overdue,
             'taxation_option'=>$customerInvoice->taxation_option,
             'net_total' => $customerInvoice->net_total,
             'grand_total'=>$customerInvoice->grand_total,

@@ -672,6 +672,14 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     Route::group( ['prefix'=>'customers' ], function (){
 
+        Route::group( ['prefix'=>'receipts' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@delete");
+        });
+
         Route::group( ['prefix'=>'invoices' ], function (){
             Route::get('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@index");
             Route::post('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@create");
