@@ -4,6 +4,8 @@ namespace App\Customer\Http\Controllers\Api\Estimate;
 
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerTerms;
+use App\Customer\Models\Invoice\CustomerInvoice;
+use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
 use App\Customer\Repositories\CustomerRepository;
 use Illuminate\Http\Request;
@@ -37,6 +39,8 @@ class EstimateController extends Controller
     protected $productItems;
     protected $product_pricing;
     protected $productTaxations;
+    protected $customerInvoices;
+    protected $salesOrders;
 
     public function __construct(Estimate $estimates)
     {
@@ -50,6 +54,8 @@ class EstimateController extends Controller
         $this->product_pricing = new ProductReposity(new ProductPriceRecord());
         $this->productTaxations = new ProductReposity( new ProductTaxation() );
         $this->customerTerms = new CustomerRepository( new CustomerTerms() );
+        $this->customerInvoices = new CustomerRepository(new CustomerInvoice());
+        $this->salesOrders = new CustomerRepository( new CustomerSalesOrder() );
     }
 
     public function index(Request $request){
@@ -335,8 +341,32 @@ class EstimateController extends Controller
         $estimate = $this->estimates->findByUuid($uuid);
         //audit_trails
         $audit_trails = array();
+        $estimate_trails = $estimate->estimate_status()->get();
+        foreach ($estimate_trails as $estimate_trail) {
+            $temp_sta['id'] = $estimate_trail->uuid;
+            $temp_sta['status'] = $estimate_trail->status;
+            $temp_sta['type'] = $estimate_trail->type;
+            $temp_sta['notes'] = $estimate_trail->notes;
+            $temp_sta['date'] = date('Y-m-d H:i:s',\strtotime($estimate_trail->created_at));
+            $practice_user = $estimate_trail->responsible()->get()->first();
+            $temp_sta['signatory'] = $this->company_users->transform_user($practice_user);
+            array_push($audit_trails,$temp_sta);
+        }
+        //
         $invoices = array();
+        $invoices_list = $estimate->invoices()->orderByDesc('created_at')->get();
+        foreach($invoices_list as $invoices_lis){
+            array_push($invoices,$this->customerInvoices->transform_invoices($invoices_lis));
+        }
+        //
         $salesorders = array();
+        $sales_order_lists = $estimate->salesOrders()->orderByDesc('created_at')->get();
+        foreach($sales_order_lists as $sales_order_list){
+            $temp_so = $this->salesOrders->transform_sales_order($sales_order_list);
+            $temp_so['items'] = $this->salesOrders->transform_items($sales_order_list,$temp_so);
+            array_push($salesorders,$temp_so);
+        }
+        //
         $estimate_data = $this->estimates->transform_estimate($estimate);
         $items = $this->estimates->transform_items($estimate,$estimate_data);
         $estimate_data['audit_trails'] = $audit_trails;

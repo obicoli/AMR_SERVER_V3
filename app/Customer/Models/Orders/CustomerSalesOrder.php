@@ -7,6 +7,7 @@ use App\Accounting\Models\COA\AccountsHolder;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
+use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Invoice\CustomerRetainerInvoice;
 use App\Customer\Models\Quote\Estimate;
 use App\Finance\Models\Banks\BankTransaction;
@@ -44,6 +45,8 @@ class CustomerSalesOrder extends Model
         'payment_term_id'
     ];
 
+    public function estimates(){ return $this->belongsTo(Estimate::class,'estimate_id','id'); }
+    public function invoices(){return $this->morphMany(CustomerInvoice::class,'extractable','extractable_type','extractable_id');}
     public function items(){ return $this->hasMany(CustomerSalesOrderItem::class,'sales_order_id','id'); }
     public function owning(){ return $this->morphTo();} //Branch level
     //public function customer(){ return $this->morphTo();}

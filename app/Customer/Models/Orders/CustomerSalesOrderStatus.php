@@ -25,7 +25,8 @@ class CustomerSalesOrderStatus extends Model
     protected $fillable = [
         'status',
         'notes',
-        'type'
+        'type',
+        'sales_order_id'
     ];
 
     public function responsible(){ return $this->morphTo();}

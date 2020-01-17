@@ -4,6 +4,7 @@ namespace App\Customer\Models\Invoice;
 
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
+use App\Customer\Models\CustomerPayment;
 use App\Customer\Models\CustomerTerms;
 use App\Models\Module\Module;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
@@ -18,7 +19,6 @@ class CustomerInvoice extends Model
     protected $connection = Module::MYSQL_CUSTOMER_DB_CONN;
     protected $table = "customer_invoices";
     protected $fillable = [
-        'extracted_from',
         'trans_number',
         'reference_number',
         'trans_date',
@@ -35,12 +35,15 @@ class CustomerInvoice extends Model
         'overal_discount',
         'overal_discount_rate',
         'payment_term_id',
-        'sales_basis'
+        'sales_basis',
+        'extractable_from'
     ];
 
     public function double_entry_support_document(){
         return $this->morphMany(AccountsSupport::class,'transactionable','transactionable_type','transactionable_id');
     }
+    public function customerPayments(){ return $this->hasMany(CustomerPayment::class,'customer_invoice_id','id'); }
+    public function extractable(){ return $this->morphTo();}
     public function customers(){ return $this->belongsTo(Customer::class,'customer_id','id'); }
     public function owning(){ return $this->morphTo();} //Branch level
     public function invoiceStatus(){ return $this->hasMany(CustomerInvoiceStatus::class,'customer_invoice_id','id');}

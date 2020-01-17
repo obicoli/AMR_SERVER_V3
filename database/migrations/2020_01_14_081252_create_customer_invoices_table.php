@@ -41,9 +41,8 @@ class CreateCustomerInvoicesTable extends Migration
             // $table->foreign('estimate_id')->references('id')->on('estimates')->onDelete('cascade');
             $table->unsignedInteger('extractable_id')->index()->nullable(); //------
             $table->string('extractable_type')->index()->nullable(); //------
-            $table->string('extracted_from')->nullable()->index();
+            $table->string('extractable_from')->nullable()->index();
             $table->unsignedInteger('payment_term_id')->nullable()->index();
-
             $table->float('net_total',32,2)->default(00.00);
             $table->float('grand_total',32,2)->default(00.00);
             $table->float('total_tax',32,2)->default(00.00);

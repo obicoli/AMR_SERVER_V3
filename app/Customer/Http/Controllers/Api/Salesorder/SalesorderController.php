@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Product\Sales\ProductPriceRecord;
 use App\Customer\Models\CustomerTerms;
+use App\Customer\Models\Invoice\CustomerInvoice;
 
 class SalesorderController extends Controller
 {
@@ -38,6 +39,7 @@ class SalesorderController extends Controller
     protected $product_pricing;
     protected $productTaxations;
     protected $customerTerms;
+    protected $customerInvoices;
 
     public function __construct(CustomerSalesOrder $customerSalesOrder)
     {
@@ -52,6 +54,7 @@ class SalesorderController extends Controller
         $this->product_pricing = new ProductReposity(new ProductPriceRecord());
         $this->productTaxations = new ProductReposity( new ProductTaxation() );
         $this->customerTerms = new CustomerRepository( new CustomerTerms() );
+        $this->customerInvoices = new CustomerRepository( new CustomerInvoice() );
     }
 
     public function index(Request $request){
@@ -69,9 +72,39 @@ class SalesorderController extends Controller
     }
 
     public function show(Request $request,$uuid){
+
         $http_resp = $this->http_response['200'];
         $salesorder = $this->customerSalesOrder->findByUuid($uuid);
+        $invoices = array();
+        $quotations = array();
+        $audit_trails = array();
+        //
+        $invoices_list = $salesorder->invoices()->orderByDesc('created_at')->get();
+        foreach($invoices_list as $invoices_lis){
+            array_push($invoices,$this->customerInvoices->transform_invoices($invoices_lis));
+        }
+        //
+        $estimates = $salesorder->estimates()->orderByDesc('created_at')->get();
+        foreach($estimates as $estimate){
+            array_push($quotations,$this->estimates->transform_estimate($estimate));
+        }
+        //
+        $sales_order_trails = $salesorder->salesorderStatus()->get();
+        foreach ($sales_order_trails as $sales_order_trail) {
+            $temp_sta['id'] = $sales_order_trail->uuid;
+            $temp_sta['status'] = $sales_order_trail->status;
+            $temp_sta['type'] = $sales_order_trail->type;
+            $temp_sta['notes'] = $sales_order_trail->notes;
+            $temp_sta['date'] = date('Y-m-d H:i:s',\strtotime($sales_order_trail->created_at));
+            $practice_user = $sales_order_trail->responsible()->get()->first();
+            $temp_sta['signatory'] = $this->company_users->transform_user($practice_user);
+            array_push($audit_trails,$temp_sta);
+        }
+        //
         $salesord = $this->customerSalesOrder->transform_sales_order($salesorder);
+        $salesord['invoices'] = $invoices;
+        $salesord['audit_trails'] = $audit_trails;
+        $salesord['quotations'] = $quotations;
         $salesord['items'] = $this->customerSalesOrder->transform_items($salesorder,$salesord);
         $http_resp['results'] = $salesord;
         return response()->json($http_resp);

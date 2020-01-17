@@ -94,7 +94,8 @@ class InvoicesController extends Controller
         $invoice = $this->customerInvoice->findByUuid($uuid);
         $payment_term = $invoice->payment_terms()->get()->first();
         $invoice_data = $this->customerInvoice->transform_invoices($invoice);
-        $invoice_data['payment_term'] = $this->customerInvoice->transform_term($payment_term);
+        if($payment_term){$invoice_data['payment_term'] = $this->customerInvoice->transform_term($payment_term);}else{$invoice_data['payment_term']=null;}
+        
         $invoice_data['journals'] = $journals;
         $invoice_data['payments'] = $payments;
         $invoice_data['audit_trails'] = $audit_trails;
@@ -104,8 +105,7 @@ class InvoicesController extends Controller
     }
 
     public function create(Request $request){
-
-        Log::info($request);
+        //Log::info($request);
         $inputs = $request->all();
         $http_resp = $this->http_response['200'];
         $rule = [
@@ -202,6 +202,7 @@ class InvoicesController extends Controller
             $total_tax = $request->total_tax;
             $currency = $request->currency;
             $mapped_estimate = $this->estimates->findByUuid($request->estimate_id);
+            $mapped_salesorder = $this->customerSalesOrder->findByUuid($request->sales_order_id);
 
             //Ledger accounts
             $customer_ledger_ac = null; /*  A/C Receivable */
@@ -432,6 +433,7 @@ class InvoicesController extends Controller
 
             //Map to Estimate if this invoice is Extracted from the Estimate
             if($mapped_estimate){
+                $mapped_estimate->invoices()->save($new_invoice);
                 $inputs['estimate_id'] = $mapped_estimate->id;
                 $invoiced_status = Product::STATUS_INVOICED;
                 $estimate_status_inputs['status'] = $invoiced_status;
@@ -441,6 +443,23 @@ class InvoicesController extends Controller
                 $estimate_status = $mapped_estimate->estimate_status()->save($estimate_status);
                 $mapped_estimate->status = $invoiced_status;
                 $mapped_estimate->save();
+                $new_invoice->extractable_from = "Quotation";
+                $new_invoice->save();
+            }
+
+            if($mapped_salesorder){
+                $mapped_salesorder->invoices()->save($new_invoice);
+                $inputs['sales_order_id'] = $mapped_salesorder->id;
+                $invoiced_status = Product::STATUS_INVOICED;
+                $salesorder_status_inputs['status'] = $invoiced_status;
+                $salesorder_status_inputs['type'] = 'status';
+                $salesorder_status_inputs['notes'] = 'Sales Order invoiced for '.$currency.' '.$net_total;
+                $sales_order_status = $company_user->salesorder_status()->create($salesorder_status_inputs);
+                $sales_order_status = $mapped_salesorder->salesorderStatus()->save($sales_order_status);
+                $mapped_salesorder->status = $invoiced_status;
+                $mapped_salesorder->save();
+                $new_invoice->extractable_from = "Sales Order";
+                $new_invoice->save();
             }
             
             $http_resp['description'] = "Customer invoice successful created!";

@@ -94,6 +94,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'total_discount' => \round( $customerInvoice->total_discount,2 ),
             'total_tax' => $customerInvoice->total_tax,
             'paid_amount' => 0,
+            'cash_paid' => $customerInvoice->customerPayments()->sum('amount'),
             'display_as'=>$customerInvoice->trans_number.' | '.$this->helpers->format_mysql_date($customerInvoice->trans_date,$date_format),
             //'pricing' => $pricing,
         ];
@@ -136,6 +137,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'terms_condition'=>$customerSalesOrder->terms_condition,
             'status' => $trans_status,
             'customer' => $customer,
+            'notes' => '',
             //'items' => $est_items,
             'taxation_option'=>$customerSalesOrder->taxation_option,
             'net_total' => $customerSalesOrder->net_total,
@@ -247,7 +249,6 @@ class CustomerRepository implements CustomerRepositoryInterface{
         }else{
             return null;
         }
-        
     }
 
     public function transform_estimate(Estimate $estimate){
