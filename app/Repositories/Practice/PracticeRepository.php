@@ -57,6 +57,19 @@ class PracticeRepository implements PracticeRepositoryInterface
         $this->helper = new HelperFunctions();
     }
 
+    public function transform_company(Practice $practice){
+
+        return [
+            'id'=>$practice->uuid,
+            'name'=>$practice->name,
+            'mobile'=>$practice->mobile,
+            'email'=>$practice->email,
+            'address'=>$practice->address,
+            
+        ];
+
+    }
+
     public function find($id)
     {
         // TODO: Implement find() method.

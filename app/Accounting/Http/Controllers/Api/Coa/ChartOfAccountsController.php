@@ -78,14 +78,12 @@ class ChartOfAccountsController extends Controller
             ->orderByDesc('accounts_type_id')
             ->paginate(1000);
         }elseif( $request->has('account_nature') ){
-            //->where('accounts_nature_id',$account_nature->id)
-            // $account_nature = $this->accountNatures->findByName($request->account_nature);
-            // $account_type_id_array = $account_nature->account_types()->pluck('id')->toArray();
-            // $company_chart_of_accounts = $company->chart_of_accounts()
-            //     ->whereIn('accounts_type_id',$account_type_id_array)
-            //     ->orderByDesc('accounts_type_id')
-            //     ->paginate(15);
-            $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(200);
+            $account_nature = $this->accountNatures->findByName($request->account_nature);
+            $account_types = AccountsType::where('accounts_nature_id',$account_nature->id)->pluck('id')->toArray();
+            $company_chart_of_accounts = $company->chart_of_accounts()
+                ->where('is_sub_account',0)
+                ->whereIn('accounts_type_id',$account_types)
+                ->paginate(200);
         }
         else{
             $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);

@@ -26,6 +26,7 @@ class CreateAccountsCoasTable extends Migration
             //$table->unsignedInteger('accounts_nature_id')->index()->nullable();
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch, Company
             $table->string('owning_type')->nullable()->index(); //Facility,Branch, Company
+            $table->text('notes')->nullable();
             $table->string('uuid');
             Accountable::columns($table);
             $table->softDeletes();

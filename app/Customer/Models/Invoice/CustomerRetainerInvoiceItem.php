@@ -17,7 +17,8 @@ class CustomerRetainerInvoiceItem extends Model
     protected $table = "customer_retainer_invoice_items";
     protected $fillable = [
         'retainer_invoice_id',
-        'description'
+        'description',
+        'amount',
     ];
     public function retainer_invoices(){ return $this->belongsTo(CustomerRetainerInvoice::class,'retainer_invoice_id','id'); }
     

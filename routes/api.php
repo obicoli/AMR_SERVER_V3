@@ -578,15 +578,21 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/{uuid}', "Api\Product\ProductAccountNatureController@show");
             Route::delete('/{uuid}', "Api\Product\ProductAccountNatureController@destroy");
         });
+
         Route::group( ['prefix'=>'chart_of_accounts' ], function (){
             Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@index");
             Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
             Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
             Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@show");
         });
+
         //Accounting Reports
         Route::group( ['prefix'=>'accounts' ], function (){
-            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Accounts\AccountHolderController@show");
+            Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@index");
+            Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
+            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
+            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@show");
+            //Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Accounts\AccountHolderController@show");
         });
 
         Route::group( ['prefix'=>'reports' ], function (){
@@ -672,7 +678,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     Route::group( ['prefix'=>'customers' ], function (){
 
-        Route::group( ['prefix'=>'receipts' ], function (){
+        Route::group( ['prefix'=>'payments' ], function (){
             Route::get('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@index");
             Route::post('/', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@create");
             Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@update");
@@ -680,7 +686,24 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@delete");
         });
 
+        Route::group( ['prefix'=>'receipts' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@delete");
+        });
+
         Route::group( ['prefix'=>'invoices' ], function (){
+
+            Route::group( ['prefix'=>'retainers' ], function (){
+                Route::get('/', "\App\Customer\Http\Controllers\Api\Invoices\RetainerController@index");
+                Route::post('/', "\App\Customer\Http\Controllers\Api\Invoices\RetainerController@create");
+                Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\RetainerController@update");
+                Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\RetainerController@show");
+                Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\RetainerController@delete");
+            });
+
             Route::get('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@index");
             Route::post('/', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@create");
             Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Invoices\InvoicesController@update");

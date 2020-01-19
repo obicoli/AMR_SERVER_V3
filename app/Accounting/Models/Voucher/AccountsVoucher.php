@@ -37,3 +37,8 @@ class AccountsVoucher extends Model
         return $this->belongsToMany(AccountsSupport::class,'accounts_voucher_supports','voucher_id','support_id');
     }
 }
+
+
+/*
+
+*/

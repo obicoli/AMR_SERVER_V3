@@ -73,7 +73,7 @@ class PaymentController extends Controller
 
     public function create(Request $request){
 
-        //Log::info($request);
+        //
         $pay_mode_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
         $pay_mode_cash = AccountsCoa::PAY_METHOD_CASH;
         $http_resp = $this->http_response['200'];
@@ -89,48 +89,43 @@ class PaymentController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
+        //
+        //Input validations
+        $rule = [
+            'payment_method'=>'required',
+            'cash_paid'=>'required',
+        ];
+        $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+        if ($validation->fails()){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+            return response()->json($http_resp,422);
+        }
+        //Input validations
+        $payment_mode = $request->payment['payment_method'];
+        if( $payment_mode == $pay_mode_cheque ){
+            $rule = [
+                'bank_account_id'=>'required',
+                'cheque_number'=>'required',
+            ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+        }else{
+            $rule = [
+                'ledger_account_id'=>'required',
+                'reference_number'=>'required',
+            ];
+            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
+        }
+        if ($validation->fails()){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+            return response()->json($http_resp,422);
+        }
+        //
         DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         try{
-            //Input validations
-            $rule = [
-                'payment_method'=>'required',
-                'cash_paid'=>'required',
-            ];
-            $validation = Validator::make($request->payment,$rule,$this->helper->messages());
-            if ($validation->fails()){
-                $http_resp = $this->http_response['422'];
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-                return response()->json($http_resp,422);
-            }
-            //Input validations
-            $payment_mode = $request->payment['payment_method'];
-            if( $payment_mode == $pay_mode_cheque ){
-                $rule = [
-                    'bank_account_id'=>'required',
-                    'cheque_number'=>'required',
-                ];
-                $validation = Validator::make($request->payment,$rule,$this->helper->messages());
-            }else{
-                $rule = [
-                    'ledger_account_id'=>'required',
-                    'reference_number'=>'required',
-                ];
-                $validation = Validator::make($request->payment,$rule,$this->helper->messages());
-            }
-            if ($validation->fails()){
-                $http_resp = $this->http_response['422'];
-                DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-                return response()->json($http_resp,422);
-            }
-
             //Transactions begins here
             $user = $request->user();
             $company = $this->practices->find($user->company_id);
@@ -150,10 +145,10 @@ class PaymentController extends Controller
 
             $ledger_account_paid_bill = null;
             if($finance_settings){
-                $payment_prefix = "PAY";
+                $payment_prefix = "RCP";
                 $bill_prefix = $finance_settings->bill_prefix;
             }else{
-                $payment_prefix = "PAY";
+                $payment_prefix = "RCP";
                 $bill_prefix = "BL";
             }
 

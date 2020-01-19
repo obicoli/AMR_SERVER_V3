@@ -9,6 +9,7 @@ use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Invoice\CustomerInvoice;
 use App\Customer\Models\Invoice\CustomerRetainerInvoice;
 use App\Customer\Models\Quote\Estimate;
+use App\Customer\Models\Sales\CustomerSalesReceipt;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Models\Module\Module;
 use App\Supplier\Models\PurchaseOrder;
@@ -69,10 +70,12 @@ class Customer extends Model
     public function customer_terms(){ return $this->belongsTo(CustomerTerms::class,'customer_terms_id'); }
     public function prefered_payment(){ return $this->belongsTo(AccountPaymentType::class,'prefered_payment_id'); }
     public function customerInvoices(){ return $this->hasMany(CustomerInvoice::class,'customer_id','id'); }
+    public function retainerInvoices(){ return $this->hasMany(CustomerRetainerInvoice::class,'customer_id','id'); }
     //public function account_holders(){ return $this->morphMany(AccountsHolder::class, 'owner','owner_type','owner_id'); }
     //public function estimates(){ return $this->morphMany(Estimate::class, 'customer','customer_type','customer_id'); }
+    public function salesReceipts(){ return $this->hasMany(CustomerSalesReceipt::class,'customer_id','id'); }
     public function estimates(){ return $this->hasMany(Estimate::class,'customer_id','id'); }
-    public function retainer_invoices(){ return $this->hasMany(CustomerRetainerInvoice::class,'customer_id','id'); }
+    //public function retainer_invoices(){ return $this->hasMany(CustomerRetainerInvoice::class,'customer_id','id'); }
     //public function purchase_order_shipping(){ return $this->morphMany(PurchaseOrder::class,'shipable','shipable_type','shipable_id'); }
     public function addresses(){ return $this->hasMany(CustomerAddress::class,'customer_id'); }
     public function double_entry_support_document(){

@@ -23,6 +23,7 @@
 ##https://accounting.sageone.co.za/Dashboard/MyWorkspace.aspx
 ##https://accounting-simplified.com/accounting-for-sales-tax-on-purchases.html
 ##https://www.double-entry-bookkeeping.com/accounts-payable/purchase-discount/
+##https://kristymonahan.com/sales-receipts-vs-receive-payments-vs-bank-deposits-explained/
 
 ## Inventory Module:
 [Vouchers](http://localhost)

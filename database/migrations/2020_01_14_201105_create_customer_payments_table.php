@@ -20,7 +20,7 @@ class CreateCustomerPaymentsTable extends Migration
         Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('customer_payments', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('ledger_account_id')->index();
-            $table->unsignedInteger('customer_invoice_id')->index();
+            //$table->unsignedInteger('customer_invoice_id')->index();
             $table->unsignedInteger('customer_id')->index();
             $table->timestamp('trans_date')->default(DB::raw("CURRENT_TIMESTAMP"));
             $table->float('amount',32,2)->default(00.00);

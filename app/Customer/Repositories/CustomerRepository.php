@@ -11,8 +11,10 @@ use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerAddress;
 use App\Customer\Models\CustomerPayment;
 use App\Customer\Models\Invoice\CustomerInvoice;
+use App\Customer\Models\Invoice\CustomerRetainerInvoice;
 use App\Customer\Models\Orders\CustomerSalesOrder;
 use App\Customer\Models\Quote\Estimate;
+use App\Customer\Models\Sales\CustomerSalesReceipt;
 use App\helpers\HelperFunctions;
 use App\Models\Localization\Country;
 use App\Models\Module\Module;
@@ -50,6 +52,14 @@ class CustomerRepository implements CustomerRepositoryInterface{
     }
     public function create($inputs = []){
         return $this->model->create($inputs);
+    }
+
+    public function transform_sales_receipt(CustomerSalesReceipt $customerSalesReceipt){
+
+        return [
+            'id'=>$customerSalesReceipt->uuid,
+        ];
+
     }
 
     public function transform_payment(CustomerPayment $customerPayment){
@@ -99,6 +109,8 @@ class CustomerRepository implements CustomerRepositoryInterface{
             }
         }
 
+        $payment_cash = $customerInvoice->paymentItems()->sum('paid_amount');
+
         return [
             'id'=>$customerInvoice->uuid,
             'trans_number'=>$customerInvoice->trans_number,
@@ -120,10 +132,53 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'total_discount' => \round( $customerInvoice->total_discount,2 ),
             'total_tax' => $customerInvoice->total_tax,
             'paid_amount' => 0,
-            'cash_paid' => $customerInvoice->customerPayments()->sum('amount'),
+            'due_balance' => $customerInvoice->net_total - $payment_cash,
+            'cash_paid' => $payment_cash,
             'display_as'=>$customerInvoice->trans_number.' | '.$this->helpers->format_mysql_date($customerInvoice->trans_date,$date_format),
             //'pricing' => $pricing,
         ];
+    }
+
+    public function transform_retainer_invoice(CustomerRetainerInvoice $customerRetainerInvoice){
+
+        $company = $customerRetainerInvoice->owning()->get()->first();
+        $date_format = $company->date_format;
+        $customer = null;
+        $custome = $customerRetainerInvoice->customers()->get()->first();
+        if($custome){
+            $customer = $this->transform_customer($custome);
+        }
+
+        $est_statuses = $customerRetainerInvoice->invoiceStatus()->get()->where('type','status');
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['note'] = $est_status->note;
+            $temp_status['date'] = $this->helpers->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+
+        $total_paid = $customerRetainerInvoice->customerPayments()->sum('paid_amount');
+        $due_balance = $customerRetainerInvoice->net_total - $total_paid;
+
+        return [
+            'id'=>$customerRetainerInvoice->uuid,
+            'customer'=>$customer,
+            'document_name' => "Retainer Invoice",
+            'company'=>$this->companyUser->transform_company($company),
+            'status'=>$trans_status,
+            'total_tax'=>$customerRetainerInvoice->total_tax,
+            'net_total'=>$customerRetainerInvoice->net_total,
+            'grand_total'=>$customerRetainerInvoice->grand_total,
+            'total_paid'=>$total_paid,
+            'due_balance'=>$due_balance,
+            'trans_number'=>$customerRetainerInvoice->trans_number,
+            'trans_date'=>$this->helpers->format_mysql_date($customerRetainerInvoice->trans_date,$date_format),
+        ];
+
     }
 
     public function transform_sales_order(CustomerSalesOrder $customerSalesOrder){

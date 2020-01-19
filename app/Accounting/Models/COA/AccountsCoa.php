@@ -44,6 +44,9 @@ class AccountsCoa extends Model
     const AC_OPENING_BALANCE_EQUITY_CODE = 604; //DO NOT EDIT OR CHANGE
     const AC_OTHER_EXPENSE = 1204; //DO NOT EDIT OR CHANGE
     const AC_SALES_SERVICE_TAX_PAYABLE_CODE = 515; //DO NOT EDIT OR CHANGE
+    const AC_CUSTOMER_OVERPAYMENT_CODE = 516; //DO NOT EDIT OR CHANGE
+    const AC_CUSTOMER_TRUST_ACCOUNT_CODE = 204; //DO NOT EDIT OR CHANGE
+    //
     /*
         WARNING! DO NOT EDIT/CHANGE THE ACCOUNT CODE CONSTANTS LISTED ABOVE
     */
@@ -82,6 +85,8 @@ class AccountsCoa extends Model
     const TRANS_TYPE_ACCOUNT_OPENING_BALANCE = "Account Opening Balance";
     const TRANS_TYPE_BANK_OPENING_BALANCE = "Bank Opening Balance";
     const TRANS_TYPE_CUSTOMER_PAYMENT = "Customer Payment";
+    const TRANS_TYPE_CUSTOMER_DEPOSIT = "Customer Deposit";
+    const TRANS_TYPE_RETAINER_INVOICE = "Retainer Invoice";
 
     const TRANS_NAME_OPEN_BALANCE = "Opening Balance";
     const TRANS_NAME_JOURNAL_ENTRY = "Journal Entry";
@@ -103,7 +108,8 @@ class AccountsCoa extends Model
         'sys_default',
         'accounts_type_id',
         'is_special',
-        'code'
+        'code',
+        'notes'
     ];
     public function owning(){ return $this->morphTo();} //Branch level
     public function chart_of_accounts(){ return $this->hasMany(AccountChartAccount::class,'default_coa_id'); }

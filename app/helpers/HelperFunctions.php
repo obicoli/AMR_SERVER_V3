@@ -957,6 +957,7 @@ class HelperFunctions
             'payment_method.required'=>'Payment mode required!',
             'vat_pin.required'=>'VAT number is required!',
             'vat_return_id.required'=>'VAT period is required!',
+            'trans_date.required'=>'Date is required',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }

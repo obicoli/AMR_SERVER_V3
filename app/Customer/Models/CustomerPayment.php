@@ -24,7 +24,7 @@ class CustomerPayment extends Model
     protected $table = "customer_payments";
     protected $fillable = [
         'customer_id',
-        'customer_invoice_id',
+        //'customer_invoice_id',
         'ledger_account_id',
         'trans_date',
         'amount',
@@ -37,6 +37,11 @@ class CustomerPayment extends Model
     public function customerInvoices(){
         return $this->belongsToMany(CustomerInvoice::class,'customer_invoice_payments','customer_payment_id','customer_invoice_id');
     }
+    public function customerRetainerInvoices(){
+        return $this->belongsToMany(CustomerRetainerInvoice::class,'customer_retainer_payments','customer_payment_id','customer_retainer_id');
+    }
+
+    public function paymentItems(){ return $this->hasMany(CustomerPaymentItem::class,'customer_payment_id','id'); }
 
     public function owning(){ return $this->morphTo();} //Branch level
 

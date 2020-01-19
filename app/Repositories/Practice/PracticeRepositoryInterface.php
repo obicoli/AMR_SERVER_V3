@@ -25,6 +25,7 @@ use App\Models\Practice\PracticeRole;
 interface PracticeRepositoryInterface
 {
 
+    public function transform_company(Practice $practice);
     public function find($id);
     public function findByUserIdPracticeId($user_id,$practice_id,$email);
     public function findOwner(Practice $practice);

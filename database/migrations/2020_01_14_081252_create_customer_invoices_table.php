@@ -29,6 +29,7 @@ class CreateCustomerInvoicesTable extends Migration
             $table->float('overal_discount_rate',8,2)->default(0.0);
             $table->boolean('overal_discount')->default(false);
             $table->text('notes')->nullable();
+            $table->enum('invoice_type',['Recurring','Non-Recurring'])->default('Non-Recurring');
             $table->enum('sales_basis',['Cash','Credit'])->default('Cash');
             $table->enum('taxation_option',['Inclusive of Tax','Exclusive of Tax','Out of scope of Tax'])->default('Inclusive of Tax');
             $table->text('terms_condition')->nullable();

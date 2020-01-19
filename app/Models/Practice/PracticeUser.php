@@ -2,6 +2,8 @@
 namespace App\Models\Practice;
 
 use App\Customer\Models\Invoice\CustomerInvoiceStatus;
+use App\Customer\Models\Invoice\CustomerRetainerInvoice;
+use App\Customer\Models\Invoice\CustomerRetainerInvoiceStatus;
 use App\Customer\Models\Orders\CustomerSalesOrderStatus;
 use App\Customer\Models\Quote\EstimateStatus;
 use App\Finance\Models\Banks\ReconciledTransactionState;
@@ -81,6 +83,7 @@ class PracticeUser extends Model
     public function estimate_status(){ return $this->morphMany(EstimateStatus::class,'responsible','responsible_type','responsible_id'); }
     public function salesorder_status(){ return $this->morphMany(CustomerSalesOrderStatus::class,'responsible','responsible_type','responsible_id'); }
     public function customer_invoice_status(){ return $this->morphMany(CustomerInvoiceStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function retainer_invoice_status(){ return $this->morphMany(CustomerRetainerInvoiceStatus::class,'responsible','responsible_type','responsible_id'); }
     //
     //PO
     public function po_status(){ return $this->morphMany(PurchaseOrderStatus::class,'responsible','responsible_type','responsible_id'); }

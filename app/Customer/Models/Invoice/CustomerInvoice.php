@@ -5,6 +5,7 @@ namespace App\Customer\Models\Invoice;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerPayment;
+use App\Customer\Models\CustomerPaymentItem;
 use App\Customer\Models\CustomerTerms;
 use App\Models\Module\Module;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailAttach;
@@ -38,6 +39,8 @@ class CustomerInvoice extends Model
         'sales_basis',
         'extractable_from'
     ];
+
+    public function paymentItems(){ return $this->hasMany(CustomerPaymentItem::class,'customer_invoice_id','id'); }
 
     public function customerPayments(){
         return $this->belongsToMany(CustomerPayment::class,'customer_invoice_payments','customer_invoice_id','customer_payment_id');

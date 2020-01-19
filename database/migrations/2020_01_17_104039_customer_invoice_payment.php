@@ -21,6 +21,8 @@ class CustomerInvoicePayment extends Migration
             $table->increments('id');
             $table->unsignedInteger('customer_invoice_id')->index();
             $table->unsignedInteger('customer_payment_id')->index();
+            $table->float('paid_amount',16,2)->default(0);
+            $table->string('uuid');
             $table->timestamps();
         });
     }

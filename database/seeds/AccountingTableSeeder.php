@@ -126,7 +126,7 @@ class AccountingTableSeeder extends Seeder
         $cash_and_equivalent->default_accounts()->create(['code'=>201,'sys_default'=>true,'name'=>"Bank"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>202,'sys_default'=>true,'name'=>"Cash and cash equivalents"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>203,'sys_default'=>true,'name'=>"Petty Cash"]);
-        $cash_and_equivalent->default_accounts()->create(['code'=>204,'sys_default'=>true,'name'=>"Client trust account"]);
+        $cash_and_equivalent->default_accounts()->create(['code'=>204,'sys_default'=>true,'name'=>"Client trust account",'notes'=>" for money held by you for the benefit of someone else. "]);
         $cash_and_equivalent->default_accounts()->create(['code'=>205,'sys_default'=>true,'name'=>"Money Market"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>206,'sys_default'=>true,'name'=>"Rents Held in Trust"]);
         $cash_and_equivalent->default_accounts()->create(['code'=>207,'sys_default'=>true,'name'=>"Savings"]);
@@ -159,7 +159,7 @@ class AccountingTableSeeder extends Seeder
         $credit_card->default_accounts()->create(['code'=>401,'sys_default'=>true,'name'=>"Credit card"]);
         //7. Liability:Current liability
         $current_liability->default_accounts()->create(['code'=>501,'sys_default'=>true,'name'=>"Accrued liabilities"]);
-        $current_liability->default_accounts()->create(['code'=>502,'sys_default'=>true,'name'=>"Client Trust Accounts - Liabilities"]);
+        //$current_liability->default_accounts()->create(['code'=>502,'sys_default'=>true,'name'=>"Client Trust Accounts - Liabilities"]);
         $current_liability->default_accounts()->create(['code'=>503,'sys_default'=>true,'name'=>"Current Tax Liability"]);
         $current_liability->default_accounts()->create(['code'=>504,'sys_default'=>true,'name'=>"Current portion of obligations under finance leases"]);
         $current_liability->default_accounts()->create(['code'=>505,'sys_default'=>true,'name'=>"Dividends payable"]);
@@ -173,14 +173,15 @@ class AccountingTableSeeder extends Seeder
         $current_liability->default_accounts()->create(['code'=>513,'sys_default'=>true,'name'=>"Prepaid Expenses Payable"]);
         $current_liability->default_accounts()->create(['code'=>514,'sys_default'=>true,'name'=>"Rents in trust - Liability"]);
         $current_liability->default_accounts()->create(['code'=>515,'sys_default'=>true,'name'=>"Sales and service tax payable"]);
+        $current_liability->default_accounts()->create(['code'=>516,'sys_default'=>true,'name'=>"Unearned Revenue",'notes'=>"A liability account that reports amounts received in advance of providing goods or services. When the goods or services are provided, this account balance is decreased and a revenue account is increased."]);
         //8. Lia
-        $non_current_liability->default_accounts()->create(['code'=>516,'sys_default'=>true,'name'=>"Accrued holiday payable"]);
-        $non_current_liability->default_accounts()->create(['code'=>517,'sys_default'=>true,'name'=>"Accrued non-current liabilities"]);
-        $non_current_liability->default_accounts()->create(['code'=>518,'sys_default'=>true,'name'=>"Liabilities related to assets held for sale"]);
-        $non_current_liability->default_accounts()->create(['code'=>519,'sys_default'=>true,'name'=>"Long-term debt"]);
-        $non_current_liability->default_accounts()->create(['code'=>520,'sys_default'=>true,'name'=>"Notes Payable"]);
-        $non_current_liability->default_accounts()->create(['code'=>521,'sys_default'=>true,'name'=>"Other non-current liabilities"]);
-        $non_current_liability->default_accounts()->create(['code'=>522,'sys_default'=>true,'name'=>"Shareholder Notes Payable"]);
+        $non_current_liability->default_accounts()->create(['code'=>517,'sys_default'=>true,'name'=>"Accrued holiday payable"]);
+        $non_current_liability->default_accounts()->create(['code'=>518,'sys_default'=>true,'name'=>"Accrued non-current liabilities"]);
+        $non_current_liability->default_accounts()->create(['code'=>519,'sys_default'=>true,'name'=>"Liabilities related to assets held for sale"]);
+        $non_current_liability->default_accounts()->create(['code'=>520,'sys_default'=>true,'name'=>"Long-term debt"]);
+        $non_current_liability->default_accounts()->create(['code'=>521,'sys_default'=>true,'name'=>"Notes Payable"]);
+        $non_current_liability->default_accounts()->create(['code'=>522,'sys_default'=>true,'name'=>"Other non-current liabilities"]);
+        $non_current_liability->default_accounts()->create(['code'=>523,'sys_default'=>true,'name'=>"Shareholder Notes Payable"]);
         //9. Equity
         $owner_equity->default_accounts()->create(['code'=>601,'sys_default'=>true,'name'=>"Accumulated adjustment"]);
         $owner_equity->default_accounts()->create(['code'=>602,'sys_default'=>true,'name'=>"Dividend disbursed"]);
