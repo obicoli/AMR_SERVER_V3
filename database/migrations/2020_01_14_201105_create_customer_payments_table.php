@@ -28,6 +28,7 @@ class CreateCustomerPaymentsTable extends Migration
             $table->string('notes')->nullable();
             $table->string('reference_number')->nullable();
             $table->string('trans_number')->nullable();
+            $table->string('payment_method')->nullable();
             $table->unsignedInteger('owning_id')->nullable()->index();
             $table->string('owning_type')->nullable()->index();
             $table->string('uuid');

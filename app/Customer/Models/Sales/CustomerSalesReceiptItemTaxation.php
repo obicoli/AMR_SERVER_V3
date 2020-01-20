@@ -19,9 +19,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerSalesReceiptItemTaxation extends Model
 {
-    use SoftDeletes,UuidTrait,Accountable;
     protected $connection = Module::MYSQL_CUSTOMER_DB_CONN;
-    protected $table = "customer_sales_receipt_item_taxations";
+    protected $table = "customer_sales_receipt_taxations";
     protected $fillable = [
         'sales_receipt_item_id',
         'product_taxation_id',

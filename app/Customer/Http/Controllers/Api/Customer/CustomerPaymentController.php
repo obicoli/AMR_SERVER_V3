@@ -90,7 +90,6 @@ class CustomerPaymentController extends Controller
     }
 
     public function create(Request $request){
-
         //Log::info($request);
         $inputs = $request->all();
         $pay_mode_cheque = AccountsCoa::PAY_METHOD_CHEQUE;
@@ -140,6 +139,8 @@ class CustomerPaymentController extends Controller
             return response()->json($http_resp,422);
         }
 
+        
+
         DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
@@ -160,6 +161,7 @@ class CustomerPaymentController extends Controller
             $payment_method = $payment_mode;
             $pay_reference = null;
             $currency = $request->currency;
+            //$inputs['payment_method'] = $request->payment['payment_method'];
             //
             $account_type_customer = AccountsCoa::AC_TYPE_CUSTOMER;
             $trans_type_customer_payment = AccountsCoa::TRANS_TYPE_CUSTOMER_PAYMENT;
@@ -215,6 +217,7 @@ class CustomerPaymentController extends Controller
             $pay_inputs['notes'] = $notes;
             $pay_inputs['reference_number'] = $pay_reference;
             $pay_inputs['trans_number'] = $payment_prefix;
+            $pay_inputs['payment_method'] = $payment_mode;
             $new_customer_payment = $company->customer_payments()->create($pay_inputs);
             $new_customer_payment->trans_number = $this->helper->create_transaction_number($payment_prefix,$new_customer_payment->id);
             $new_customer_payment->save();
@@ -255,18 +258,27 @@ class CustomerPaymentController extends Controller
                 if($customer_deposit){
                     //cash_paid_cons
                     $net_retainer = $retainer_invoice->net_total;
-                    $total_payment = $retainer_invoice->paymentItems()->sum('paid_amount');
+                    //Log::info($net_retainer);
+                    $paid_b4_payment = $retainer_invoice->paymentItems()->sum('paid_amount');
+                    // Log::info($paid_b4_payment);
+                    // Log::info($cash_paid_cons);
+                    $total_payment = $paid_b4_payment + $cash_paid_cons;
                     //Log::info($total_payment);
-                    if( ($cash_paid_cons+$total_payment) > $net_retainer ){
-                        $statu_inputs['status'] = $paid_status;
+
+                    if( $total_payment >= $net_retainer ){
+                        $sta_inputs['status'] = $paid_status;
+                        //Log::info($sta_inputs);
                     }else{
-                        $statu_inputs['status'] = $partial_paid_status;
+                        $sta_inputs['status'] = $partial_paid_status;
+                        //Log::info($sta_inputs);
                     }
-                    $statu_inputs['notes'] = "Customer deposit of ".$currency." ".number_format($cash_paid,2)." made";
-                    $retainer_status = $company_user->retainer_invoice_status()->create($statu_inputs);
+                    $sta_inputs['notes'] = "Customer deposit of ".$currency." ".number_format($cash_paid,2)." made";
+                    $retainer_status = $company_user->retainer_invoice_status()->create($sta_inputs);
                     $retainer_status = $retainer_invoice->invoiceStatus()->save($retainer_status);
-                    $retainer_invoice->status = $statu_inputs['status'];
+                    $retainer_invoice->status = $sta_inputs['status'];
                     $retainer_invoice->save();
+                    // Log::info($retainer_invoice);
+                    // Log::info($retainer_status);
                     //Create Payment Item as below
                     $ite_input['customer_retainer_id'] = $retainer_invoice->id;
                     $ite_input['customer_payment_id'] = $new_customer_payment->id;

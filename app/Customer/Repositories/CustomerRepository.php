@@ -66,14 +66,18 @@ class CustomerRepository implements CustomerRepositoryInterface{
 
         $company = $customerPayment->owning()->get()->first();
         $date_format = $company->date_format;
+
         return [
             'id'=>$customerPayment->uuid,
+            'document_name'=>'Payment Receipt',
+            'payment_method'=>$customerPayment->payment_method,
             'trans_number'=>$customerPayment->trans_number,
             'reference_number'=>$customerPayment->reference_number,
             'amount'=>$customerPayment->amount,
             'unlocated_amount'=>0,
             'customer'=>$this->transform_customer($customerPayment->customers()->get()->first()),
             'trans_date'=>$this->helpers->format_mysql_date($customerPayment->trans_date,$date_format),
+            'items'=>[],
         ];
 
     }
@@ -108,8 +112,20 @@ class CustomerRepository implements CustomerRepositoryInterface{
                 $is_overdue = "Overdue ".$is_overdue;
             }
         }
-
         $payment_cash = $customerInvoice->paymentItems()->sum('paid_amount');
+
+        $recurring = [];
+        if($customerInvoice->invoice_type == "Recurring"){
+            $recured = $customerInvoice->invoiceRecurrence()->get()->first();
+            $recurring['id']=$recured->uuid;
+            $recurring['cc_copy']=$recured->cc_copy;
+            $recurring['frequency']=$recured->frequency;
+            $recurring['profile_name']=$recured->profile_name;
+            $recurring['email']=$recured->email;
+            $recurring['cc_email']=$recured->cc_email;
+            $recurring['start_date']=$this->helpers->format_mysql_date($recured->start_date,$date_format);
+            $recurring['end_date']=$this->helpers->format_mysql_date($recured->end_date,$date_format);
+        }
 
         return [
             'id'=>$customerInvoice->uuid,
@@ -125,6 +141,7 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'terms_condition'=>$customerInvoice->terms_condition,
             'status' => $trans_status,
             'customer' => $customer,
+            'recurring'=>$recurring,
             'is_overdue'=>$is_overdue,
             'taxation_option'=>$customerInvoice->taxation_option,
             'net_total' => $customerInvoice->net_total,
@@ -163,7 +180,6 @@ class CustomerRepository implements CustomerRepositoryInterface{
 
         $total_paid = $customerRetainerInvoice->customerPayments()->sum('paid_amount');
         $due_balance = $customerRetainerInvoice->net_total - $total_paid;
-
         return [
             'id'=>$customerRetainerInvoice->uuid,
             'customer'=>$customer,
@@ -178,7 +194,6 @@ class CustomerRepository implements CustomerRepositoryInterface{
             'trans_number'=>$customerRetainerInvoice->trans_number,
             'trans_date'=>$this->helpers->format_mysql_date($customerRetainerInvoice->trans_date,$date_format),
         ];
-
     }
 
     public function transform_sales_order(CustomerSalesOrder $customerSalesOrder){

@@ -15,8 +15,8 @@ class CreateCustomerSalesReceiptItemTaxationsTable extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_receipt_item_tax');
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('customer_receipt_item_tax', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_sales_receipt_taxations');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->create('customer_sales_receipt_taxations', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('sales_receipt_item_id')->index();
             $table->unsignedInteger('product_taxation_id')->index();
@@ -35,6 +35,6 @@ class CreateCustomerSalesReceiptItemTaxationsTable extends Migration
      */
     public function down()
     {
-        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_receipt_item_tax');
+        Schema::connection(Module::MYSQL_CUSTOMER_DB_CONN)->dropIfExists('customer_sales_receipt_taxations');
     }
 }

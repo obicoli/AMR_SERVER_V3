@@ -29,7 +29,7 @@ class CustomerSalesReceipt extends Model
         'trans_number',
         'reference_number',
         'trans_date',
-        'due_date',
+        //'due_date',
         'shipping_charges',
         'adjustment_charges',
         'notes',
@@ -41,7 +41,7 @@ class CustomerSalesReceipt extends Model
         'total_discount',
         'overal_discount',
         'overal_discount_rate',
-        'payment_term_id',
+        //'payment_term_id',
         //'sales_basis',
         //'extractable_from'
     ];

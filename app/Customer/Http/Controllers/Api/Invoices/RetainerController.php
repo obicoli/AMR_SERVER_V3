@@ -205,6 +205,7 @@ class RetainerController extends Controller
 
             $status_inputs['status'] = $status;
             $status_inputs['type'] = 'status';
+            $status_inputs['notes'] = 'A Retainer invoice created for '.$currency.' '.number_format($net_total,2);
             $invoice_status = $company_user->retainer_invoice_status()->create($status_inputs);
             $invoice_status = $new_retainer_invoice->invoiceStatus()->save($invoice_status);
             $new_retainer_invoice->status = $status_inputs['status'];
@@ -243,9 +244,41 @@ class RetainerController extends Controller
         $items = array();
         $invoice = $this->customerRetainerInvoice->findByUuid($uuid);
         // $payment_term = $invoice->payment_terms()->get()->first();
+        $est_statuses = $invoice->invoiceStatus()->get();
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['notes'] = $est_status->notes;
+            $temp_status['date'] = $this->helper->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->company_users->transform_user($practice_user);
+            array_push($audit_trails,$temp_status);
+        }
+
+        $payment_transactions = $invoice->customerPayments()->orderByDesc('created_at')->get();
+        foreach($payment_transactions as $payment_transaction){
+            $payitems = array();
+            $retainers_in_payment = $payment_transaction->customerRetainerInvoices()->get();
+            
+            //Log::info($payitems);
+            foreach($retainers_in_payment as $retainers_in_paymen){
+                $net_total = $retainers_in_paymen->net_total;
+                $dat = $this->customerRetainerInvoice->transform_retainer_invoice($retainers_in_paymen);
+                $paid_amount = $retainers_in_paymen->paymentItems()->where('customer_payment_id',$payment_transaction->id)->sum('paid_amount');
+                $dat['paid_amount'] = $paid_amount;
+                $dat['balance_due'] = $net_total - $paid_amount;
+                array_push($payitems,$dat);
+            }
+            //Log::info($retainers_in_payment);
+            $transformed_payment = $this->customerRetainerInvoice->transform_payment($payment_transaction);
+            $transformed_payment['items'] = $payitems;
+            array_push($payments,$transformed_payment);
+            Log::info($transformed_payment);
+        }
+
         $invoice_data = $this->customerRetainerInvoice->transform_retainer_invoice($invoice);
         // if($payment_term){$invoice_data['payment_term'] = $this->customerRetainerInvoice->transform_term($payment_term);}else{$invoice_data['payment_term']=null;}
-        
         $invoice_data['journals'] = $journals;
         $invoice_data['payments'] = $payments;
         $invoice_data['audit_trails'] = $audit_trails;

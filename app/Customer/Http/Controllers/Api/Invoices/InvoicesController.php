@@ -71,6 +71,8 @@ class InvoicesController extends Controller
 
     public function index(Request $request){
 
+        //Log::info($request);
+
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id); //Get the company
@@ -80,11 +82,15 @@ class InvoicesController extends Controller
             $customer = $this->customers->findByUuid($request->unpaid_customer_invoice);
             $invoices = $customer->customerInvoices()
                 ->where('status',$partial_paid_status)
+                ->where('invoice_type',$request->invoice_type)
                 ->orWhere('status',$unpaid_status)
                 ->orderByDesc('created_at')
                 ->paginate(100);
         }else{
-            $invoices = $company->customerInvoices()->orderByDesc('created_at')->paginate(10);
+            $invoices = $company->customerInvoices()
+                ->orderByDesc('created_at')
+                ->where('invoice_type',$request->invoice_type)
+                ->paginate(10);
         }
         
         $paged_data = $this->helper->paginator($invoices);
@@ -131,6 +137,7 @@ class InvoicesController extends Controller
             'due_date'=>'required',
             'terms_condition'=>'required',
             'sales_basis'=>'required',
+            'invoice_type'=>'required',
         ];
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
@@ -181,6 +188,27 @@ class InvoicesController extends Controller
             }
         }
 
+        //
+        $non_recurring_type = Product::DOC_TAX_INVOICE_NON_RECUR;
+        $recurring_type = Product::DOC_TAX_INVOICE_RECUR;
+        $invoice_type = $request->invoice_type;
+        if($invoice_type == $recurring_type){
+            $rule = [
+                'end_date'=>'required',
+                'start_date'=>'required',
+                'email'=>'required',
+                'cc_copy'=>'required',
+                'frequency'=>'required',
+                'profile_name'=>'required',
+            ];
+            $validation = Validator::make($request->recurring,$rule,$this->helper->messages());
+            if ( $validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
+        }
+
         DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
@@ -207,6 +235,7 @@ class InvoicesController extends Controller
             $invoice_basis_type = $request->sales_basis;
             $cash_basis_invoice = AccountsCoa::CASH;
             $unpaid_status = Product::STATUS_UNPAID;
+            $active_status = Product::STATUS_ACTIVE;
             $ledger_support_document = null;
             $discount_allowed_ledger_ac = null;
             $trans_type = AccountsCoa::TRANS_TYPE_TAX_INVOICE;
@@ -216,6 +245,9 @@ class InvoicesController extends Controller
             $currency = $request->currency;
             $mapped_estimate = $this->estimates->findByUuid($request->estimate_id);
             $mapped_salesorder = $this->customerSalesOrder->findByUuid($request->sales_order_id);
+            $recur_inputs = $request->recurring;
+            $recur_inputs['start_date'] = $this->helper->format_lunox_date($recur_inputs['start_date']);
+            $recur_inputs['end_date'] = $this->helper->format_lunox_date($recur_inputs['end_date']);
 
             //Ledger accounts
             $customer_ledger_ac = null; /*  A/C Receivable */
@@ -335,8 +367,9 @@ class InvoicesController extends Controller
             }
 
             //ACCOUNTINGS: Journal Entries
-            if($status != $draft_status ){ //Perform Accounting Double Entries only if Status is not a DRAFT
+            if( ($status != $draft_status) && ($invoice_type == $non_recurring_type) ){ //Perform Accounting Double Entries only if Status is not a DRAFT
                 /*  Company Sales A/C-  */
+                Log::info("Perform Accounting Expected");
                 $sales_ledger_account = $company->chart_of_accounts()->where('default_code',$sales_ac_code)->get()->first();
                 /* Company Discount Allowed*/
                 $discount_allowed_ledger_ac = $company->chart_of_accounts()->where('default_code',$disc_allowed_code)->get()->first();
@@ -391,7 +424,8 @@ class InvoicesController extends Controller
                 $support = $double_entry->supports()->save($ledger_support_document);
             }
 
-            if( $invoice_basis_type == $cash_basis_invoice ){
+            if( ($invoice_basis_type == $cash_basis_invoice) && ($invoice_type==$non_recurring_type) ){
+                Log::info("Perform Accounting --------");
                 //Record this payment into Payments table as below
                 $notes = "Payment for Invoice ".$new_invoice->trans_number;
                 $cash_paid = $request->payment['cash_paid'];
@@ -442,13 +476,22 @@ class InvoicesController extends Controller
                     $status = $unpaid_status;
                 }
             }
-            $status_inputs['status'] = $status;
+
+            $http_resp['description'] = "Customer invoice successful created!";
+            if($invoice_type==$recurring_type){
+                $status_inputs['status'] = $active_status;
+                $status_inputs['notes'] = 'Recurring Invoice created!';
+                $recurrence = $new_invoice->invoiceRecurrence()->create($recur_inputs);
+                $http_resp['description'] = "Recurriung customer invoice successful created!";
+            }else{
+                $status_inputs['status'] = $status;
+            }
             $status_inputs['type'] = 'status';
             $invoice_status = $company_user->customer_invoice_status()->create($status_inputs);
             $invoice_status = $new_invoice->invoiceStatus()->save($invoice_status);
             $new_invoice->status = $status_inputs['status'];
             $new_invoice->save();
-
+            
             //Map to Estimate if this invoice is Extracted from the Estimate
             if($mapped_estimate){
                 $mapped_estimate->invoices()->save($new_invoice);
@@ -479,7 +522,7 @@ class InvoicesController extends Controller
                 $new_invoice->extractable_from = "Sales Order";
                 $new_invoice->save();
             }
-            $http_resp['description'] = "Customer invoice successful created!";
+            
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
             DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();

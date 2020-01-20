@@ -45,6 +45,7 @@ class Product extends Model
     const STATUS_UNPAID = "Unpaid";
     const STATUS_ACCEPTED = "Accepted";
     const STATUS_INVOICED = "Invoiced";
+    const STATUS_ACTIVE = "Active";
 
     const STOCK_SOURCE_OPENING_STOCK = "Opening Stock";
     const STOCK_SOLD = "sold";
@@ -79,6 +80,8 @@ class Product extends Model
     const DOC_CASH_BILL = "Cash";
     const DOC_CREDIT_BILL = "Credit";
     const DOC_TAX_INVOICE = "Tax Invoice";
+    const DOC_TAX_INVOICE_RECUR = "Recurring";
+    const DOC_TAX_INVOICE_NON_RECUR = "Non-Recurring";
 
     const DOC_QUOTATION = "Quation";
     const DOC_SALES_ORDER = "Sales Order";

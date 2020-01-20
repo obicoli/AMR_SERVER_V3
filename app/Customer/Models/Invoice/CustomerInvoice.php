@@ -37,8 +37,11 @@ class CustomerInvoice extends Model
         'overal_discount_rate',
         'payment_term_id',
         'sales_basis',
-        'extractable_from'
+        'extractable_from',
+        'invoice_type'
     ];
+
+    public function invoiceRecurrence(){ return $this->hasMany(CustomerInvoiceRecurrence::class,'customer_invoice_id','id'); }
 
     public function paymentItems(){ return $this->hasMany(CustomerPaymentItem::class,'customer_invoice_id','id'); }
 

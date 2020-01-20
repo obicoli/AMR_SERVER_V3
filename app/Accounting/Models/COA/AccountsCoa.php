@@ -79,6 +79,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_PAYMENT_RECEIPT = "Payment Receipt";
     const TRANS_TYPE_VAT_PAYMENT = "VAT Payment";
     const TRANS_TYPE_TAX_INVOICE = "Tax Invoice";
+    const TRANS_TYPE_SALES_RECEIPT = "Sales Receipt";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
     const TRANS_TYPE_SUPPLIER_OPENING_BALANCE = "Supplier Opening Balance";
     const TRANS_TYPE_CUSTOMER_OPENING_BALANCE = "Customer Opening Balance";

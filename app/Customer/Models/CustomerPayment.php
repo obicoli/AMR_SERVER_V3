@@ -32,6 +32,7 @@ class CustomerPayment extends Model
         'notes',
         'reference_number',
         'trans_number',
+        'payment_method',
     ];
 
     public function customerInvoices(){
