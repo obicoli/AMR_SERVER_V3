@@ -20,9 +20,9 @@ class CustomerCreditNote extends Model
         'trans_number',
         'reference_number',
         'trans_date',
-        'due_date',
-        'shipping_charges',
-        'adjustment_charges',
+        //'due_date',
+        //'shipping_charges',
+        //'adjustment_charges',
         'notes',
         'terms_condition',
         'customer_id',
@@ -32,7 +32,7 @@ class CustomerCreditNote extends Model
         'total_discount',
         'overal_discount',
         'overal_discount_rate',
-        'customer_invoice_id',
+        //'customer_invoice_id',
     ];
     public function customers(){ return $this->belongsTo(Customer::class,'customer_id','id'); }
     public function items(){ return $this->hasMany(CustomerCreditNoteItem::class,'credit_note_id','id'); }

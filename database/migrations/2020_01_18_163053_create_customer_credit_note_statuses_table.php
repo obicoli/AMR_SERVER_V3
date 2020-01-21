@@ -24,7 +24,7 @@ class CreateCustomerCreditNoteStatusesTable extends Migration
             $table->string('status')->default('Draft')->index(); //product_requistions_id
             $table->enum('type',['status','action'])->default('status');
             $table->softDeletes();
-            $table->unsignedInteger('credit_node_id')->index()->nullable();
+            $table->unsignedInteger('credit_note_id')->index()->nullable();
             $table->timestamps();
         });
     }

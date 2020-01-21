@@ -2,6 +2,7 @@
 
 namespace App\Customer\Repositories;
 
+use App\Customer\Models\Credits\CustomerCreditNote;
 use App\Customer\Models\Customer;
 use App\Customer\Models\CustomerAddress;
 use App\Customer\Models\CustomerPayment;
@@ -21,6 +22,7 @@ interface CustomerRepositoryInterface{
     public function find($id);
     public function findByUuid($uuid);
     public function create($inputs = []);
+    public function transform_credit_note(CustomerCreditNote $customerCreditNote);
     public function transform_sales_receipt(CustomerSalesReceipt $customerSalesReceipt);
     public function transform_payment(CustomerPayment $customerPayment);
     public function transform_invoices(CustomerInvoice $customerInvoice);

@@ -686,6 +686,14 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Customer\CustomerPaymentController@delete");
         });
 
+        Route::group( ['prefix'=>'creditnotes' ], function (){
+            Route::get('/', "\App\Customer\Http\Controllers\Api\Credits\CustomerCreditNoteController@index");
+            Route::post('/', "\App\Customer\Http\Controllers\Api\Credits\CustomerCreditNoteController@create");
+            Route::post('/{uuid}', "\App\Customer\Http\Controllers\Api\Credits\CustomerCreditNoteController@update");
+            Route::get('/{uuid}', "\App\Customer\Http\Controllers\Api\Credits\CustomerCreditNoteController@show");
+            Route::delete('/{uuid}', "\App\Customer\Http\Controllers\Api\Credits\CustomerCreditNoteController@delete");
+        });
+
         Route::group( ['prefix'=>'receipts' ], function (){
             Route::get('/', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@index");
             Route::post('/', "\App\Customer\Http\Controllers\Api\Receipts\CustomerSalesReceiptController@create");

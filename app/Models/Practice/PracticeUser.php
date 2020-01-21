@@ -1,11 +1,13 @@
 <?php
 namespace App\Models\Practice;
 
+use App\Customer\Models\Credits\CustomerCreditNoteStatus;
 use App\Customer\Models\Invoice\CustomerInvoiceStatus;
 use App\Customer\Models\Invoice\CustomerRetainerInvoice;
 use App\Customer\Models\Invoice\CustomerRetainerInvoiceStatus;
 use App\Customer\Models\Orders\CustomerSalesOrderStatus;
 use App\Customer\Models\Quote\EstimateStatus;
+use App\Customer\Models\Sales\CustomerSalesReceiptStatus;
 use App\Finance\Models\Banks\ReconciledTransactionState;
 use App\Models\His\Rtc\HisRtcUserTrack;
 use App\Models\Module\Module;
@@ -84,6 +86,8 @@ class PracticeUser extends Model
     public function salesorder_status(){ return $this->morphMany(CustomerSalesOrderStatus::class,'responsible','responsible_type','responsible_id'); }
     public function customer_invoice_status(){ return $this->morphMany(CustomerInvoiceStatus::class,'responsible','responsible_type','responsible_id'); }
     public function retainer_invoice_status(){ return $this->morphMany(CustomerRetainerInvoiceStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function sales_receipt_status(){ return $this->morphMany(CustomerSalesReceiptStatus::class,'responsible','responsible_type','responsible_id'); }
+    public function credit_note_status(){ return $this->morphMany(CustomerCreditNoteStatus::class,'responsible','responsible_type','responsible_id'); }
     //
     //PO
     public function po_status(){ return $this->morphMany(PurchaseOrderStatus::class,'responsible','responsible_type','responsible_id'); }

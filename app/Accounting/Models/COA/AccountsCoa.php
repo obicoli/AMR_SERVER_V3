@@ -74,6 +74,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_DISCOUNT_ALLOWED = "Discount Allowed";
     const TRANS_TYPE_SUPPLIER_PAYMENT = "Supplier Payment";
     const TRANS_TYPE_SUPPLIER_BILL = "Supplier Bill";
+    const TRANS_TYPE_SALE_RECEIPT = "Sales Receipt";
     const TRANS_TYPE_PURCHASE_RETURN = "Purchase Return";
     const TRANS_TYPE_CUSTOMER_RECEIPT = "Customer Receipt";
     const TRANS_TYPE_PAYMENT_RECEIPT = "Payment Receipt";

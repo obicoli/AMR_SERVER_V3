@@ -74,21 +74,10 @@ class CustomerSalesReceiptController extends Controller
     public function index(Request $request){
 
         $http_resp = $this->http_response['200'];
+        //Log::info($$request);
         $results = array();
         $company = $this->practices->find($request->user()->company_id); //Get the company
-        if($request->has('unpaid_customer_invoice')){
-            $partial_paid_status = Product::STATUS_PARTIAL_PAID;
-            $unpaid_status = Product::STATUS_UNPAID;
-            $customer = $this->customers->findByUuid($request->unpaid_customer_invoice);
-            $salesreceipts = $customer->salesReceipts()
-                ->where('status',$partial_paid_status)
-                ->orWhere('status',$unpaid_status)
-                ->orderByDesc('created_at')
-                ->paginate(100);
-        }else{
-            $salesreceipts = $company->salesReceipts()->orderByDesc('created_at')->paginate(10);
-        }
-        
+        $salesreceipts = $company->salesReceipts()->orderByDesc('created_at')->paginate(10);
         $paged_data = $this->helper->paginator($salesreceipts);
         foreach($salesreceipts as $salesreceipt){
             array_push($results,$this->customerSalesOrder->transform_sales_receipt($salesreceipt));
@@ -100,6 +89,7 @@ class CustomerSalesReceiptController extends Controller
 
     public function create(Request $request){
 
+        //Log::info($request);
         $inputs = $request->all();
         $http_resp = $this->http_response['200'];
         $rule = [
@@ -135,6 +125,28 @@ class CustomerSalesReceiptController extends Controller
             return response()->json($http_resp,422);
         }
 
+        $discount_allowed = 0;
+        if($request->overal_discount){
+            $rule = [
+                'overal_discount_rate'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+            if ( $validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }elseif($request->overal_discount_rate>0){
+                $discount_allowed = ($request->overal_discount_rate/100) * $request->net_total;
+            }else{
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = ['Overal discount rate is required!'];
+                return response()->json($http_resp,422);
+            }
+        }else{
+            //overal_discount_rate
+            $inputs['overal_discount_rate'] = 0;
+        }
+
         DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
@@ -154,6 +166,7 @@ class CustomerSalesReceiptController extends Controller
             $sales_receipt_prefix = "SRT-";
             $company_user = $this->company_users->find($request->user()->company_id); //Get current user
             $customer = $this->customers->findByUuid($request->customer_id);
+            $customer_ledger_ac = null;
             //$invoice_basis_type = $request->sales_basis;
             //$cash_basis_invoice = AccountsCoa::CASH;
             //$unpaid_status = Product::STATUS_UNPAID;
@@ -163,12 +176,14 @@ class CustomerSalesReceiptController extends Controller
             $ledger_support_document = null;
             $discount_allowed_ledger_ac = null;
             $trans_type = AccountsCoa::TRANS_TYPE_SALES_RECEIPT;
-            //$discount_allowed = $request->total_discount;
+            $discount_allowed = $request->total_discount;
             $net_total = $request->net_total;
             $total_tax = $request->total_tax;
             $currency = $request->currency;
+            $notes = $request->notes;
             if($customer){
                 $inputs['customer_id'] = $customer->id;
+                $customer_ledger_ac = $customer->ledger_accounts()->get()->first();
             }
             $new_sales_receipt = $company->salesReceipts()->create($inputs);
             $new_sales_receipt->trans_number = $this->helper->create_transaction_number($sales_receipt_prefix,$new_sales_receipt->id);
@@ -265,6 +280,33 @@ class CustomerSalesReceiptController extends Controller
                 }
             }
             //Discount Journal Entries
+            if($customer_ledger_ac && ($discount_allowed>0) ){
+                $trans_name = "Discount allowed";
+                $amount = $discount_allowed;
+                $transaction_id = $this->helper->getToken(10,'DSCA');
+                $debited_ac = $discount_allowed_ledger_ac->code;
+                $credited_ac = $customer_ledger_ac->code;
+                $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+                $support = $double_entry->supports()->save($ledger_support_document);
+            }
+
+            //Cash Sale Journal Entries
+            $amount = $net_total - $total_tax - $discount_allowed;
+            $debited_ac = $bank_ledger_ac_received->code;
+            $credited_ac = $sales_ledger_account->code;
+            $trans_name = $notes;
+            $transaction_id = $this->helper->getToken(10,'SRT');
+            $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);
+            $tax_support = $double_entry->supports()->save($ledger_support_document);
+
+            $status_inputs['type'] = 'status';
+            $status_inputs['status'] = "Paid";
+            $status_inputs['notes'] = 'Sales receipt created for '.$currency.' '.number_format($net_total,2);
+            $invoice_status = $company_user->sales_receipt_status()->create($status_inputs);
+            $invoice_status = $new_sales_receipt->receiptStatus()->save($invoice_status);
+            $new_sales_receipt->status = $status_inputs['status'];
+            $new_sales_receipt->save();
+            $http_resp['description'] = "Sales receipt successful created!";
 
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
@@ -277,12 +319,34 @@ class CustomerSalesReceiptController extends Controller
             return response()->json($http_resp,500);
         }
 
-        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_FINANCE_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
-
     }
+
+    public function show(Request $request,$uuid){
+        $http_resp = $this->http_response['200'];
+        $sales_receipt = $this->customerSalesReceipt->findByUuid($uuid);
+        $trans_receipt = $this->customerSalesReceipt->transform_sales_receipt($sales_receipt);
+        //
+        $journals = array();
+        $support_document = $sales_receipt->double_entry_support_document()->get()->first();
+        $journal_entries = $support_document->accounts_vouchers()->get();
+        foreach($journal_entries as $journal_entry){
+            array_push($journals,$this->accountDoubleEntries->create_journal_report($journal_entry));
+        }
+        //
+        $audit_trails = array();
+
+        //
+        $trans_receipt['journals'] = $journals;
+        $trans_receipt['audit_trails'] = $audit_trails;
+        $trans_receipt['items'] = $this->customerSalesReceipt->transform_items($sales_receipt,$trans_receipt);
+        $http_resp['results'] = $trans_receipt;
+        return response()->json($http_resp);
+    }
+
 }

@@ -39,9 +39,11 @@ class TaxReturnController extends Controller
     protected $helper;
     protected $accountsTaxations;
     protected $suppliers;
+    protected $customers;
     protected $vatTypes;
 
     protected $type_supplier_bill;
+    protected $type_sale_receipt;
 
     public function __construct(AccountsVatReturn $accountsVatReturn)
     {
@@ -51,9 +53,11 @@ class TaxReturnController extends Controller
         $this->helper = new HelperFunctions();
         $this->accountsTaxations = new AccountingRepository(new ProductTaxation());
         $this->suppliers = new SupplierRepository( new Supplier() );
+        $this->customers = new CustomerRepository(new Customer());
         $this->vatTypes = new AccountingRepository( new ProductTaxation() );
 
         $this->type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
+        $this->type_sale_receipt = AccountsCoa::TRANS_TYPE_SALE_RECEIPT;
     }
 
     public function index(Request $request){
@@ -153,6 +157,15 @@ class TaxReturnController extends Controller
             $vat_type_array['int_supplier_incl_total'] = 0;
             $vat_type_array['int_supplier_vat_total'] = 0;
             //
+            //
+            $vat_type_array['loc_customer_excl_total'] = 0;
+            $vat_type_array['loc_customer_incl_total'] = 0;
+            $vat_type_array['loc_customer_vat_total'] = 0;
+            //
+            $vat_type_array['int_customer_excl_total'] = 0;
+            $vat_type_array['int_customer_incl_total'] = 0;
+            $vat_type_array['int_customer_vat_total'] = 0;
+            //
             $outputs_transactions = array();
             $inputs_transactions = array();
             //Find Company Taxation Record
@@ -161,79 +174,132 @@ class TaxReturnController extends Controller
             
             //Vouchers on a given VAT Type during VAT Period
             $vouchers = $company_taxation_ledger_ac->vouchers($company_taxation_ledger_ac->code,$filters);
-            //
+            // foreach($vouchers as $voucher){
+            //     $support = $voucher->supports()->get()->first();
+            //     $transactionable = $support->transactionable()->get()->first();
+            //     if($transactionable){
+            //         $transactionable_items = $transactionable->items()->get();
+            //         //Log::info($transactionable_items);
+            //     }
+            // }
+            //------------------------------------------------------------------------
             foreach( $vouchers as $voucher ){
                 $support = $voucher->supports()->get()->first();
                 $support_type = $support->trans_type;
                 $transactionable = $support->transactionable()->get()->first();
-                $transactionable_items = $transactionable->items()->get();
+                //Log::info($transactionable);
+                if($transactionable){
 
-                $line_vat = 0;
-                $line_incl = 0;
-                $line_excl = 0;
+                    $transactionable_items = $transactionable->items()->get();
+                    $line_vat = 0;
+                    $line_incl = 0;
+                    $line_excl = 0;
+    
+                    $total_incl = $transactionable->net_total;
+                    $total_excl = $total_incl;
+                    
+                    foreach($transactionable_items as $transactionable_item){
 
-                $total_incl = $transactionable->net_total;
-                $total_excl = $total_incl;
-                
-                foreach($transactionable_items as $transactionable_item){
-
-                    $price = $transactionable_item->prices()->get()->first();
-                    $pack_cost = $price->pack_cost;
-                    $qty = $transactionable_item->qty;
-                    $taxed_rates = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->table('bill_item_taxations')
-                        ->where('bill_item_id',$transactionable_item->id)
-                        ->where('product_taxation_id', $vat_type->id)
-                        ->get();
-                    $line_incl = $pack_cost * $qty;
-                    $line_excl = $line_incl;
-                    foreach($taxed_rates as $taxed_rate){
-                        if($taxed_rate->purchase_rate > 0){
-                            $line_vat += ( (($taxed_rate->purchase_rate/100)*$pack_cost) * $qty );
+                        if($support_type == $this->type_supplier_bill){
+                            $price = $transactionable_item->prices()->get()->first();
+                            $pack_cost = $price->pack_cost;
+                            $qty = $transactionable_item->qty;
+                            $taxed_rates = DB::connection(Module::MYSQL_SUPPLIERS_DB_CONN)->table('bill_item_taxations')
+                                ->where('bill_item_id',$transactionable_item->id)
+                                ->where('product_taxation_id', $vat_type->id)
+                                ->get();
+                            $line_incl = $pack_cost * $qty;
+                            $line_excl = $line_incl;
+                            foreach($taxed_rates as $taxed_rate){
+                                if($taxed_rate->purchase_rate > 0){
+                                    $line_vat += ( (($taxed_rate->purchase_rate/100)*$pack_cost) * $qty );
+                                }
+                            }
+                            $line_excl = $line_incl - $line_vat;
+                        }else{
+                            $price = $transactionable_item->prices()->get()->first();
+                            $pack_retail_price = $price->pack_retail_price;
+                            $qty = $transactionable_item->qty;
+                            $taxed_rates = $transactionable_item->itemTaxed()->get();
+                            $line_incl = $pack_retail_price * $qty;
+                            $line_excl = $line_incl;
+                            foreach($taxed_rates as $taxed_rate){
+                                if($taxed_rate->purchase_rate > 0){
+                                    $line_vat += ( (($taxed_rate->sales_rate/100)*$pack_retail_price) * $qty );
+                                }
+                            }
+                            $line_excl = $line_incl - $line_vat;
                         }
                     }
-                    $line_excl = $line_incl - $line_vat;
+                    
+                    $total_excl = $total_incl - $line_vat;
+                    // $line_tax = $transactionable->total_tax;
+                    // $line_net_tot = $transactionable->net_total;
+                    $temp_trans['id'] = $transactionable->uuid;
+                    $temp_trans['trans_date'] = $this->helper->format_mysql_date($transactionable->trans_date,$date_format);
+                    $temp_trans['trans_number'] = $transactionable->trans_number;
+                    $temp_trans['vat_period'] = $vat_period;
+                    $temp_trans['description'] = $support_type;
+                    $temp_trans['inclusive'] = $total_incl;
+                    $temp_trans['exclusive'] = $total_excl;
+                    $temp_trans['vat_amount'] = $line_vat;
+                    
+                    switch ($support_type) {
+                        case $this->type_supplier_bill:
+                            $supplier = $transactionable->suppliers()->get()->first();
+                            $temp_trans['creditor_debtor_account'] = $this->suppliers->transform_supplier($supplier);
+                            if($supplier->category == "Local"){
+                                $vat_type_array['loc_supplier_vat_total'] += $line_vat;
+                                $vat_type_array['loc_supplier_excl_total'] += $total_excl;
+                                $vat_type_array['loc_supplier_incl_total'] += $total_incl;
+                            }else{
+                                $vat_type_array['int_supplier_vat_total'] += $line_vat;
+                                $vat_type_array['int_supplier_excl_total'] += $total_excl;
+                                $vat_type_array['int_supplier_incl_total'] += $total_incl;
+                            }
+                            $vat_type_array['vat_total'] += $line_vat;
+                            $vat_type_array['excl_total'] += $total_excl;
+                            $vat_type_array['incl_total'] += $total_incl;
+                            $vat_return_array['total_input_tax'] += $line_vat;
+                            $vat_return_array['total_purchases_incl'] += $total_incl;
+                            $vat_return_array['total_purchases_excl'] += $total_excl;
+                            array_push($inputs_transactions,$temp_trans);
+                            $vat_return_array['total_input_transactions'] += 1;
+                            break;
+                        case $this->type_sale_receipt:
+                            $customer = $transactionable->customers()->get()->first();
+                            if($customer){
+                                $temp_trans['creditor_debtor_account'] = $this->customers->transform_customer($customer);
+                                $vat_type_array['int_customer_vat_total'] += $line_vat;
+                                $vat_type_array['int_customer_excl_total'] += $total_excl;
+                                $vat_type_array['int_customer_incl_total'] += $total_incl;
+                            }else{
+                                $temp_trans['creditor_debtor_account'] = [
+                                    'id'=>'',
+                                    'legal_name'=>'Unregistered Customer'
+                                ];
+                                $vat_type_array['int_customer_vat_total'] += $line_vat;
+                                $vat_type_array['int_customer_excl_total'] += $total_excl;
+                                $vat_type_array['int_customer_incl_total'] += $total_incl;
+                            }
+                            $vat_return_array['total_output_tax'] += $line_vat;
+                            $vat_return_array['total_sales_incl'] += $total_incl;
+                            $vat_return_array['total_sales_excl'] += $total_excl;
+                            $vat_type_array['vat_total'] += $line_vat;
+                            $vat_type_array['excl_total'] += $total_excl;
+                            $vat_type_array['incl_total'] += $total_incl;
+                            array_push($outputs_transactions,$temp_trans);
+                            $vat_return_array['total_output_transactions'] += 1;
+                            break;
+                        default:
+                            //$vat_return_array['total_output_transactions'] += 1;
+                            break;
+                    }
+
                 }
-                $total_excl = $total_incl - $line_vat;
-
-                // $line_tax = $transactionable->total_tax;
-                // $line_net_tot = $transactionable->net_total;
-
-                $temp_trans['id'] = $transactionable->uuid;
-                $temp_trans['trans_date'] = $this->helper->format_mysql_date($transactionable->trans_date,$date_format);
-                $temp_trans['trans_number'] = $transactionable->trans_number;
-                $temp_trans['vat_period'] = $vat_period;
-                $temp_trans['description'] = $support_type;
-                $temp_trans['inclusive'] = $total_incl;
-                $temp_trans['exclusive'] = $total_excl;
-                $temp_trans['vat_amount'] = $line_vat;
                 
-                switch ($support_type) {
-                    case $this->type_supplier_bill:
-                        $supplier = $transactionable->suppliers()->get()->first();
-                        $temp_trans['creditor_debtor_account'] = $this->suppliers->transform_supplier($supplier);
-                        if($supplier->category == "Local"){
-                            $vat_type_array['loc_supplier_vat_total'] += $line_vat;
-                            $vat_type_array['loc_supplier_excl_total'] += $total_excl;
-                            $vat_type_array['loc_supplier_incl_total'] += $total_incl;
-                        }else{
-                            $vat_type_array['int_supplier_vat_total'] += $line_vat;
-                            $vat_type_array['int_supplier_excl_total'] += $total_excl;
-                            $vat_type_array['int_supplier_incl_total'] += $total_incl;
-                        }
-                        $vat_type_array['vat_total'] += $line_vat;
-                        $vat_type_array['excl_total'] += $total_excl;
-                        $vat_type_array['incl_total'] += $total_incl;
-                        $vat_return_array['total_input_tax'] += $line_vat;
-                        $vat_return_array['total_purchases_incl'] += $total_incl;
-                        $vat_return_array['total_purchases_excl'] += $total_excl;
-                        array_push($inputs_transactions,$temp_trans);
-                        $vat_return_array['total_input_transactions'] += 1;
-                        break;
-                    default:
-                        $vat_return_array['total_output_transactions'] += 1;
-                        break;
-                }
             }
+            //----------------------------------------------------------------------------
             $vat_type_array['input_tax'] = $inputs_transactions;
             $vat_type_array['output_tax'] = $outputs_transactions;
             array_push($transactions,$vat_type_array);

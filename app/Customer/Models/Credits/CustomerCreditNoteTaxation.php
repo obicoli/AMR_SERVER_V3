@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerCreditNoteTaxation extends Model
 {
-    use SoftDeletes,UuidTrait,Accountable;
     protected $connection = Module::MYSQL_CUSTOMER_DB_CONN;
     protected $table = "customer_credit_note_taxations";
     protected $fillable = [

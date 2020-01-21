@@ -5,6 +5,7 @@ namespace App\Customer\Repositories;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Repositories\AccountingRepository;
+use App\Customer\Models\Credits\CustomerCreditNote;
 use Illuminate\Database\Eloquent\Model;
 use App\Customer\Models\CustomerTerms;
 use App\Customer\Models\Customer;
@@ -54,10 +55,90 @@ class CustomerRepository implements CustomerRepositoryInterface{
         return $this->model->create($inputs);
     }
 
+    public function transform_credit_note(CustomerCreditNote $customerCreditNote){
+
+        $owner = $customerCreditNote->owning()->get()->first();
+        $date_format = $owner->date_format;
+
+        $customer = null;
+        $custo = $customerCreditNote->customers()->get()->first();
+        if($custo){
+            $customer = $this->transform_customer($custo);
+        }
+        //
+        $est_statuses = $customerCreditNote->noteStatus()->get()->where('type','status');
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['note'] = $est_status->note;
+            $temp_status['date'] = $this->helpers->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
+
+        $due_balance = $customerCreditNote->net_total;
+
+        return [
+            'id'=>$customerCreditNote->uuid,
+            'trans_number'=>$customerCreditNote->trans_number,
+            'document_name'=>Product::DOC_CREDIT_NOTE,
+            'reference_number'=>$customerCreditNote->reference_number,
+            'trans_date'=>$this->helpers->format_mysql_date($customerCreditNote->trans_date,$date_format),
+            'overal_discount_rate'=>$customerCreditNote->overal_discount_rate,
+            'overal_discount_rate'=>$customerCreditNote->overal_discount,
+            'net_total'=>$customerCreditNote->net_total,
+            'grand_total'=>$customerCreditNote->grand_total,
+            'notes'=>$customerCreditNote->notes,
+            'total_discount'=>$customerCreditNote->total_discount,
+            'total_tax'=>$customerCreditNote->total_tax,
+            'customer'=>$customer,
+            'status'=>$trans_status,
+            'due_balance'=>$due_balance,
+        ];
+
+    }
+
     public function transform_sales_receipt(CustomerSalesReceipt $customerSalesReceipt){
+
+        $owner = $customerSalesReceipt->owning()->get()->first();
+        $date_format = $owner->date_format;
+        $customer = null;
+        $custo = $customerSalesReceipt->customers()->get()->first();
+        if($custo){
+            $customer = $this->transform_customer($custo);
+        }
+
+        $est_statuses = $customerSalesReceipt->receiptStatus()->get()->where('type','status');
+        $trans_status = array();
+        foreach ($est_statuses as $est_status) {
+            $temp_status['id'] = $est_status->uuid;
+            $temp_status['status'] = $est_status->status;
+            $temp_status['note'] = $est_status->note;
+            $temp_status['date'] = $this->helpers->format_mysql_date($est_status->created_at);
+            $practice_user = $est_status->responsible()->get()->first();
+            $temp_status['signatory'] = $this->companyUser->transform_user($practice_user);
+            array_push($trans_status,$temp_status);
+        }
 
         return [
             'id'=>$customerSalesReceipt->uuid,
+            'trans_number'=>$customerSalesReceipt->trans_number,
+            'document_name'=>Product::DOC_SALES_RECEIPT,
+            'reference_number'=>$customerSalesReceipt->reference_number,
+            'trans_date'=>$this->helpers->format_mysql_date($customerSalesReceipt->trans_date,$date_format),
+            'overal_discount_rate'=>$customerSalesReceipt->overal_discount_rate,
+            'overal_discount'=>$customerSalesReceipt->overal_discount,
+            'notes'=>$customerSalesReceipt->notes,
+            'taxation_option'=>$customerSalesReceipt->taxation_option,
+            'terms_condition'=>$customerSalesReceipt->terms_condition,
+            'net_total'=>$customerSalesReceipt->net_total,
+            'grand_total'=>$customerSalesReceipt->grand_total,
+            'total_tax'=>$customerSalesReceipt->total_tax,
+            'total_discount'=>$customerSalesReceipt->total_discount,
+            'customer'=>$customer,
+            'status'=>$trans_status
         ];
 
     }
@@ -433,6 +514,10 @@ class CustomerRepository implements CustomerRepositoryInterface{
                         $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)
                     ->table('customer_invoice_item_taxations')
                     ->where('customer_invoice_item_id',$item->id)->get();
+                    break;
+                    case Product::DOC_SALES_RECEIPT:
+                    case Product::DOC_CREDIT_NOTE:
+                        $item_taxes = $item->itemTaxed()->get();
                     break;
                 default:
                     $item_taxes = DB::connection(Module::MYSQL_CUSTOMER_DB_CONN)

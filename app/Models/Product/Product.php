@@ -74,6 +74,7 @@ class Product extends Model
     const DOC_GRN = "Goods Received Note";
     const DOC_PO = "Purchase Order";
     const DOC_BILL = "Bill";
+    const DOC_CREDIT_NOTE = "Credit Note";
     const DOC_SUPPLIER_PAYMENT = "Supplier Payment";
     const DOC_PURCHASE_RETURN = "Purchase Return";
     const DOC_ESTIMATE = "Estimate";
@@ -85,6 +86,7 @@ class Product extends Model
 
     const DOC_QUOTATION = "Quation";
     const DOC_SALES_ORDER = "Sales Order";
+    const DOC_SALES_RECEIPT = "Sales Receipt";
 
     protected $fillable = [
         'name',

@@ -402,9 +402,9 @@ class InvoicesController extends Controller
                 }
                 //Discount Entries
                 if($discount_allowed>0){
-                    $trans_name = "Discount received";
+                    $trans_name = "Discount allowed";
                     $amount = $discount_allowed;
-                    $transaction_id = $this->helper->getToken(10,'DISC');
+                    $transaction_id = $this->helper->getToken(10,'DSCA');
                     $debited_ac = $discount_allowed_ledger_ac->code;
                     $credited_ac = $customer_ledger_ac->code;
                     $double_entry = $this->accountDoubleEntries->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_at,$trans_name,$transaction_id);

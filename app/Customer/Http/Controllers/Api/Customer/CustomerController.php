@@ -350,7 +350,13 @@ class CustomerController extends Controller
     }
 
     public function update(Request $request,$uuid){}
-    public function show($uuid){}
+    public function show($uuid){
+
+        $http_resp = $this->http_response['200'];
+        $http_resp['results'] = $this->customers->transform_customer( $this->customers->findByUuid($uuid) );
+        return response()->json($http_resp);
+
+    }
     public function delete($uuid){}
 
     public function dashboard(Request $request){
