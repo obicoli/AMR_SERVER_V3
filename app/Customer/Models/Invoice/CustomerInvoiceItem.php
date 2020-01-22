@@ -33,6 +33,7 @@ class CustomerInvoiceItem extends Model
         'discount_allowed',
         'product_price_id'
     ];
+    public function itemTaxed(){ return $this->hasMany(CustomerInvoiceTaxation::class,'customer_invoice_item_id','id'); }
     public function prices(){ return $this->belongsTo(ProductPriceRecord::class,'product_price_id','id'); }
     public function customerInvoices(){ return $this->belongsTo(CustomerInvoice::class,'customer_invoice_id','id'); }
     public function product_items(){ return $this->belongsTo(ProductItem::class,'product_item_id','id'); }

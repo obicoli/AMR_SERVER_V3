@@ -43,7 +43,8 @@ class TaxReturnController extends Controller
     protected $vatTypes;
 
     protected $type_supplier_bill;
-    protected $type_sale_receipt;
+    protected $TYPE_SALES_RECEIPT;
+    protected $TYPE_SALES_INVOICE;
 
     public function __construct(AccountsVatReturn $accountsVatReturn)
     {
@@ -57,7 +58,8 @@ class TaxReturnController extends Controller
         $this->vatTypes = new AccountingRepository( new ProductTaxation() );
 
         $this->type_supplier_bill = AccountsCoa::TRANS_TYPE_SUPPLIER_BILL;
-        $this->type_sale_receipt = AccountsCoa::TRANS_TYPE_SALE_RECEIPT;
+        $this->TYPE_SALES_RECEIPT = AccountsCoa::TRANS_TYPE_SALE_RECEIPT;
+        $this->TYPE_TAX_INVOICE = AccountsCoa::TRANS_TYPE_TAX_INVOICE;
     }
 
     public function index(Request $request){
@@ -224,7 +226,7 @@ class TaxReturnController extends Controller
                             $line_incl = $pack_retail_price * $qty;
                             $line_excl = $line_incl;
                             foreach($taxed_rates as $taxed_rate){
-                                if($taxed_rate->purchase_rate > 0){
+                                if($taxed_rate->sales_rate > 0){
                                     $line_vat += ( (($taxed_rate->sales_rate/100)*$pack_retail_price) * $qty );
                                 }
                             }
@@ -266,7 +268,8 @@ class TaxReturnController extends Controller
                             array_push($inputs_transactions,$temp_trans);
                             $vat_return_array['total_input_transactions'] += 1;
                             break;
-                        case $this->type_sale_receipt:
+                        case $this->TYPE_SALES_RECEIPT:
+                        case $this->TYPE_TAX_INVOICE:
                             $customer = $transactionable->customers()->get()->first();
                             if($customer){
                                 $temp_trans['creditor_debtor_account'] = $this->customers->transform_customer($customer);
