@@ -222,7 +222,7 @@ class UsersTableSeeder extends Seeder
             $user = User::create([
                 'email'                          => 'admin2@amref.com',
                 'mobile'                          => '254702294190',
-                'password'                       => Hash::make('Bytech123'),
+                'password'                       => Hash::make('123456'),
                 'status'                      => 'Activated',
             ]);
             $user->pharmacy()->save($pharmacy);
@@ -394,31 +394,31 @@ class UsersTableSeeder extends Seeder
             $user1 = User::create([
                 'email'                          => 'master@amref.com',
                 'mobile'                          => '254709098765',
-                'password'                       => Hash::make('0987654321'),
+                'password'                       => Hash::make('123456'),
                 'status'                      => 'Activated',
             ]);
             // $user2 = User::create([
             //     'email'                          => 'generalmanager@amref.com',
             //     'mobile'                          => '254709098700',
-            //     'password'                       => Hash::make('Bytech123'),
+            //     'password'                       => Hash::make('123456'),
             //     'status'                      => 'Activated',
             // ]);
             // $user3 = User::create([
             //     'email'                          => 'westlanduser@amref.com',
             //     'mobile'                          => '254709098799',
-            //     'password'                       => Hash::make('Bytech123'),
+            //     'password'                       => Hash::make('123456'),
             //     'status'                      => 'Activated',
             // ]);
             // $user4 = User::create([
             //     'email'                          => 'upperhilluser@amref.com',
             //     'mobile'                          => '254709098222',
-            //     'password'                       => Hash::make('Bytech123'),
+            //     'password'                       => Hash::make('123456'),
             //     'status'                      => 'Activated',
             // ]);
             // $user_buru = User::create([
             //     'email'                          => 'pharmacist.buru@amref.com',
             //     'mobile'                          => '254700123456',
-            //     'password'                       => Hash::make('Bytech123'),
+            //     'password'                       => Hash::make('123456'),
             //     'status'                      => 'Activated',
             // ]);
             $store_user_main = $store->users()->create([
@@ -430,7 +430,7 @@ class UsersTableSeeder extends Seeder
                 'mobile' => '254709098765',
                 'other_name' => 'Doe',
                 'gender' => 'Male',
-                'password' => Hash::make('0987654321'),
+                'password' => Hash::make('123456'),
                 'address' => 'Nairobi, Kenya',
                 //'department_id' => $user1->id,
             ]);
@@ -442,7 +442,7 @@ class UsersTableSeeder extends Seeder
             //     'mobile' => '254700666666',
             //     'other_name' => 'Muanda',
             //     'gender' => 'Male',
-            //     'password' => Hash::make('Bytech123'),
+            //     'password' => Hash::make('123456'),
             //     'address' => 'Nairobi, Kenya',
             //     //'department_id' => $user1->id,
             // ]);
@@ -454,7 +454,7 @@ class UsersTableSeeder extends Seeder
             //     'mobile' => '254700999999',
             //     'other_name' => 'Mohamed',
             //     'gender' => 'Male',
-            //     'password' => Hash::make('Bytech123'),
+            //     'password' => Hash::make('123456'),
             //     'address' => 'Nairobi, Kenya',
             //     //'department_id' => $user1->id,
             // ]);
@@ -466,7 +466,7 @@ class UsersTableSeeder extends Seeder
             //     'mobile' => '254700999999',
             //     'other_name' => 'Mikobia',
             //     'gender' => 'Male',
-            //     'password' => Hash::make('Bytech123'),
+            //     'password' => Hash::make('123456'),
             //     'address' => 'Nairobi, Kenya',
             //     //'department_id' => $user1->id,
             // ]);
@@ -479,7 +479,7 @@ class UsersTableSeeder extends Seeder
             //     'mobile' => '254700123456',
             //     'other_name' => 'Doe',
             //     'gender' => 'Male',
-            //     'password' => Hash::make('Bytech123'),
+            //     'password' => Hash::make('123456'),
             //     'address' => 'Nairobi, Kenya',
             //     //'department_id' => $user1->id,
             // ]);

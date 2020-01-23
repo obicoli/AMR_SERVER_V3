@@ -314,19 +314,28 @@ class FinanceRepository implements FinanceRepositoryInterface
 
             //HERE THE SUPPORT DOCUMENT "transactionable" is Customer
             //User Support Document to Find Account Holder
-            $supportDoc = $bankTransaction->double_entry_support_document()->get()->first();
-            $accountHolder = $supportDoc->account_holders()->get()->first();
-            $double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
+            $supportDoc = $bankTransaction->transactionable()->get()->first();
+            $customer = $supportDoc->customers()->get()->first();
+            //$double_entry['support_document'] = $this->accountingRepository->transform_support_document($supportDoc);
+            // 'id' => $accountsSupport->uuid,
+            // 'trans_type' => $accountsSupport->trans_type,
+            // 'trans_name' => $accountsSupport->trans_name,
+            // 'reference_number' => $accountsSupport->reference_number,
+            $double_entry['support_document'] = [
+                'id'=>'',
+                'trans_type'=>$supportDoc->name,
+                'trans_name'=>'',
+                'reference_number'=>$supportDoc->trans_number,
+            ];
             //Get Supplier,or Customer from AccountHolder
-            $account_owner = $accountHolder->owner()->get()->first();
-            $account_number = $accountHolder->account_number;
-            // $selection['id'] = $account_owner->uuid;
-            // $selection['name'] = $account_owner->display_as;
+            //$account_owner = $accountHolder->owner()->get()->first();
+            //$account_number = null;
+            //$account_number = $accountHolder->account_number;
             //
-            $selection['id'] = $account_owner->uuid;
-            $selection['name'] = $account_owner->legal_name;
+            $selection['id'] = $customer->uuid;
+            $selection['name'] = $customer->legal_name;
             //$custome = $accountHolder->owner()->get()->first();
-            $customer = $this->customerRepository->transform_customer($account_owner);
+            $customer = $this->customerRepository->transform_customer($customer);
             $amount = $bankTransaction->received;
             $customers = $company->customers()->get();
             foreach($customers as $custo){
@@ -346,11 +355,12 @@ class FinanceRepository implements FinanceRepositoryInterface
             $support_document = $bankAccountLedger->double_entry_support_document()->get()->first();
             //Get Double Entry
             $double_entry = $support_document->vouchers()->get()->first();
+            //$amount = $double_entry->amount;
             $double_entry['support_document'] = $this->accountingRepository->transform_support_document($support_document);
             //$double_entry = $this->accountingRepository->transform_support_document();
             $selection['id'] = $bankAccountLedger->uuid;
             $selection['name'] = $bankAccountLedger->name;
-            $amount = $double_entry->amount;
+            //$double_entry->amount;
         }
 
         $vats['id'] = "id";

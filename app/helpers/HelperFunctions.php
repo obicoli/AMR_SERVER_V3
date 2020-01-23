@@ -50,6 +50,27 @@ use Illuminate\Support\Facades\Log;
 
 class HelperFunctions
 {
+    public function vatSummary(){
+        return [
+            'vat_output'=>10,
+            'vat_input'=>20,
+            'vat_claimable_on_import'=>0,
+            'input_vat_on_exempt_supply'=>0,
+            'input_vat_on__taxable_and_exempt_supply'=>0,
+            'vat_input_non_deductible'=>0,
+            'vat_input_deductible'=>0,
+            'vat_payable_credit_due'=>0,
+            'credit_brought_forward'=>0,
+            'total_vat_withholding'=>0,
+            'refund_claim_logged'=>0,
+            'vat_payable'=>0,
+            'total_vat_paid'=>0,
+            'total_adjustments'=>0,
+            'total_debit_adjustments'=>0,
+            'net_vat_payable'=>0,
+        ];
+    }
+
     public function get_default_filter($company=null){
         if($company){
             $date_format = $company->date_format;

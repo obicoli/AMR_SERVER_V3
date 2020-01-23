@@ -105,6 +105,7 @@ class TaxReturnController extends Controller
         $company = $this->practices->find($user->company_id);
         $date_format = $company->date_format;
         $vatType = null;
+        $period_summary_report = $this->helper->vatSummary();
 
         if($request->has('filters')){
             $custom_filters = json_decode($request->filters,true);
@@ -308,15 +309,20 @@ class TaxReturnController extends Controller
             array_push($transactions,$vat_type_array);
         }
         $vat_return_array['transactions'] = $transactions;
+        $vat_return_array['period_summary'] = $period_summary_report;
         $http_resp['results'] = $vat_return_array;
         ///////////////////////////////////////////////////
         return response()->json($http_resp);
     }
 
     public function reports(Request $request){
+
         $http_resp = $this->http_response['200'];
-        Log::info($request);
+        // Log::info($request);
+        // Log::info("-----------------------------------------------------------------------------------");
+        // Log::info($request->vat_return_id);
         return response()->json($http_resp);
+
     }
 
 
