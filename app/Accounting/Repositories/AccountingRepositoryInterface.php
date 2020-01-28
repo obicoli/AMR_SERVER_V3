@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 
 interface AccountingRepositoryInterface
 {
-    public function all();
+    public function all($paginate=0);
     public function find($id);
     public function findByUuid($uuid);
     public function getByUuid($uuid);

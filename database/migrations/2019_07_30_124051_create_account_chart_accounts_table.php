@@ -21,12 +21,13 @@ class CreateAccountChartAccountsTable extends Migration
             $table->string('name')->nullable();
             $table->string('code')->unique();
             $table->string('status')->default('Active');
-            $table->string('notes')->nullable();
+            $table->text('notes')->nullable();
             $table->string('default_code')->nullable(); //This column link this coa to default system coa
             $table->boolean('is_sub_account')->default(false);
             $table->boolean('is_special')->default(false);
             $table->unsignedInteger('accounts_type_id')->index()->nullable();
             $table->unsignedInteger('default_coa_id')->index()->nullable();
+            $table->unsignedInteger('vat_type_id')->nullable()->index();
             $table->unsignedInteger('owning_id')->nullable()->index(); //Facility,Branch, Company
             $table->string('owning_type')->nullable()->index(); //Facility,Branch, Company
             $table->string('uuid');

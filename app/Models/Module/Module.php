@@ -17,6 +17,7 @@ class Module extends Model
     const MYSQL_CUSTOMER_DB_CONN = "mysql_customer_module";
     const MYSQL_ASSETS_DB_CONN = "mysql_assests";
     const MYSQL_PRODUCT_DB_CONN = "mysql";
+    const MYSQL_REPORTS_DB_CONN = "mysql";
     const MYSQL_TELEMEDICINE_DB_CONN = "mysql_telemedicine_module";
     const MYSQL_SUPPLIERS_DB_CONN = "mysql_suppliers_module";
     const MYSQL_DB_CONN = "mysql";

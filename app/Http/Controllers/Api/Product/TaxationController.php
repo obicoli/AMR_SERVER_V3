@@ -52,22 +52,7 @@ class TaxationController extends Controller
 
         $paged_data = $this->helper->paginator($taxes);
         foreach($taxes as $taxe){
-            $temp_data['id'] = $taxe->uuid;
-            $temp_data['collected_on_purchase'] = $taxe->collected_on_purchase;
-            $temp_data['collected_on_sales'] = $taxe->collected_on_sales;
-            $temp_data['agent_name'] = $taxe->agent_name;
-            $temp_data['name'] = $taxe->name;
-            $temp_data['registration_number'] = $taxe->registration_number;
-            $temp_data['description'] = $taxe->description;
-            $temp_data['start_period'] = $taxe->start_period;
-            $temp_data['filling_frequency'] = $taxe->filling_frequency;
-            $temp_data['reporting_method'] = $taxe->reporting_method;
-            $temp_data['purchase_rate'] = $taxe->purchase_rate;
-            $temp_data['sales_rate'] = $taxe->sales_rate;
-            $temp_data['amount'] = $taxe->amount;
-            $temp_data['status'] = $taxe->status;
-            $temp_data['display_as'] = $taxe->name.' '.$taxe->category.'('.number_format($taxe->sales_rate,1).'%)';
-            array_push($results,$temp_data);
+            array_push($results,$this->productTaxation->transform_taxation($taxe));
         }
         $paged_data['data'] = $results;
         $http_resp['results'] = $paged_data;

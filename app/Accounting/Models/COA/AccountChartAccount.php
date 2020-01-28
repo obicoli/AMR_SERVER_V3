@@ -12,6 +12,7 @@ use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Support\Facades\Log;
 use App\Models\Module\Module;
+use App\Models\Product\ProductTaxation;
 
 class AccountChartAccount extends Model
 {
@@ -28,8 +29,16 @@ class AccountChartAccount extends Model
         'notes',
         'is_sub_account',
         'default_code',
-        'is_special'
+        'is_special',
+        'vat_type_id'
     ];
+
+    public function openingBalances()
+    {
+        return $this->morphMany(AccountsOpeningBalance::class, 'accountable','accountable_type','accountable_id');
+    }
+
+    public function vatTypes(){ return $this->belongsTo(ProductTaxation::class,'vat_type_id','id'); }
 
     public function bank_transactions(){ return $this->morphMany(BankTransaction::class, 'transactionable','transactionable_type','transactionable_id'); }
 

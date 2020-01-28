@@ -25,6 +25,7 @@ use App\Finance\Models\Banks\AccountsBank as BanksAccountsBank;
 use App\Finance\Repositories\FinanceRepository;
 use App\Models\Practice\Practice;
 use App\Models\Product\ProductTaxation;
+use App\Repositories\Product\ProductReposity;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
 
@@ -43,8 +44,13 @@ class AccountingRepository implements AccountingRepositoryInterface
         // $this->supplierRepository = new SupplierRepository( new Supplier() );
     }
 
-    public function all(){
-        return $this->model->all();
+    public function all($paginate=0){
+        if($paginate){
+            return $this->model->paginate($paginate);
+        }else{
+            return $this->model->all();
+        }
+        
         //return $this->model->all()->sortBy('name');
     }
     public function find($id){
@@ -340,33 +346,52 @@ class AccountingRepository implements AccountingRepositoryInterface
         $default_coa = $accountChartAccount->coas()->get()->first();
         //Get Account Type
         $account_type = $default_coa->account_types()->get()->first();
+        $opening_balance = 0;
+        $opening_bal = $accountChartAccount->openingBalances()->get()->first();
+        if($opening_bal){
+            $opening_balance->amount;
+        }
         $balance = $this->calculate_account_balance($accountChartAccount);
         $company = $accountChartAccount->owning()->get()->first();
-        $transactions = [];
-        if(sizeof($filters)){
-            $double_entries = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)
-                ->table('accounts_vouchers')
-                ->where('credited', $accountChartAccount->code)
-                ->orWhere('debited', $accountChartAccount->code)
-                ->orWhere('credited_parent', $accountChartAccount->code)
-                ->orWhere('debited_parent', $accountChartAccount->code)
-                ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
-                ->get();
-        }else{
-            $filters = $this->helpers->get_default_filter();
-            $double_entries = $company->vouchers()
-                ->where('credited', $accountChartAccount->code)
-                ->orWhere('debited', $accountChartAccount->code)
-                ->orWhere('credited_parent', $accountChartAccount->code)
-                ->orWhere('debited_parent', $accountChartAccount->code)
-                ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
-                ->get();
-        }
+        $total_transaction = $company->vouchers()
+            ->where('credited', $accountChartAccount->code)
+            ->orWhere('debited', $accountChartAccount->code)
+            ->orWhere('credited_parent', $accountChartAccount->code)
+            ->orWhere('debited_parent', $accountChartAccount->code)
+            ->count();
 
-        foreach( $double_entries as $double_entry ){
-            $double_entr = AccountsVoucher::find($double_entry->id);
-            array_push($transactions,$this->transform_journal_entry($double_entr,AccountsCoa::ACCOUNT_TRANSACTION_REPORT,$company));
+        $default_vat = null;
+        $vat_type = $accountChartAccount->vatTypes()->get()->first();
+        $taxObject = new ProductReposity(new ProductTaxation());
+        if($vat_type){
+            $default_vat = $taxObject->transform_taxation($vat_type);
         }
+        // $transactions = [];
+        // if(sizeof($filters)){
+        //     $double_entries = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)
+        //         ->table('accounts_vouchers')
+        //         ->where('credited', $accountChartAccount->code)
+        //         ->orWhere('debited', $accountChartAccount->code)
+        //         ->orWhere('credited_parent', $accountChartAccount->code)
+        //         ->orWhere('debited_parent', $accountChartAccount->code)
+        //         ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
+        //         ->get();
+        // }else{
+        //     $filters = $this->helpers->get_default_filter();
+            // $double_entries = $company->vouchers()
+            //     ->where('credited', $accountChartAccount->code)
+            //     ->orWhere('debited', $accountChartAccount->code)
+            //     ->orWhere('credited_parent', $accountChartAccount->code)
+            //     ->orWhere('debited_parent', $accountChartAccount->code)
+            //     ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
+            //     ->get();
+        // }
+
+        // foreach( $double_entries as $double_entry ){
+        //     $double_entr = AccountsVoucher::find($double_entry->id);
+        //     array_push($transactions,$this->transform_journal_entry($double_entr,AccountsCoa::ACCOUNT_TRANSACTION_REPORT,$company));
+        // }
+        // $sys_coa = $accountChartAccount->coas()->get()->first();
 
         return [
             'id'=>$accountChartAccount->uuid,
@@ -375,15 +400,16 @@ class AccountingRepository implements AccountingRepositoryInterface
             'default_code' => $accountChartAccount->default_code,
             'is_sub_account' => $accountChartAccount->is_sub_account,
             'is_special' => $accountChartAccount->is_special,
-            'description' => $accountChartAccount->description,
+            'opening_balance' => $opening_balance,
             'balance' => $balance,
             'filters' => $filters,
             'default_coa' => $this->transform_default_coa($default_coa),
             'account_type' => $this->transform_account_type($account_type),
-            'tax_rate' => '',
+            'vat_type' => $default_vat,
             'status' => $accountChartAccount->status,
             'notes' => $accountChartAccount->notes,
-            'transactions' => $transactions,
+            'total_transaction'=>$total_transaction,
+            //'default_coa'=>$default_coa,
         ];
     }
 

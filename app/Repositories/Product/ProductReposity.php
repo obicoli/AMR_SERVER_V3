@@ -164,22 +164,37 @@ class ProductReposity implements ProductReposityInterface
 
     public function transform_taxation(ProductTaxation $productTaxation){
 
-        $temp_data_t['id'] = $productTaxation->uuid;
-        $temp_data_t['collected_on_purchase'] = $productTaxation->collected_on_purchase;
-        $temp_data_t['collected_on_sales'] = $productTaxation->collected_on_sales;
-        $temp_data_t['agent_name'] = $productTaxation->agent_name;
-        $temp_data_t['name'] = $productTaxation->name;
-        $temp_data_t['registration_number'] = $productTaxation->registration_number;
-        $temp_data_t['description'] = $productTaxation->description;
-        $temp_data_t['start_period'] = $productTaxation->start_period;
-        $temp_data_t['filling_frequency'] = $productTaxation->filling_frequency;
-        $temp_data_t['reporting_method'] = $productTaxation->reporting_method;
-        $temp_data_t['purchase_rate'] = $productTaxation->purchase_rate;
-        $temp_data_t['sales_rate'] = $productTaxation->sales_rate;
-        $temp_data_t['amount'] = $productTaxation->amount;
-        $temp_data_t['status'] = $productTaxation->status;
+        $temp_data['id'] = $productTaxation->uuid;
+        $temp_data['collected_on_purchase'] = $productTaxation->collected_on_purchase;
+        $temp_data['collected_on_sales'] = $productTaxation->collected_on_sales;
+        $temp_data['agent_name'] = $productTaxation->agent_name;
+        $temp_data['name'] = $productTaxation->name;
+        $temp_data['registration_number'] = $productTaxation->registration_number;
+        $temp_data['description'] = $productTaxation->description;
+        $temp_data['start_period'] = $productTaxation->start_period;
+        $temp_data['filling_frequency'] = $productTaxation->filling_frequency;
+        $temp_data['reporting_method'] = $productTaxation->reporting_method;
+        $temp_data['purchase_rate'] = $productTaxation->purchase_rate;
+        $temp_data['sales_rate'] = $productTaxation->sales_rate;
+        $temp_data['amount'] = $productTaxation->amount;
+        $temp_data['status'] = $productTaxation->status;
+        $temp_data['display_as'] = $productTaxation->name.' '.$productTaxation->category.'('.number_format($productTaxation->sales_rate,1).'%)';
 
-        return $temp_data_t;
+        // $temp_data_t['id'] = $productTaxation->uuid;
+        // $temp_data_t['collected_on_purchase'] = $productTaxation->collected_on_purchase;
+        // $temp_data_t['collected_on_sales'] = $productTaxation->collected_on_sales;
+        // $temp_data_t['agent_name'] = $productTaxation->agent_name;
+        // $temp_data_t['name'] = $productTaxation->name;
+        // $temp_data_t['registration_number'] = $productTaxation->registration_number;
+        // $temp_data_t['description'] = $productTaxation->description;
+        // $temp_data_t['start_period'] = $productTaxation->start_period;
+        // $temp_data_t['filling_frequency'] = $productTaxation->filling_frequency;
+        // $temp_data_t['reporting_method'] = $productTaxation->reporting_method;
+        // $temp_data_t['purchase_rate'] = $productTaxation->purchase_rate;
+        // $temp_data_t['sales_rate'] = $productTaxation->sales_rate;
+        // $temp_data_t['amount'] = $productTaxation->amount;
+        // $temp_data_t['status'] = $productTaxation->status;
+        return $temp_data;
 
     }
 

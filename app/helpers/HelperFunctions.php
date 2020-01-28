@@ -970,7 +970,7 @@ class HelperFunctions
             'last_reconciliation_id.required'=>'Previous Bank Reconciliation required!',
             'bank_id.required'=>'Bank name required!',
             'bank_branch_id.required'=>'Bank Branch name is required!',
-            'account_type_id.required'=>'Bank Account type required!',
+            'account_type_id.required'=>'Account type required!',
             'account_number.required'=>'Bank Account number required!',
             'account_name.required'=>'Bank Account Holder required!',
             'bank_account.required'=>'Bank Account required!',

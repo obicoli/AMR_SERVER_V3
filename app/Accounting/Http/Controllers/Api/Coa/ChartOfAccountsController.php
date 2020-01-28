@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
+use App\Models\Product\ProductTaxation;
 use App\Repositories\Practice\PracticeRepository;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
@@ -39,6 +40,7 @@ class ChartOfAccountsController extends Controller
     protected $customers;
     protected $suppliers;
     protected $accountNatures;
+    protected $productTaxation;
 
     public function __construct(AccountChartAccount $accountChartAccount)
     {
@@ -52,16 +54,29 @@ class ChartOfAccountsController extends Controller
         $this->customers = new CustomerRepository(new Customer());
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->accountNatures = new AccountingRepository( new AccountsNature() );
+        $this->productTaxation = new PracticeRepository( new ProductTaxation() );
     }
 
-    public function show($uuid){
+    public function delete($uuid){
         $http_resp = $this->http_response['200'];
         $coa = $this->accountChartAccount->findByUuid($uuid);
-        $default_filter = $this->helper->get_default_filter();
-        $filters['date_range'] = $default_filter['start'].' to '.$default_filter['end'];
-        $results['filters'] = $filters;
-        $results['data'] = $this->accountChartAccount->transform_company_chart_of_account($coa);
-        $http_resp['results'] = $results;
+        $trans_data = $this->accountChartAccount->transform_company_chart_of_account($coa);
+        if($trans_data['balance']>0 || $trans_data['total_transaction']>0 || ($trans_data['is_special']==true) ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ["This account cannot be deleted!"];
+            return response()->json($http_resp,422);
+        }
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        try{
+            $coa->forceDelete();
+            $http_resp['description'] = "Account successful deleted!";
+        }catch(\Exception $e){
+            $http_resp = $this->http_response['500'];
+            Log::info($e);
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 
@@ -71,19 +86,40 @@ class ChartOfAccountsController extends Controller
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
         //Get Chart of Accounts under this company //
-        // $company_chart_of_accounts = $company->chart_of_accounts()->get()->sortBy('accounts_type_id');
         if($request->has('default_code')){
             $company_chart_of_accounts = $company->chart_of_accounts()
             ->where('default_code',$request->default_code)
+            ->where('is_sub_account',0)
             ->orderByDesc('accounts_type_id')
-            ->paginate(1000);
+            ->paginate(200);
         }elseif( $request->has('account_nature') ){
             $account_nature = $this->accountNatures->findByName($request->account_nature);
             $account_types = AccountsType::where('accounts_nature_id',$account_nature->id)->pluck('id')->toArray();
             $company_chart_of_accounts = $company->chart_of_accounts()
                 ->where('is_sub_account',0)
                 ->whereIn('accounts_type_id',$account_types)
-                ->paginate(200);
+                ->paginate(150);
+        }elseif($request->has('type_id')){
+            $account_type = $this->accountTypes->findByUuid($request->type_id);
+            $company_chart_of_accounts = $company->chart_of_accounts()
+                ->where('is_special',true)
+                ->where('is_sub_account',false)
+                ->where('accounts_type_id',$account_type->id)
+                ->orderByDesc('accounts_type_id')
+                ->paginate(150);
+        }elseif($request->has('search_key')){
+            $company_chart_of_accounts = $company->chart_of_accounts()
+            ->where('name', 'like', '%' .$request->search_key. '%')
+            ->orderByDesc('accounts_type_id')
+            ->paginate(15);
+        }elseif($request->has('balance_sheet_accounts')){
+            $open_balance_equity_code = AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE;
+            $company_chart_of_accounts = $company->chart_of_accounts()
+                ->where('is_special',true)
+                ->where('is_sub_account',false)
+                ->where('default_code','!=',$open_balance_equity_code)
+                ->orderBy('accounts_type_id')
+                ->paginate(150);
         }
         else{
             $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
@@ -98,7 +134,7 @@ class ChartOfAccountsController extends Controller
     }
 
     public function create(Request $request){
-
+        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $rule = [
             'name'=>'required',
@@ -112,6 +148,17 @@ class ChartOfAccountsController extends Controller
             $http_resp = $this->http_response['422'];
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
+        }
+        if($request->is_sub_account){
+            $rulea = [
+                'main_account_id'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rulea,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp = $this->http_response['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
         }
         //Log::info($request);
         //DB::beginTransaction();
@@ -134,20 +181,27 @@ class ChartOfAccountsController extends Controller
                 $default_inputs['accounts_type_id'] = $account_type->id;
                 $default_inputs['code'] = $this->helper->getAccountNumber();
                 $default_inputs['name'] = $request->name;
+                $default_vat = $this->productTaxation->findByUuid($request->vat_type_id);
+                if($default_vat){
+                    $default_inputs['vat_type_id'] = $default_vat->id;
+                }
+                
                 if($request->is_sub_account){
-                    $rulea = [
-                        'main_account_id'=>'required',
-                    ];
-                    $validation = Validator::make($request->all(),$rulea,$this->helper->messages());
-                    if ($validation->fails()){
-                        $http_resp = $this->http_response['422'];
-                        $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-                        return response()->json($http_resp,422);
-                    }
+                    // $rulea = [
+                    //     'main_account_id'=>'required',
+                    // ];
+                    // $validation = Validator::make($request->all(),$rulea,$this->helper->messages());
+                    // if ($validation->fails()){
+                    //     $http_resp = $this->http_response['422'];
+                    //     $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                    //     return response()->json($http_resp,422);
+                    // }
                     //Get Company chart of account
                     $main_parent = $this->accountChartAccount->findByUuid($request->main_account_id);
                     //Then Get Default COA
-                    $default_coa = $main_parent->coas()->get()->first();
+                    $default_coa = $this->accountsCoa->findByUuid($request->detail_type_id);
+                    Log::info($default_coa);
+                    //$default_coa = $main_parent->coas()->get()->first();
                     $default_inputs['default_coa_id'] = $default_coa->id;
                     //$default_inputs['code'] = $this->helper->getAccountNumber();
                     $default_inputs['is_sub_account'] = true;
@@ -158,12 +212,16 @@ class ChartOfAccountsController extends Controller
                 }else{
                     // $default_coa = $this->accountsCoa->create($default_inputs);
                     $default_coa = $this->accountsCoa->findByUuid($request->detail_type_id);
+                    //Log::info($default_coa);
+                    //$default_coa = $coa->coas()->get()->first();
                     $default_inputs['default_coa_id'] = $default_coa->id;
                     $default_inputs['default_code'] = $default_coa->code;
                     $custom_chart_of_coa = $this->accountChartAccount->create($default_inputs);
                     $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
                 }
                 //Create Chart of Accounts in Custom Table i.e Companies COA
+                // Log::info($custom_chart_of_coa);
+                // Log::info($custom_chart_of_coa->coas()->get()->first());
                 
                 //Link account to company created it
                 //Check if Balance is > 0 and Credit/Debit i.e Save Opening Balance Transaction
@@ -179,19 +237,21 @@ class ChartOfAccountsController extends Controller
                         return response()->json($http_resp,422);
                     }
 
+                    $as_of = $this->helper->format_lunox_date($request->as_of);
+
                     //Opening Balance Equity i.e "Capital" Credited
                     //The Newly Created "account" Debited
                     //Transaction Type is "Deposit"
                     //Transaction Description is "Opening Balance"
                     //The account created here if Opening Balance is > 0, the it should be a none inventory
                     //Check if is an Inventory Account
-                    $inv_acc = $this->accountsCoa->findByUuid($request->detail_type_id);
-                    if( AccountsCoa::AC_INVENTORY_CODE==$inv_acc->code ){
-                        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
-                        $http_resp = $this->http_response['422'];
-                        $http_resp['errors'] = ['Choose a non inventory account for your deposit!'];
-                        return response()->json($http_resp,422);
-                    }
+                    // $inv_acc = $this->accountsCoa->findByUuid($request->detail_type_id);
+                    // if( AccountsCoa::AC_INVENTORY_CODE==$inv_acc->code ){
+                    //     DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                    //     $http_resp = $this->http_response['422'];
+                    //     $http_resp['errors'] = ['Choose a non inventory account for your deposit!'];
+                    //     return response()->json($http_resp,422);
+                    // }
 
                     //Check if Account Type is Receivable or Payable
                     if($account_type->name==AccountsCoa::AC_RECEIVABLE || $account_type->name==AccountsCoa::AC_PAYABLE){
@@ -222,18 +282,25 @@ class ChartOfAccountsController extends Controller
                     //$op_bal_equity = $this->accountsCoa->findByCode(AccountsCoa::AC_OPENING_BALANCE_EQUITY);
                     //$custom_op_bal_equity = $op_bal_equity->chart_of_accounts()->where('is_sub_account',0)->get()->first();
                     //----$custom_op_bal_equity = $company->coas()->where('name',AccountsCoa::AC_OPENING_BALANCE_EQUITY)->get()->first();
+                    $amount = $request->balance;
+                    $trans_type = AccountsCoa::TRANS_NAME_OPEN_BALANCE;
+                    $trans_name = "Account ".$trans_type;
                     $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
                     if($account_nature->name == AccountsCoa::ASSETS){
                         //Assets : [Dr | Cr]==["New Ac" - "Opening Balance Equity"] Transaction is called "Opening Balance"
                         //Perform Double Entry
-                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_chart_of_coa->code,$custom_op_bal_equity->code,$request->balance,$request->as_of,AccountsCoa::TRANS_NAME_OPEN_BALANCE,$transaction_id);
+                        $debited_ac = $custom_chart_of_coa->code;
+                        $credited_ac = $custom_op_bal_equity->code;
+                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
                     }elseif($account_nature->name==AccountsCoa::EQUITY || $account_nature->name==AccountsCoa::LIABILITY){
-                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_op_bal_equity->code,$custom_chart_of_coa->code,$request->balance,$request->as_of,AccountsCoa::TRANS_NAME_JOURNAL_ENTRY,$transaction_id);
+                        $debited_ac = $custom_op_bal_equity->code;
+                        $credited_ac = $custom_chart_of_coa->code;
+                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
                     }
-                    //Link it to company user performing the transaction
-                    //Create a supporting Document for this transaction
-                    $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_DEPOSIT,'trans_name'=>AccountsCoa::TRANS_NAME_OPEN_BALANCE]);
+                    $ledger_support_document = $custom_chart_of_coa->double_entry_support_document()->create(['trans_type'=>$trans_type]);
+                    $tax_support = $double_entry->supports()->save($ledger_support_document);
                 }
+                $http_resp['description'] = "Account successful created!";
             }else{
                 DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
                 $http_resp = $this->http_response['422'];
@@ -247,7 +314,6 @@ class ChartOfAccountsController extends Controller
             DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
             return response()->json($http_resp,500);
         }
-        //Log::info($request);
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
     }
@@ -261,7 +327,7 @@ class ChartOfAccountsController extends Controller
 
             $account_type = $this->accountTypes->findByUuid($request->account_type_id);
             $account_nature = $account_type->accounts_natures()->get()->first();
-
+            //
             $company = $this->practices->find($request->user()->company_id);
             if( $request->has('status') ){ //Request to change status: Inactive or Active
                 $company_chart_of_account = $this->accountChartAccount->findByUuid($uuid);
@@ -281,28 +347,32 @@ class ChartOfAccountsController extends Controller
                     $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
                     return response()->json($http_resp,422);
                 }
-
+                //
                 $company_chart_account = $this->accountChartAccount->findByUuid($uuid);
                 $default_coa = $this->accountsCoa->findByUuid($request->default_coa_id);
                 $inputs = $request->all();
+                $vat = $this->productTaxation->findByUuid($request->vat_type_id);
+                if($vat){
+                    $inputs['vat_type_id'] = $vat->id;
+                }
                 $inputs['default_coa_id'] = $default_coa->id;
                 $company_chart_account->update($inputs);
-                if($request->balance){
+                $trans_data = $this->accountChartAccount->transform_company_chart_of_account($company_chart_account);
+                if( ($request->balance>0) && ($trans_data['total_transaction']==0) && ($trans_data['balance']==0) ){
                     //Opening Balance Equity i.e "Capital" Credited
                     //The Newly Created "account" Debited
                     //Transaction Type is "Deposit"
                     //Transaction Description is "Opening Balance"
                     //The account created here if Opening Balance is > 0, the it should be a none inventory
                     //Check if is an Inventory Account
-                    $inv_acc = $this->accountsCoa->findByUuid($request->detail_type_id);
-                    Log::info($inv_acc);
-                    if( AccountsCoa::AC_INVENTORY_CODE==$inv_acc->code ){
+                    // $inv_acc = $this->accountsCoa->findByUuid($request->detail_type_id);
+                    // Log::info($inv_acc);
+                    if( AccountsCoa::AC_INVENTORY_CODE==$company_chart_account->default_code ){
                         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
                         $http_resp = $this->http_response['422'];
                         $http_resp['errors'] = ['Choose a non inventory account for your deposit!'];
                         return response()->json($http_resp,422);
                     }
-
                     //Check if Account Type is Receivable or Payable
                     if($account_type->name==AccountsCoa::AC_RECEIVABLE || $account_type->name==AccountsCoa::AC_PAYABLE){
                         $http_resp['errors'] = ["Choose a non '".$account_type->name."' account for your deposit!"];
@@ -310,25 +380,34 @@ class ChartOfAccountsController extends Controller
                         $http_resp = $this->http_response['422'];
                         return response()->json($http_resp,422);
                     }
-
                     //Generate a transaction ID
                     $transaction_id = $this->helper->getToken(10);
                     //Get Opening Balance Equity: To be Credited
                     //$op_bal_equity = $this->accountsCoa->findByCode(AccountsCoa::AC_OPENING_BALANCE_EQUITY);
                     //$custom_op_bal_equity = $op_bal_equity->chart_of_accounts()->where('is_sub_account',0)->get()->first();
                     //----$custom_op_bal_equity = $company->coas()->where('name',AccountsCoa::AC_OPENING_BALANCE_EQUITY)->get()->first();
+                    $amount = $request->balance;
+                    $trans_type = AccountsCoa::TRANS_NAME_OPEN_BALANCE;
+                    $trans_name = "Account ".$trans_type;
+                    $as_of = $this->helper->format_lunox_date($request->as_of);
                     $custom_op_bal_equity = $company->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
                     if($account_nature->name == AccountsCoa::ASSETS){
                         //Assets : [Dr | Cr]==["New Ac" - "Opening Balance Equity"] Transaction is called "Opening Balance"
                         //Perform Double Entry
-                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$company_chart_account->code,$custom_op_bal_equity->code,$request->balance,$request->as_of,AccountsCoa::TRANS_NAME_OPEN_BALANCE,$transaction_id);
+                        $debited_ac = $company_chart_account->code;
+                        $credited_ac = $custom_op_bal_equity->code;
+                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_type,$transaction_id);
                     }elseif($account_nature->name==AccountsCoa::EQUITY || $account_nature->name==AccountsCoa::LIABILITY){
-                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_op_bal_equity->code,$company_chart_account->code,$request->balance,$request->as_of,AccountsCoa::TRANS_NAME_JOURNAL_ENTRY,$transaction_id);
+                        $debited_ac = $custom_op_bal_equity->code;
+                        $credited_ac = $company_chart_account->code;
+                        $double_entry = $this->accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_type,$transaction_id);
+                        //$double_entry = $this->accountingVouchers->accounts_double_entry($company,$custom_op_bal_equity->code,$company_chart_account->code,$request->balance,$request->as_of,AccountsCoa::TRANS_NAME_JOURNAL_ENTRY,$transaction_id);
                     }
                     //Link it to company user performing the transaction
                     //Create a supporting Document for this transaction
                     $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_DEPOSIT,'trans_name'=>AccountsCoa::TRANS_NAME_OPEN_BALANCE]);
-
+                    $ledger_support_document = $company_chart_account->double_entry_support_document()->create(['trans_type'=>$trans_type]);
+                    $tax_support = $double_entry->supports()->save($ledger_support_document);
                     // //Generate a transaction ID
                     // $transaction_id = $this->helper->getToken(10);
                     // //Get Opening Balance Equity: To be Credited
@@ -339,11 +418,9 @@ class ChartOfAccountsController extends Controller
                     // //Link it to company user performing the transaction
                     // //Create a supporting Document for this transaction
                     // $support_doc = $double_entry->support_documents()->create(['trans_type'=>AccountsCoa::TRANS_TYPE_DEPOSIT,'trans_name'=>AccountsCoa::TRANS_NAME_OPEN_BALANCE]);
-
                 }
-
             }
-            $http_resp['description'] = "Successful updated!";
+            $http_resp['description'] = "Account successful updated!";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
             Log::info($e);
@@ -351,6 +428,17 @@ class ChartOfAccountsController extends Controller
             return response()->json($http_resp,500);
         }
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+        return response()->json($http_resp);
+    }
+
+    public function show(Request $request, $uuid){
+        $http_resp = $this->http_response['200'];
+        $coa = $this->accountChartAccount->findByUuid($uuid);
+        //$default_filter = $this->helper->get_default_filter();
+        //$filters['date_range'] = $default_filter['start'].' to '.$default_filter['end'];
+        //$results['filters'] = $filters;
+        $results['data'] = $this->accountChartAccount->transform_company_chart_of_account($coa);
+        $http_resp['results'] = $results;
         return response()->json($http_resp);
     }
 

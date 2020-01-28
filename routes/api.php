@@ -20,7 +20,6 @@ Route::group( ['prefix'=>'oauth', 'middleware' => ['cors'] ], function (){
         Route::post('/logout', "Api\Auth\AuthController@logout");
         Route::post('/change/password', "Api\Auth\AuthController@changepassword");
     });
-    //api for facility registration/login
     Route::post('/login/{source_type}', "Api\Auth\AuthController@login");
     Route::post('/invitation', "Api\Auth\AuthController@invitation");
     Route::post('/privileges', "Api\Auth\AuthController@privilege");
@@ -69,12 +68,19 @@ Route::group( ['prefix'=>'domains', 'middleware' => ['cors'] ], function (){
 
 Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
+    Route::group( ['prefix'=>'reportings' ], function (){
+        Route::get('/', "\App\Report\Http\Controllers\Api\ReportController@index");
+        Route::post('/', "\App\Report\Http\Controllers\Api\ReportController@create");
+        Route::post('/{uuid}', "\App\Report\Http\Controllers\Api\ReportController@update");
+        Route::get('/{uuid}', "\App\Report\Http\Controllers\Api\ReportController@show");
+        Route::delete('/{uuid}', "\App\Report\Http\Controllers\Api\ReportController@delete");
+    });
+
     //SYMPTOMS APIs
     Route::group( ['prefix'=>'symptoms' ], function (){
         Route::group( ['prefix'=>'categories' ], function (){
             Route::get('/', "Api\Symptom\CategoryController@index");
         });
-        //Route::get('/', "Api\Symptom\SymptomController@index");
     });
 
     //ROLES APIs
@@ -527,7 +533,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'prescriptions' ], function (){
-
             Route::group( ['prefix'=>'assets' ], function (){
                 Route::post('/', "Api\Emr\Prescription\AssetsController@create");
                 Route::post('/{uuid}', "Api\Emr\Prescription\AssetsController@update");
@@ -535,42 +540,32 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
                 Route::get('/{uuid}', "Api\Emr\Prescription\AssetsController@show");
                 Route::delete('/{uuid}', "Api\Emr\Prescription\AssetsController@delete");
             });
-
             Route::post('/', "Api\Emr\Prescription\PrescriptionController@create");
             Route::post('/{uuid}', "Api\Emr\Prescription\PrescriptionController@update");
             Route::get('/', "Api\Emr\Prescription\PrescriptionController@index");
             Route::get('/{uuid}', "Api\Emr\Prescription\PrescriptionController@show");
             Route::delete('/{uuid}', "Api\Emr\Prescription\PrescriptionController@delete");
-
-           //symptoms apis
-        //    Route::group( ['prefix'=>'forms' ], function (){
-        //        //api for facility registration/login
-        //        Route::get('/', "Api\Consultation\Prescription\PrescriptionFormController@index");
-        //    });
-
-        //    Route::group( ['prefix'=>'frequencies' ], function (){
-        //        //api for facility registration/login
-        //        Route::get('/', "Api\Consultation\Prescription\PrescriptionFrequencyController@index");
-        //    });
-
-        //    Route::group( ['prefix'=>'routes' ], function (){
-        //        //api for facility registration/login
-        //        Route::get('/', "Api\Consultation\Prescription\PrescriptionRouteController@index");
-        //    });
-
         });
-
     });
 
     Route::group( ['prefix'=>'accounting' ], function (){
 
         Route::group( ['prefix'=>'types' ], function (){
-            Route::post('/', "Api\Product\Accounts\ProductAccountTypeController@create");
-            Route::post('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@update");
-            Route::get('/', "Api\Product\Accounts\ProductAccountTypeController@index");
-            Route::get('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@show");
-            Route::delete('/{uuid}', "Api\Product\Accounts\ProductAccountTypeController@destroy");
+            Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\AccountTypesController@index");
+            Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\AccountTypesController@create");
+            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\AccountTypesController@update");
+            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\AccountTypesController@show");
+            Route::delete('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\AccountTypesController@delete");
         });
+
+        Route::group( ['prefix'=>'balances' ], function (){
+            Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\OpeningBalanceController@index");
+            Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\OpeningBalanceController@create");
+            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\OpeningBalanceController@update");
+            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\OpeningBalanceController@show");
+            Route::delete('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\OpeningBalanceController@delete");
+        });
+
         Route::group( ['prefix'=>'natures' ], function (){
             Route::post('/', "Api\Product\ProductAccountNatureController@create");
             Route::post('/{uuid}', "Api\Product\ProductAccountNatureController@update");
@@ -584,15 +579,15 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
             Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
             Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@show");
+            Route::delete('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@delete");
         });
 
         //Accounting Reports
         Route::group( ['prefix'=>'accounts' ], function (){
-            Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@index");
-            Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@create");
-            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@update");
-            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@show");
-            //Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Accounts\AccountHolderController@show");
+            Route::get('/', "\App\Accounting\Http\Controllers\Api\Coa\AccountsController@index");
+            Route::post('/', "\App\Accounting\Http\Controllers\Api\Coa\AccountsController@create");
+            Route::post('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\AccountsController@update");
+            Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Coa\AccountsController@show");
         });
 
         Route::group( ['prefix'=>'reports' ], function (){
@@ -614,7 +609,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
                 Route::get('/{uuid}', "\App\Accounting\Http\Controllers\Api\Tax\TaxReturnController@show");
             });
         });
-
         Route::get('/initializations', "\App\Accounting\Http\Controllers\Api\Coa\ChartOfAccountsController@initials");
     });
 
@@ -1099,10 +1093,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::post('/create', "Api\Upload\UploadController@create");
     });
 
-    //SEARCH ROUTE HERE
-    Route::post('/search/{type}', "Api\Search\SearchController@search");
-    
-    
 });
 
 

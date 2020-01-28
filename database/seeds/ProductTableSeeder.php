@@ -40,7 +40,8 @@ use App\Models\Inventory\ProductStock;
 use App\Models\Account\Banks\AccountMasterBank;
 use App\Models\Account\Banks\AccountMasterBankBranch;
 use App\Models\Product\ProductFormulation;
-use App\Models\Product\ProductReport;
+// use App\Models\Product\Reporting;
+use App\Report\Models\Reporting;
 use App\Models\Product\Vaccine\ProductVaccine;
 use App\Models\Product\Profile\ProductProfile;
 use App\Models\Product\Route\ProductRoutes;
@@ -610,610 +611,666 @@ class ProductTableSeeder extends Seeder
         // $bank_ac3 = $hospital->banks()->create(['ac_title'=>'Account 3','ac_number'=>3000003,'ac_type'=>'Account Type','bank_id'=>1,'branch_id'=>1]);
         // $practice3->bank_accounts()->save($bank_ac3);
 
+        Reporting::create([
+            'name'=>'Item Listing',
+            'section'=>'Inventory',
+            'description'=>'This lists the item details.'
+        ]);
+        Reporting::create([
+            'name'=>'Sales by Item',
+            'section'=>'Inventory',
+            'description'=>'This analyses sales by item.'
+        ]);
+        Reporting::create([
+            'name'=>'Purchases by Item',
+            'section'=>'Inventory',
+            'description'=>'This analyses purchases by item.'
+        ]);
+        Reporting::create([
+            'name'=>'Quotes by Item',
+            'section'=>'Inventory',
+            'description'=>'This analyses quotes by item.'
+        ]);
+        Reporting::create([
+            'name'=>'Sales Orders by Item',
+            'section'=>'Inventory',
+            'description'=>'This analyses sales orders by item.'
+        ]);
+        Reporting::create([
+            'name'=>'Purchase Orders by Item',
+            'section'=>'Inventory',
+            'description'=>'This analyses purchase orders by item.'
+        ]);
+        Reporting::create([
+            'name'=>'Item Movement',
+            'section'=>'Inventory',
+            'description'=>'Movement details for items such as items bought and sold.'
+        ]);
+        Reporting::create([
+            'name'=>'Item Valuation',
+            'section'=>'Inventory',
+            'description'=>'The value of items taking current cost and quantity on hand into account.'
+        ]);
+        Reporting::create([
+            'name'=>'Price List Report',
+            'section'=>'Inventory',
+            'description'=>'This lists the items with the selected Price Lists.'
+        ]);
+        Reporting::create([
+            'name'=>'Item Category Report',
+            'section'=>'Inventory',
+            'description'=>'This lists the items contained within the selected Item Category.'
+        ]);
+        Reporting::create([
+            'name'=>'Item Quantities Report',
+            'section'=>'Inventory',
+            'description'=>'This lists the items quantities on hand, reserved and available.'
+        ]);
 
-        ProductReport::create(['name'=>'Drug Register','section'=>'Pharmacy MIS Reports','description'=>'Shows the medicine stock register based with medicine category details']);
-        ProductReport::create(['name'=>'Details of Counter Sale','section'=>'Pharmacy MIS Reports','description'=>'Shows the sales bill list with medicine name details']);
-        ProductReport::create(['name'=>'Stock Flow Statement','section'=>'Pharmacy MIS Reports','description'=>'Shows summary of medicine stock register with opening qty, in qty, out qty, lost qty and closing qty.']);
-        ProductReport::create([
+
+        Reporting::create(['name'=>'Drug Register','section'=>'Pharmacy MIS Reports','description'=>'Shows the medicine stock register based with medicine category details']);
+        Reporting::create(['name'=>'Details of Counter Sale','section'=>'Pharmacy MIS Reports','description'=>'Shows the sales bill list with medicine name details']);
+        Reporting::create(['name'=>'Stock Flow Statement','section'=>'Pharmacy MIS Reports','description'=>'Shows summary of medicine stock register with opening qty, in qty, out qty, lost qty and closing qty.']);
+        Reporting::create([
             'name'=>'Department Wise Stock Transfer Receive',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock transfer which is transfer from one department to another department'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Transaction Summary Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the sales transaction summary with sales, sales return differentiate by IPD / OPD'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Adjustment Issue Summary Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock adjustment medicines'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Adjustment Receipt Summary Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock adjustment medicines'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Purchase Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine purchase register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Purchase Return Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine purchase return register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Monthly Expenditure Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>"It's client specific report based on the specific parameter to count monthly patient and collection."
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Near Expiry Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'It will display the stock which is of new expiry date'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Summary Detail Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the summary of total purchase medicines department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Register Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the medicine sales details'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine sales register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine purchase register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Return Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows medicine sales return register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase Return Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine purchase return register'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows pharmacy stock register with the details of (in qty, out qty, closing qty purchase price and sales price)'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Detail Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows pharmacy stock register in detail with a batch number, expiry date, company name etc..'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Supplier wise Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows pharmacy supplier wise stock register in detail'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Min. Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows minimum stock register based on min. qty set in medicine master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Max. Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows maximum stock register based on max. qty set in medicine master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Re-Order Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows re-order stock register based on re-order qty set in medicine master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Expiry Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the records of medicines which has been expired'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Empty Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows details of medicines whose qty is zero'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Supplier wise Ledger',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Show the stock details summary based on supplier'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharma Bill Collection Register Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the pharmacy bill collection according to the payment mode like cash, cheque, card, online etc.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharma Bill Sharing',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the doctor sharing on total bill amount based on the percentage set in doctor master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharma Bill Sharing Ref By',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the reference doctor sharing on total bill amount based on the percentage set in reference doctor master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Payment Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of payment details done by patients like total bill amount and receipt amount'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Insurance Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of payment details done by patients like total bill amount and receipt amount against the insurance company'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Credit Bill And Daily Outstanding Summary',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows pharmacy paid unpaid and closing amount details'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Summary Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the pharmacy purchase stock summary with details of how much stock is issued to department and how much stock is issue to patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Transfer Summary Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the stock transfer summary from one department to another department'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Show the stock details summary department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Ledger Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows supplier wise ledger report within qty out qty and closing qty'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Adjustment Summary',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the stock adjustment summary report'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Detail of Issue To IPD Patient',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of IPD patient that how much stock has been issued to that patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Summary of Sales Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the date wise summary of total number of sales invoice generated daily with total collection amount'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Register For H1',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the medicine stock register for the H1 category drugs'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Batchwise Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the medicine stock batch wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Material Receipt Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the supplier payment details against purchase bill'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Medicine Sales Detail For Walk-In Patient',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine sales register for walk-in patients only'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Register For H1',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the medicine sales register for H1 category drugs'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Register - OPD',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales for OPD Patients only'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales Register - IPD',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales for IPD patients only'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Collection Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the collection register of pharmacy module'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Register Summary',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine stock summary with (medicine in, out, transfer and adjustment)'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Receipt Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock receive from one department to another department'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Issue Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock issued from one department to another department'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Short Access Statement Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the summary of medicine stock with the receipt.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department Wise Collection Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the department wise sales bill summary with paid/pending and total amount details'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'RoundNote Prescription Detail',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the prescription details which has been given in the round notes'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Item Wise Closing Stock',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows medicine wise closing stock summary.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Purchase Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the purchase bill details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Purchase Return Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the purchase return bill details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Sales Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the sales bill details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Sales Return Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the sales return bill details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Stock Adjustment',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows pharmacy stock adjustment department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Stock Transfer',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows pharmacy stock transfer details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department wise Purchase Order',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows pharmacy stock order  details department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Department Wise Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the pharmacy stock register (in, out, closing qty) department wise'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase VAT Register - 5.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows purchase vat register based on VAT percentage 5.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase VAT Register - 14.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows purchase vat register based on VAT percentage 14.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales VAT Register - 5.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales vat register based on VATpercentage 5.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales VAT Register - 14.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales vat register based on VATpercentage 14.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales VAT Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales vat register  based on VAT percentage entered in sales invoice'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase VAT Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows purchase vat register based on VAT percentage entered in purchase invoice'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Issue Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the summary of total number of  medicine issued to patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Valuation',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows stock valuation based on purchase rate with details of in, out and closing qty'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Sale Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales register details'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Expiry Forecasting',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of medicine which will be expired in near future with the days left'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Outstanding Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows pharmacy sales bill summary with all the details like total amount, received the amount, pending amount adjustment and return details summary.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Cash Report Summary',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the cash summary report for pharmacy sales invoice'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Issue Summary Statement',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows summary of medicine issues to patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Issue To IPD Patient',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows the summary of issue medicine to IPD patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Product Receiving Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the detailed summary of medicines against the purchase bill'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stock Transfer Detail to Other Department',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Stock Transfer Detail to Other Department'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Details of Return From IPD Patient',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of return medicine stock from IPD patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase VAT Register - 12.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows purchase vat register based on VATpercentage 12.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales VAT Register - 5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows sales vat register based on VAT percentage 5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase Return Details',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of purchase return details'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharma Purchase Collection Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' Shows pharmacy collection against particular supplier based on payment mode details like cash, cheque, credit card, online.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharmacy Profit',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the pharmacy profit'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Doctor wise Sales Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the total number of patient and total amount of pharmacy sales against particular doctor'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Highest Selling Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the report for highest selling of  medicine according to last 1, 3, 6 month and last 1 year'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Lowest Selling Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the report for lowest selling of medicine according to last 1,3,6 month and last 1 year'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Payment Due reminders for suppliers',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of supplier with pending payment'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Company Sales Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows summary of sales invoice for insurance patient'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Refer Bill Sharing Charge wise',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows reference doctor sharing based on single medicine amount based on amount/percentage set in ref. share in reference doctor master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Consignment Detail Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the consignment details report
             Item wise Ledger Report: Shows the  complete summary of single medicine with purchase date, sales date in, out and closing qty'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Purchase VAT Register - 13.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows purchase vat register based on VAT percentage 13.5 %'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Sales VAT Register - 13.5%',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the sales vat register summary based on the VAT percentage 13.5'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Supplier Stock Register',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the summary of stock against particular supplier'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Stent Consumption Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' It Shows summary of stent with details of purchase price and sales price'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Bed Status Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the bed status report  for admitted patients'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'SalesRegister NarcoticCategory',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the sales invoice summary with narcotic category which has been set in medicine master'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Pharma Stock Valuation',
             'section'=>'Pharmacy MIS Reports',
             'description'=>' It will Shows pharmacy stock valuation based on purchase rate i.e how much amount stock is currently available'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'SalesRegister CC',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Its client specific report which Shows the sales register (entry was done in the different version of sales invoice )'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'SSR Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales detail summary with the entries done in a specific version of the sales invoice.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Tie up Company wise Sales Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows the sales bill summary for insured patients'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Tie up Company wise Sales Detail Report',
             'section'=>'Pharmacy MIS Reports',
             'description'=>'Shows sales bill summary in detail for insured patients'
         ]);
         //
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Tax Liability Report',
             'section'=>'Sales tax',
             'description'=>"This report shows the taxes you need to pay and the ones you've already paid."
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'VAT - Tax Detail Report',
             'section'=>'Sales tax',
             'description'=>'The detail report lists each transaction and, for each tax rate/area, totals the taxes, the taxable amounts, and the non-taxable and tax-exempt amounts.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'VAT - Tax Exception Report',
             'section'=>'Sales tax',
             'description'=>' VAT Act do apply to this turnover, the VAT rate is 0% (exempt). You do not need to calculate VAT for a particular item or service.'
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'VAT - Tax Summary Report',
             'section'=>'Sales tax',
             'description'=>'Generate VAT tax information that you can submit to the VAT tax authority.'
         ]);
         //
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Accounts receivable ageing detail',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Accounts receivable ageing summary',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Collections Report',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Customer Balance Detail',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Customer Balance Summary',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Invoice List',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Open Invoices',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Statement List',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Terms List',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Uninvoiced charges',
             'section'=>'Who owes you',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Uninvoiced time',
             'section'=>'Who owes you',
             'description'=>''
         ]);
         //
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Accounts payable ageing detail',
             'section'=>'What you owe',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Accounts payable ageing summary',
             'section'=>'What you owe',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Bill Payment List',
             'section'=>'What you owe',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Supplier Balance Detail',
             'section'=>'What you owe',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Supplier Balance Summary',
             'section'=>'What you owe',
             'description'=>''
         ]);
-        ProductReport::create([
+        Reporting::create([
             'name'=>'Unpaid Bills',
             'section'=>'What you owe',
             'description'=>''
