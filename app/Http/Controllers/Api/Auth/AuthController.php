@@ -29,6 +29,7 @@ use App\Transformers\User\UserTransformer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Mobile\Repository\MobileRepository;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -49,6 +50,7 @@ class AuthController extends Controller
     protected $response_type;
     protected $transformer;
     protected $helpers;
+    protected $mobileApp;
 
     public function __construct(User $user)
     {
@@ -61,6 +63,7 @@ class AuthController extends Controller
         $this->helpers = new HelperFunctions();
         $this->practice = new PracticeRepository(new Practice());
         $this->practiceUser = new PracticeRepository(new PracticeUser());
+        $this->mobileApp = new MobileRepository( new User() );
     }
 
     public function changepassword(Request $request){
@@ -147,14 +150,60 @@ class AuthController extends Controller
         return response()->json($http_resp, 200);
     }
 
-    public function login(Request $request, $source_type=null){
+    public function mobile_login(Request $request){
+        //This is a function to login mobile app users
+        $http_resp = $this->response_type['200'];
+        $login_rule = [
+            'email' => 'required',
+            'password' => 'required',
+        ];
+        $source_type = "app";
+        $validation = Validator::make($request->all(),$login_rule);
+        if ($validation->fails()){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = $this->helpers->getValidationErrors($validation->errors());
+            return response()->json($http_resp,422);
+        }
+        //--
+        $user = $this->user->findByEmailOrMobile($request->email);
+        $companyUser = null;
+        $accounts = null;
+        $account_found = false;
+        if ( $user && Hash::check($request->password, $user->password) ){
+            $practiceUsers = $this->practiceUser->getByEmail($user->email);
+            $company = $this->practice->find($user->company_id);
+            $account_found = true;
+            $accounts = $this->mobileApp->transformUser($user);
+        }
+        //--
+        if ( $account_found ){
+            $http_resp = $this->response_type['200'];
+            $tokenResult = $user->createToken('Personal Access Token');
+            $token = $tokenResult->token;
+            if ($request->remember_me){
+                $token->expires_at = Carbon::now()->addWeeks(1);
+                $token->save();
+            }
+            $http_resp['access_token'] = $tokenResult->accessToken;
+            $http_resp['token_type'] = 'Bearer';
+            $http_resp['expires_at'] = Carbon::parse($tokenResult->token->expires_at)->toDateTimeString();
+            $http_resp['results'] = $accounts;
+            return response()->json($http_resp);
+        }else{
+            $http_resp = $this->response_type['400'];
+            return response()->json($http_resp, 400);
+        }
+    }
+
+    public function login(Request $request){
 
         $http_resp = $this->response_type['200'];
         $login_rule = [
             'email' => 'required',
             'password' => 'required',
         ];
-
+        $source_type = "web";
+        //Log::info($source_type);
         $validation = Validator::make($request->all(),$login_rule);
         if ($validation->fails()){
             $http_resp = $this->response_type['422'];

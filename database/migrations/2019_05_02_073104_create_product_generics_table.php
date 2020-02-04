@@ -18,6 +18,7 @@ class CreateProductGenericsTable extends Migration
             $table->increments('id');
             $table->string('name')->index();
             $table->string('uuid')->index()->unique();
+            $table->string('description')->nullable();
             $table->boolean('status')->default(true);
             //$table->unsignedInteger('practice_id')->index();
             $table->string('owner_type')->index();

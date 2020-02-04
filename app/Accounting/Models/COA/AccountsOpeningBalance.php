@@ -23,6 +23,7 @@ class AccountsOpeningBalance extends Model
     protected $fillable = [
         'amount',
         'status',
+        'reason'
     ];
     public function accountable()
     {

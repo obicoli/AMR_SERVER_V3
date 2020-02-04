@@ -11,24 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ProductGeneric extends Model
 {
     use SoftDeletes, UuidTrait, Accountable;
-
     protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
-
     protected $table = "product_generics";
-
-    // protected $fillable = [
-    //     'name',
-    //     'status',
-    //     'practice_id',
-    // ];
-
     protected $fillable = [
         'name',
         'status',
+        'description',
         'owner_type',
         'owner_id'
     ];
-
     public function owner(){ return $this->morphTo();}
-
 }

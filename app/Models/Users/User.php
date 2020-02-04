@@ -9,6 +9,7 @@ use App\Models\Doctor\Doctor;
 use App\Models\Patient\Patient;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeUser;
 use App\Models\Product\Order\Order;
 use App\Traits\UuidTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -77,6 +78,12 @@ class User extends Authenticatable
 
     protected $id_column = "id";
 
+    //columns based function
+    public function getCompanyId(){ return $this->company_id; }
+    public function getDepartmentId(){ return $this->department_id; }
+    public function getStoreId(){ return $this->store_id; }
+    public function getSubstoreId(){ return $this->sub_store_id; }
+
     //public function group_user(){ return $this->hasMany(GroupUser::class,'user_id'); }
     public function groups(){ return $this->belongsToMany(Groups::class,'group_users','user_id','group_id'); }
 
@@ -113,6 +120,10 @@ class User extends Authenticatable
 
     public function practices(){
         return $this->belongsToMany(Practice::class,'practices_users','user_id','practice_id');
+    }
+
+    public function practiceUsers(){
+        return $this->hasMany(PracticeUser::class,'user_id','id');
     }
 
     public function medical_assets(){

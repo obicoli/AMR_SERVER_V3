@@ -15,6 +15,7 @@ use App\Models\Inventory\ProductStock;
 use App\Models\Product\ProductItem;
 use App\Models\Product\ProductTaxation;
 use App\Models\Product\Sales\ProductPriceRecord;
+use App\Models\Product\Store\ProductStore;
 
 interface ProductReposityInterface
 {
@@ -30,8 +31,11 @@ interface ProductReposityInterface
     public function getName($id);
     public function getPrices($id,$type);
     public function update(array $arr, $id);
+    public function paginated($paginate=15);
     //
+    public function transform_attribute(Model $model);
     public function transform_taxation(ProductTaxation $productTaxation);
+    public function transform_store(ProductStore $productStore);
     public function transform_price(ProductPriceRecord $productPriceRecord);
     public function transform_product_item(ProductItem $productItem,Practice $practice=null);
     public function transform_($collections);

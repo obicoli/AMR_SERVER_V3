@@ -94,17 +94,43 @@ class ReportsController extends Controller
     public function trail_balance(Request $request){
         $http_resp = $this->http_response['200'];
         $company = $this->practices->find($request->user()->company_id);
-        $temp_data['data'] = $this->accountsCoa->create_trail_balance($company);
-        $temp_data['as_at'] = $this->helper->format_mysql_date( date('Y-m-d H:i:s'),'D jS M Y h:i A' );
+        $custom_filter['start_date'] = $company->getFinancePeriodStartDate();
+        $custom_filter['end_date'] = $company->getFinancePeriodEndDate();
+        $temp_data['data'] = $this->accountsCoa->create_trail_balance($company,$custom_filter);
+        $temp_data['facility'] = $company->name;
+        $temp_data['filters'] = $this->helper->get_default_filter($company);
+        $temp_data['as_at'] = "As of ".$this->helper->format_mysql_date( date('Y-m-d H:i:s'),'j M Y' );
+        $temp_data['footer_title'] = "Accrual basis ".date('D j M Y h:i A');
         $http_resp['results'] = $temp_data;
         return response()->json($http_resp);
     }
 
     public function balance_sheet(Request $request){
+        
         $http_resp = $this->http_response['200'];
         $company = $this->practices->find($request->user()->company_id);
-        $temp_data['data'] = $this->accountsCoa->create_balance_sheet($company);
-        $temp_data['as_at'] = $this->helper->format_mysql_date( date('Y-m-d H:i:s'),'D jS M Y h:i A' );
+        if($request->has('filters')){
+            $filters = json_decode($request->filters,true);
+            switch($filters['balance_sheet']){
+                case "Comparison":
+                    break;
+                case "Consolidated":
+                    break;
+                case "Balance Sheet":
+                    $custom_filter['start_date'] = $company->getFinancePeriodStartDate();
+                    $custom_filter['end_date'] = $company->getFinancePeriodEndDate();
+                    $temp_data['data'] = $this->accountsCoa->create_balance_sheet($company,$custom_filter);
+                    break;
+            }
+        }else{
+            $custom_filter['start_date'] = $company->getFinancePeriodStartDate();
+            $custom_filter['end_date'] = $company->getFinancePeriodEndDate();
+            $temp_data['data'] = $this->accountsCoa->create_balance_sheet($company,$custom_filter);
+        }
+        $temp_data['facility'] = $company->name;
+        $temp_data['filters'] = $this->helper->get_default_filter($company);
+        $temp_data['as_at'] = "As of ".$this->helper->format_mysql_date( date('Y-m-d H:i:s'),'j M Y' );
+        $temp_data['footer_title'] = "Accrual basis ".date('D j M Y h:i A');
         $http_resp['results'] = $temp_data;
         return response()->json($http_resp);
     }

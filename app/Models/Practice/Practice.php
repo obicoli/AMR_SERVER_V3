@@ -6,6 +6,7 @@ use App\Accounting\Models\AccountHolder;
 use App\Finance\Models\Banks\AccountsBank;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsCoa;
+use App\Accounting\Models\COA\AccountsOpeningBalance;
 use App\Accounting\Models\Payments\AccountPaymentType;
 use App\Accounting\Models\Tax\AccountsVatReturn;
 use App\Accounting\Models\Voucher\AccountsVoucher;
@@ -128,6 +129,10 @@ class Practice extends Model implements AccountableInterface
         'batch_tracking',
     ];
 
+    //Columns Based functions
+    public function getFinancePeriodStartDate(){ return $this->finance_yr_start; }
+    public function getFinancePeriodEndDate(){ return $this->finance_yr_end; }
+
     //Settings
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }
     public function dashboard_widgets(){ return $this->belongsToMany(DashboardSetting::class,'company_widgets','practice_id','widget_id'); }
@@ -145,6 +150,7 @@ class Practice extends Model implements AccountableInterface
     //Supplier Integration ends here
 
     //Accounting Integration=================================================
+    public function accountOpeningBalances(){ return $this->morphMany(AccountsOpeningBalance::class,'owning','owning_type','owning_id'); }
     public function taxReturns(){ return $this->morphMany(AccountsVatReturn::class,'owning','owning_type','owning_id'); }
     public function coas(){ return $this->morphMany(AccountsCoa::class,'owning','owning_type','owning_id'); }
     public function accounts_payment_methods(){ return $this->morphMany(AccountPaymentType::class,'owning','owning_type','owning_id'); }

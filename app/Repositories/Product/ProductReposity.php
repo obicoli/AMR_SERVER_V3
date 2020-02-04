@@ -40,6 +40,7 @@ use App\Models\Product\ProductItem;
 use App\Models\Product\ProductManufacture;
 use App\Models\Product\ProductTaxation;
 use App\Models\Product\Profile\ProductProfile;
+use App\Models\Product\Store\ProductStore;
 
 class ProductReposity implements ProductReposityInterface
 {
@@ -160,6 +161,38 @@ class ProductReposity implements ProductReposityInterface
         // TODO: Implement update() method.
         $data = $this->model->find($id);
         return $data->update($arr);
+    }
+
+    public function paginated($paginate=15){
+        return $this->model->paginate($paginate);
+    }
+
+    public function transform_attribute(Model $model){
+        return [
+            'id' => $model->uuid,
+            'name' => $model->name,
+            'description' => $model->description,
+            'status' => $model->status,
+        ];
+    }
+
+    public function transform_store(ProductStore $productStore){
+        if($productStore){
+            return [
+                'id'=>$productStore->uuid,
+                'name'=>$productStore->name,
+                'code'=>$productStore->code,
+                'status'=>$productStore->status,
+                'type'=>$productStore->type,
+                'min_capacity'=>$productStore->min_capacity,
+                'max_capacity'=>$productStore->max_capacity,
+                'mobile'=>$productStore->mobile,
+                'email'=>$productStore->email,
+            ];
+        }else{
+            return [];
+        }
+        
     }
 
     public function transform_taxation(ProductTaxation $productTaxation){
@@ -409,11 +442,11 @@ class ProductReposity implements ProductReposityInterface
     public function transform_collection($collections)
     {
         // TODO: Implement transform_collection() method.
-        $results = array();
-        foreach ($collections as $collection) {
-            array_push($results, $this->transform_($collection));
-        }
-        return $results;
+        // $results = array();
+        // foreach ($collections as $collection) {
+        //     array_push($results, $this->transform_($collection));
+        // }
+        // return $results;
     }
 
     public function createSale(Practice $practice, array $arr)
@@ -433,9 +466,9 @@ class ProductReposity implements ProductReposityInterface
             //->orderBy('created_at')->paginate(15);
             $parentPractice = $this->practiceRepository->findParent($practice);
             //return $parentPractice->product_category()->get()->sortBy('name');
-            return $parentPractice->product_category()->orderBy('created_at')->paginate(10);
+            return $parentPractice->product_category()->orderBy('created_at')->paginate(15);
         }else{
-            return ProductCategory::orderBy('created_at')->paginate(10);
+            return ProductCategory::orderBy('created_at')->paginate(15);
         }
     }
 

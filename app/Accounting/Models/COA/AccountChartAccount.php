@@ -30,7 +30,7 @@ class AccountChartAccount extends Model
         'is_sub_account',
         'default_code',
         'is_special',
-        'vat_type_id'
+        'vat_type_id',
     ];
 
     public function openingBalances()
@@ -61,6 +61,22 @@ class AccountChartAccount extends Model
             ->orWhere('credited_parent',$code)
             ->orWhere('debited_parent',$code)
             ->get();
+        }
+    }
+    public function voucher($code, $filters=[]){ 
+        if(sizeof($filters)){
+            return AccountsVoucher::where('credited',$code)
+            ->orWhere('debited',$code)
+            ->orWhere('credited_parent',$code)
+            ->orWhere('debited_parent',$code)
+            ->whereBetween('voucher_date',$filters)
+            ->get()->first();
+        }else{
+            return AccountsVoucher::where('credited',$code)
+            ->orWhere('debited',$code)
+            ->orWhere('credited_parent',$code)
+            ->orWhere('debited_parent',$code)
+            ->get()->first();
         }
     }
     public function credited_vouchers(){ return $this->hasMany(AccountsVoucher::class,'credited','code'); }

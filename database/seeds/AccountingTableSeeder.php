@@ -195,7 +195,7 @@ class AccountingTableSeeder extends Seeder
         $owner_equity->default_accounts()->create(['code'=>610,'sys_default'=>true,'name'=>"Partner Distributions",'notes'=>""]);
         $owner_equity->default_accounts()->create(['code'=>611,'sys_default'=>true,'name'=>"Partner's Equity",'notes'=>""]);
         $owner_equity->default_accounts()->create(['code'=>612,'sys_default'=>true,'name'=>"Preferred shares",'notes'=>""]);
-        $owner_equity->default_accounts()->create(['code'=>613,'sys_default'=>true,'name'=>"Retained Earnings",'notes'=>""]);
+        $owner_equity->default_accounts()->create(['code'=>613,'sys_default'=>true,'name'=>"Retained Earnings",'notes'=>"Retained earnings tracks net income from previous financial years. System automatically transfers your profit (or loss) to this account "]);
         $owner_equity->default_accounts()->create(['code'=>614,'sys_default'=>true,'name'=>"Share capital",'notes'=>""]);
         $owner_equity->default_accounts()->create(['code'=>615,'sys_default'=>true,'name'=>"Treasury Shares",'notes'=>""]);
         //10. iNCOME
@@ -204,9 +204,9 @@ class AccountingTableSeeder extends Seeder
         $income->default_accounts()->create(['code'=>902,'sys_default'=>true,'name'=>"Non-Profit Income",'notes'=>""]);
         $income->default_accounts()->create(['code'=>903,'sys_default'=>true,'name'=>"Other Primary Income",'notes'=>""]);
         $income->default_accounts()->create(['code'=>904,'sys_default'=>true,'name'=>"Revenue - General",'notes'=>""]);
-        $income->default_accounts()->create(['code'=>905,'sys_default'=>true,'name'=>"Sales - retail",'notes'=>""]);
+        $income->default_accounts()->create(['code'=>905,'sys_default'=>true,'name'=>"Sales - retail",'notes'=>"Use 'Sales - retail' to track sales of goods/services that have a mark-up cost to consumers."]);
         $income->default_accounts()->create(['code'=>906,'sys_default'=>true,'name'=>"Sales",'notes'=>""]);
-        $income->default_accounts()->create(['code'=>907,'sys_default'=>true,'name'=>"Sales - wholesale",'notes'=>""]);
+        $income->default_accounts()->create(['code'=>907,'sys_default'=>true,'name'=>"Sales - wholesale",'notes'=>"Use 'Sales - wholesale' to track the sale of goods in quantity for resale purposes."]);
         $income->default_accounts()->create(['code'=>908,'sys_default'=>true,'name'=>"Sales of Product Income",'notes'=>""]);
         $income->default_accounts()->create(['code'=>909,'sys_default'=>true,'name'=>"Service/Fee Income",'notes'=>""]);
         $income->default_accounts()->create(['code'=>910,'sys_default'=>true,'name'=>"Unapplied Cash Payment Income",'notes'=>""]);
@@ -219,6 +219,7 @@ class AccountingTableSeeder extends Seeder
         $other_income->default_accounts()->create(['code'=>926,'sys_default'=>true,'name'=>"Other operating income",'notes'=>""]);
         $other_income->default_accounts()->create(['code'=>927,'sys_default'=>true,'name'=>"Tax-Exempt Interest",'notes'=>""]);
         $other_income->default_accounts()->create(['code'=>928,'sys_default'=>true,'name'=>"Unrealised loss on securities, net of tax",'notes'=>""]);
+        //$other_income->default_accounts()->create(['code'=>000,'sys_default'=>true,'name'=>"Income Summary Account",'notes'=>"The income summary account is a temporary account used to store income statement account balances, revenue and expense accounts, during the closing entry step of the accounting cycle."]);
         //Expenses: COS(Cost of Sale)
         $cost_of_sale->default_accounts()->create(['code'=>1001,'sys_default'=>true,'name'=>"Cost of labour - COS",'notes'=>""]);
         $cost_of_sale->default_accounts()->create(['code'=>1002,'sys_default'=>true,'name'=>"Equipment rental - COS",'notes'=>""]);
@@ -261,11 +262,11 @@ class AccountingTableSeeder extends Seeder
         //$expenses->default_accounts()->create(['code'=>1132,'sys_default'=>true,'name'=>""]);
         //Other Expenses
         $other_expense->default_accounts()->create(['code'=>1201,'sys_default'=>true,'name'=>"Discount Allowed",'notes'=>""]);
-        $other_expense->default_accounts()->create(['code'=>1202,'sys_default'=>true,'name'=>"Depreciation",'notes'=>""]);
-        $other_expense->default_accounts()->create(['code'=>1203,'sys_default'=>true,'name'=>"Exchange Gain or Loss",'notes'=>""]);
-        $other_expense->default_accounts()->create(['code'=>1204,'sys_default'=>true,'name'=>"Other Expense",'notes'=>""]);
+        $other_expense->default_accounts()->create(['code'=>1202,'sys_default'=>true,'name'=>"Depreciation",'notes'=>"Use 'Depreciation' to track how much you depreciate fixed assets. "]);
+        $other_expense->default_accounts()->create(['code'=>1203,'sys_default'=>true,'name'=>"Exchange Gain or Loss",'notes'=>"'Exchange Gain or Loss' to track gains or losses that occur as a result of exchange rate fluctuations."]);
+        $other_expense->default_accounts()->create(['code'=>1204,'sys_default'=>true,'name'=>"Other Expense",'notes'=>"Use 'Other Expense' to track unusual or infrequent expenses that don’t fall into another Other Expense type."]);
         $other_expense->default_accounts()->create(['code'=>1205,'sys_default'=>true,'name'=>"Penalties and settlements",'notes'=>""]);
-        $other_expense->default_accounts()->create(['code'=>1206,'sys_default'=>true,'name'=>"Amortisation",'notes'=>""]);
+        $other_expense->default_accounts()->create(['code'=>1206,'sys_default'=>true,'name'=>"Amortisation",'notes'=>"Use 'Amortisation' to track amortisation of intangible assets."]);
         //END==============================================================
 
 

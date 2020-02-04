@@ -16,6 +16,7 @@ class ProductProfile extends Model
     protected $fillable = [
         'name',
         'description',
+        'status'
     ];
 
     public function owner(){ return $this->morphTo();}

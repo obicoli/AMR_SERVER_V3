@@ -36,30 +36,36 @@ class ProductCategoryController extends Controller
     public function index(Request $request){
         $http_resp = $this->http_response['200'];
         $company = $this->practice->find($request->user()->company_id);
-        $categories = $this->productCategory->getCategories($company);
+        $headQuarter = $this->practice->findParent($company);
+        $categories = $headQuarter->product_category()->orderByDesc('created_at')->paginate(12);
+        $results = array();
+        foreach($categories as $category){
+            array_push($results,$this->productCategory->transform_attribute($category));
+        }
         $paged_data = $this->helper->paginator($categories);
-        $paged_data['data'] = $this->productCategory->transform_collection($categories);
+        $paged_data['data'] = $results;
         $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
+
     //practice
-    public function practice($practice_uuid){
-        $http_resp = $this->http_response['200'];
-        $practice = $this->practice->findByUuid($practice_uuid);
-        $categories = $this->productCategory->getCategories($practice);
-        $paged_data = $this->helper->paginator($categories);
-        $paged_data['data'] = $this->productCategory->transform_collection($categories);
-        $http_resp['results'] = $paged_data;
-        return response()->json($http_resp);
-    }
+    // public function practice($practice_uuid){
+    //     $http_resp = $this->http_response['200'];
+    //     $practice = $this->practice->findByUuid($practice_uuid);
+    //     $categories = $this->productCategory->getCategories($practice);
+    //     $paged_data = $this->helper->paginator($categories);
+    //     $paged_data['data'] = $this->productCategory->transform_collection($categories);
+    //     $http_resp['results'] = $paged_data;
+    //     return response()->json($http_resp);
+    // }
 
     public function create(Request $request){
 
         $http_resp = $this->http_response['200'];
         $rules = [
             'name'=>'required',
-            'description'=>'required',
-            'practice_id'=>'required',
+            //'description'=>'required',
+            //'practice_id'=>'required',
             'status'=>'required'
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -68,7 +74,8 @@ class ProductCategoryController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $practice = $this->practice->findByUuid($request->practice_id);
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
         $practiceParent = $this->practice->findParent($practice);
         if( $practiceParent->product_category()->where('name',$request->name)->get()->first() ){
             $http_resp = $this->http_response['422'];
@@ -96,7 +103,6 @@ class ProductCategoryController extends Controller
         $rules = [
             'name'=>'required',
             'description'=>'required',
-            'practice_id'=>'required',
             'status'=>'required'
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -105,8 +111,8 @@ class ProductCategoryController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $practice = $this->practice->findByUuid($request->practice_id);
-        $practiceParent = $this->practice->findParent($practice);
+        // $practice = $this->practice->findByUuid($request->practice_id);
+        // $practiceParent = $this->practice->findParent($practice);
         DB::beginTransaction();
         try{
 

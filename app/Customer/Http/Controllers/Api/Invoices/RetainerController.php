@@ -129,7 +129,6 @@ class RetainerController extends Controller
         // DB::connection(Module::MYSQL_FINANCE_DB_CONN)->beginTransaction();
         // DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         // DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
-
         try{
 
             //$sales_ac_code = AccountsCoa::AC_SALES_CODE;
@@ -260,7 +259,6 @@ class RetainerController extends Controller
         foreach($payment_transactions as $payment_transaction){
             $payitems = array();
             $retainers_in_payment = $payment_transaction->customerRetainerInvoices()->get();
-            
             //Log::info($payitems);
             foreach($retainers_in_payment as $retainers_in_paymen){
                 $net_total = $retainers_in_paymen->net_total;
@@ -274,9 +272,8 @@ class RetainerController extends Controller
             $transformed_payment = $this->customerRetainerInvoice->transform_payment($payment_transaction);
             $transformed_payment['items'] = $payitems;
             array_push($payments,$transformed_payment);
-            Log::info($transformed_payment);
+            //Log::info($transformed_payment);
         }
-
         $invoice_data = $this->customerRetainerInvoice->transform_retainer_invoice($invoice);
         // if($payment_term){$invoice_data['payment_term'] = $this->customerRetainerInvoice->transform_term($payment_term);}else{$invoice_data['payment_term']=null;}
         $invoice_data['journals'] = $journals;

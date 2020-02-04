@@ -10,6 +10,7 @@ use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Module\Module;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,20 +31,17 @@ class ProductBrandSectorController extends Controller
         $this->practice = new PracticeRepository( new Practice());
     }
 
-    public function index($practice_uuid=null){
+    public function index(Request $request){
         $http_resp = $this->http_response['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $headQuarter = $this->practice->findParent($company);
+        $categories = $headQuarter->product_brand_sector()->orderByDesc('created_at')->paginate(12);
         $results = array();
-        if($practice_uuid){
-            $practice = $this->practice->findByUuid($practice_uuid);
-            $parentPractice = $this->practice->findParent($practice);
-            $brands = $parentPractice->product_brand_sector()->orderByDesc('created_at')->paginate(10);
-            $paged_data = $this->helper->paginator($brands);
-            foreach($brands as $brand){
-                array_push($results, $this->productBrandSector->transform_($brand));
-            }
-            $paged_data['data'] = $results;
-        }else{
+        foreach($categories as $category){
+            array_push($results,$this->productBrandSector->transform_attribute($category));
         }
+        $paged_data = $this->helper->paginator($categories);
+        $paged_data['data'] = $results;
         $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
@@ -54,7 +52,6 @@ class ProductBrandSectorController extends Controller
             'name'=>'required',
             'status'=>'required',
             'description'=>'required',
-            'practice_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules);
         if ($validation->fails()){
@@ -62,27 +59,26 @@ class ProductBrandSectorController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        DB::beginTransaction();
+
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
+        $practiceParent = $this->practice->findParent($practice);
+        if ($practiceParent->product_brand_sector()->where('name',$request->name)->get()->first()){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ['Name already exists'];
+            return response()->json($http_resp,422);
+        }
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $practiceParent = $this->practice->findParent($practice);
-            //$practice = $this->practice->findOwner($practice);
-            if ($practiceParent->product_brand_sector()->where('name',$request->name)->get()->first()){
-                DB::rollBack();
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ['Name already exists'];
-                return response()->json($http_resp,422);
-            }else{
-                $practiceParent->product_brand_sector()->create($request->all());
-                $http_resp['description'] = "Created successful!";
-            }
-        }catch (\Exception $exception){
-            Log::info($exception);
-            DB::rollBack();
+            $practiceParent->product_brand_sector()->create($request->all());
+            $http_resp['description'] = "Created successful!";
+        }catch (\Exception $e){
+            Log::info($e);
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             $http_resp = $this->http_response['500'];
             return response()->json($http_resp,500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 
@@ -92,7 +88,7 @@ class ProductBrandSectorController extends Controller
         $rules = [
             'name'=>'required',
             'status'=>'required',
-            'practice_id'=>'required',
+            'description'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules);
         if ($validation->fails()){
@@ -100,9 +96,18 @@ class ProductBrandSectorController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $brandsector = $this->productBrandSector->findByUuid($uuid);
-        $this->productBrandSector->update($request->all(),$brandsector->id);
-        $http_resp['description'] = "Changes saved successful!";
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
+        try{
+            $brandsector = $this->productBrandSector->findByUuid($uuid);
+            $this->productBrandSector->update($request->all(),$brandsector->id);
+            $http_resp['description'] = "Successful updated!";
+        }catch (\Exception $e){
+            Log::info($e);
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+            $http_resp = $this->http_response['500'];
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

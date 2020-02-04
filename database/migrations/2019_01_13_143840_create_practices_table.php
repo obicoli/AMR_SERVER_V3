@@ -20,6 +20,8 @@ class CreatePracticesTable extends Migration
             $table->increments('id');
             $table->string('country')->nullable()->index();
             $table->string('mobile')->unique()->nullable()->index();
+            $table->timestamp('finance_yr_start');
+            $table->timestamp('finance_yr_end');
             $table->string('email')->unique()->nullable()->index();
             $table->boolean('mail_verified')->default(false);
             $table->boolean('phone_verified')->default(false);

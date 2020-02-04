@@ -32,22 +32,18 @@ class ProductOrderCategoryController extends Controller
         $this->productItems = new ProductReposity(new PracticeProductItem());
     }
 
-    public function index($practice_uuid){
-
+    public function index(Request $request){
         $http_resp = $this->http_response['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $headQuarter = $this->practice->findParent($company);
+        $categories = $headQuarter->product_order_category()->orderByDesc('created_at')->paginate(12);
         $results = array();
-        if($practice_uuid){
-            $practice = $this->practice->findByUuid($practice_uuid);
-            $practiceParent = $this->practice->findParent($practice);
-            $categories = $practiceParent->product_order_category()->paginate(10);
-            $paged_data = $this->helper->paginator($categories);
-            foreach( $categories as $category ){
-                array_push($results,$this->productItems->transform_($category));
-            }
-            $paged_data['data'] = $results;
-            $http_resp['results'] = $paged_data;
+        foreach($categories as $category){
+            array_push($results,$this->productOrderCategory->transform_attribute($category));
         }
-        //$categories = $this->productSubCategory->getCategories($practice);
+        $paged_data = $this->helper->paginator($categories);
+        $paged_data['data'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
@@ -57,7 +53,7 @@ class ProductOrderCategoryController extends Controller
         $rules = [
             'name'=>'required',
             'description'=>'required',
-            'practice_id'=>'required',
+            //'practice_id'=>'required',
             'status'=>'required'
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -66,11 +62,14 @@ class ProductOrderCategoryController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $practice = $this->practice->findByUuid($request->practice_id);
+        // $practice = $this->practice->findByUuid($request->practice_id);
+        // $practiceParent = $this->practice->findParent($practice);
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
         $practiceParent = $this->practice->findParent($practice);
         if( $practiceParent->product_order_category()->where('name',$request->name)->get()->first() ){
             $http_resp = $this->http_response['422'];
-            $http_resp['errors'] = ['Category name already taken!'];
+            $http_resp['errors'] = ['Name already taken!'];
             return response()->json($http_resp,422);
         }
         DB::beginTransaction();
@@ -94,7 +93,7 @@ class ProductOrderCategoryController extends Controller
         $rules = [
             'name'=>'required',
             'description'=>'required',
-            'practice_id'=>'required',
+            //'practice_id'=>'required',
             'status'=>'required'
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -103,11 +102,12 @@ class ProductOrderCategoryController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        $practice = $this->practice->findByUuid($request->practice_id);
+        
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
         $practiceParent = $this->practice->findParent($practice);
         DB::beginTransaction();
         try{
-
             $category = $this->productOrderCategory->findByUuid($uuid);
             $category->update($request->all());
             $http_resp['description']= "Updated successful!";

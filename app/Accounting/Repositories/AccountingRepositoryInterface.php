@@ -30,7 +30,7 @@ interface AccountingRepositoryInterface
     public function findByDefaultCode($code);
     public function create($inputs = []);
     public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);
-    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[], Model $account_owner);
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[], Model $account_owner=null);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
     public function get_account_balances(AccountChartAccount $accountChartAccount, $filters=[] );
@@ -50,8 +50,10 @@ interface AccountingRepositoryInterface
     public function accounts_double_entry(Model $company ,$debited_code,$credited_code,$amount,$trans_date,$notes,$transaction_id);
     public function create_journal_report(AccountsVoucher $accountsVoucher);
     public function create_general_ledger(Model $company);
-    public function create_trail_balance(Model $company);
-    public function create_balance_sheet(Model $company);
+    public function create_trail_balance(Model $company,$filters=[]);
+    public function retainedEarnings(Model $company, $filters=[]);
+    public function netIncome(Model $company, $filters=[]);
+    public function create_balance_sheet(Model $company, $filters=[]);
     public function transform_journal_entry(AccountsVoucher $accountsVoucher, $journal_type=AccountsCoa::BALANCE_DEBIT,Model $company=null);
     public function company_coa_initialization(Model $company);
     public function company_payment_initialization(Model $company);

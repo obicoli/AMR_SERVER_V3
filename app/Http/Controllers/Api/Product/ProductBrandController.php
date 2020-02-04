@@ -9,6 +9,7 @@ use App\Repositories\Product\ProductReposity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Manufacturer\Manufacturer;
+use App\Models\Module\Module;
 use App\Models\Practice\Practice;
 use App\Repositories\Practice\PracticeRepository;
 use Illuminate\Support\Facades\Config;
@@ -35,35 +36,26 @@ class ProductBrandController extends Controller
         $this->company = new ProductReposity(new Manufacturer());
     }
 
-    public function index($practice_id=null){
+    public function index(Request $request){
         $http_resp = $this->http_response['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $headQuarter = $this->practice->findParent($company);
+        $categories = $headQuarter->product_brands()->orderByDesc('created_at')->paginate(12);
         $results = array();
-        if($practice_id){
-            $practice = $this->practice->findByUuid($practice_id);
-            $parentPractice = $this->practice->findParent($practice);
-            $brands = $parentPractice->product_brands()->orderByDesc('created_at')->paginate(10);
-            $paged_data = $this->helper->paginator($brands);
-            foreach($brands as $brand){
-                $temp_brand = $this->products->transform_($brand);
-                $compani = $this->company->find($brand->company_id);
-                if($compani){ $temp_brand['company_name'] = $compani->name; }
-                array_push($results, $temp_brand);
-            }
-            $paged_data['data'] = $results;
-        }else{
-
+        foreach($categories as $category){
+            array_push($results,$this->productBrand->transform_attribute($category));
         }
+        $paged_data = $this->helper->paginator($categories);
+        $paged_data['data'] = $results;
         $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
-    public function store(Request $request){
-
+    public function create(Request $request){
         $http_resp = $this->http_response['200'];
-
         $rules = [
-            'company_name' => 'required',
-            'practice_id' => 'required',
+            'description' => 'required',
+            'status' => 'required',
             'name' => 'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -72,40 +64,35 @@ class ProductBrandController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-
-        DB::beginTransaction();
+        //
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
+        $practiceParent = $this->practice->findParent($practice);
+        if($practiceParent->product_brands()->where('name',$request->name)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ['Brand name already in use'];
+            return response()->json($http_resp,422);
+        }
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $parentPractice = $this->practice->findParent($practice);
-            if($parentPractice->product_brands()->where('name',$request->name)->get()->first() ){
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ['Brand name already in use'];
-                return response()->json($http_resp,422);
-            }else{
-                $company = $this->company->getOrCreate($request->company_name);
-                $inputs = $request->all();
-                $inputs['company_id'] = $company->id;
-                $parentPractice->product_brands()->create($inputs);
-            }
+            $practiceParent->product_brands()->create($request->all());
             $http_resp['description'] = "Created successful";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
-            DB::rollBack();
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             Log::info($e);
             return response()->json($http_resp,500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 
     public function update(Request $request,$uuid){
-
         $http_resp = $this->http_response['200'];
-
         $rules = [
-            'company_name' => 'required',
-            'practice_id' => 'required',
             'name' => 'required',
+            'status' => 'required',
+            'description' => 'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
         if ($validation->fails()){
@@ -113,29 +100,23 @@ class ProductBrandController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $parentPractice = $this->practice->findParent($practice);
             $brand = $this->productBrand->findByUuid($uuid);
-            $company = $this->company->getOrCreate($request->company_name);
-            $inputs = $request->except(['company_name','practice_id']);
-            $inputs['company_id'] = $company->id;
-            $brand->update($inputs);
+            $brand->update($request->all());
             $http_resp['descrption']="Updated successful";
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
-            DB::rollBack();
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             Log::info($e);
             return response()->json($http_resp,500);
         }
-
-        DB::commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
-
     }
 
     public function show($uuid){}
+    
     public function destroy($uuid){
         $http_resp = $this->http_response['200'];
         $brand = $this->productBrand->findByUuid($uuid);

@@ -21,12 +21,12 @@ class CreateAccountsOpeningBalancesTable extends Migration
             $table->increments('id');
             $table->float('amount',16,2)->default(0);
             $table->string('status')->nullable();
-            $table->string('notes')->nullable();
+            $table->string('reason')->nullable();
             $table->string('uuid');
-            $table->unsignedInteger('accountable_id')->index(); //E.g Customer,Supplier
-            $table->string('accountable_type')->index(); //E.g Customer,Supplier
-            $table->unsignedInteger('owner_id')->index(); //Company
-            $table->string('owner_type')->index(); //Company
+            $table->unsignedInteger('accountable_id')->index()->nullable(); //E.g Customer,Supplier
+            $table->string('accountable_type')->index()->nullable(); //E.g Customer,Supplier
+            $table->unsignedInteger('owning_id')->index(); //Company
+            $table->string('owning_type')->index(); //Company
             $table->softDeletes();
             Accountable::columns($table);
             $table->timestamps();

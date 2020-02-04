@@ -93,19 +93,27 @@ class ProductItemController extends Controller
         return response()->json($http_resp);
     }
 
-    public function all_list(Request $request){
+    public function show(Request $request, $uuid){
         $http_resp = $this->response_type['200'];
-        $results = array();
         $company = $this->practice->find($request->user()->company_id);
-        $practiceMain = $this->practice->findParent($company);
-        $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(15);
-        //$product_items = $practiceMain->product_items()->orderByDesc('created_at')->get();
-        foreach($product_items as $product_item){
-            array_push($results,$this->productItem->transform_product_item($product_item,$company));
-        }
-        $http_resp['results'] = $results;
+        $product_item = $this->productItem->findByUuid($uuid);
+        $http_resp['results'] = $this->productItem->transform_product_item($product_item,$company);
         return response()->json($http_resp);
     }
+
+    // public function all_list(Request $request){
+    //     $http_resp = $this->response_type['200'];
+    //     $results = array();
+    //     $company = $this->practice->find($request->user()->company_id);
+    //     $practiceMain = $this->practice->findParent($company);
+    //     $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(15);
+    //     //$product_items = $practiceMain->product_items()->orderByDesc('created_at')->get();
+    //     foreach($product_items as $product_item){
+    //         array_push($results,$this->productItem->transform_product_item($product_item,$company));
+    //     }
+    //     $http_resp['results'] = $results;
+    //     return response()->json($http_resp);
+    // }
 
     public function update(Request $request,$uuid){
 

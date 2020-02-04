@@ -208,7 +208,7 @@ class PracticeRepository implements PracticeRepositoryInterface
         $temp_data['email'] = $practiceUser->email;
         $temp_data['mobile'] = $practiceUser->mobile;
         $temp_data['status'] = $practiceUser->status;
-        $temp_data['specific_facility'] = $practiceUser->facility;
+        //$temp_data['specific_facility'] = $practiceUser->facility;
         if($company){
             $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
             $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
@@ -237,7 +237,8 @@ class PracticeRepository implements PracticeRepositoryInterface
             $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at);
             $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at);
         }
-        $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
+
+        
         //$temp_data['work_station'] = $this->getWorkPlace($practiceUser);
         // $temp_data['billable'] = $practiceUser->billable;
         // $temp_data['gender'] = $practiceUser->gender;
@@ -279,6 +280,7 @@ class PracticeRepository implements PracticeRepositoryInterface
                 //$temp_data['facility'] = $this->transform_($practice,'Purchase Orders & Category');
             }
         }elseif($source_type=="web"){//For web login
+            $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
             if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager"){ //general manager
                 $temp_data['facility'] = $main_branch;
             }else{ //user at branch level

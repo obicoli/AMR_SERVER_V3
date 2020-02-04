@@ -185,6 +185,7 @@ class PracticeController extends Controller
             8. Set Default Government Taxation Rates
             9. Set Company Supplier Dashboard Widgets
             10. Configure Company Sales Tax Accounts
+            11. If finance year begin date is not provided, default begin date should be 1st January of current Year, and END date to be 31st Dec of Current Year
         */
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();

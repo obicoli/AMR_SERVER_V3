@@ -20,7 +20,8 @@ Route::group( ['prefix'=>'oauth', 'middleware' => ['cors'] ], function (){
         Route::post('/logout', "Api\Auth\AuthController@logout");
         Route::post('/change/password', "Api\Auth\AuthController@changepassword");
     });
-    Route::post('/login/{source_type}', "Api\Auth\AuthController@login");
+    Route::post('/login', "Api\Auth\AuthController@login");
+    Route::post('/login/app', "Api\Auth\AuthController@mobile_login"); //This is for mobile login
     Route::post('/invitation', "Api\Auth\AuthController@invitation");
     Route::post('/privileges', "Api\Auth\AuthController@privilege");
     Route::get('/invitation/users/{uuid}/{practice_uuid}', "Api\Auth\AuthController@show");
@@ -863,7 +864,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::get('/{practice_id}', "Api\Product\Supply\ProductSupplyController@index");
             Route::post('/', "Api\Product\Supply\ProductSupplyController@create");
             Route::post('/{uuid}', "Api\Product\Supply\ProductSupplyController@update");
-
             Route::get('/gon/{practice_id}', "Api\Product\Supply\ProductSupplyController@index_gon");
             Route::post('/gon/{uuid}', "Api\Product\Supply\ProductSupplyController@update_gon");
         });
@@ -900,18 +900,18 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'types'], function (){
-            Route::post('/', "Api\Product\ProductTypeController@store");
+            Route::post('/', "Api\Product\ProductTypeController@create");
             Route::post('/{uuid}', "Api\Product\ProductTypeController@update");
-            Route::get('/practice/{practice_uuid}', "Api\Product\ProductTypeController@practice");
+            //Route::get('/practice/{practice_uuid}', "Api\Product\ProductTypeController@practice");
             Route::get('/{uuid}', "Api\Product\ProductTypeController@show");
-            Route::delete('/{id}', "Api\Product\ProductTypeController@destroy");
+            Route::delete('/{uuid}', "Api\Product\ProductTypeController@destroy");
             Route::get('/', "Api\Product\ProductTypeController@index");
         });
 
         Route::group( ['prefix'=>'categories' ], function (){
             Route::group( ['prefix'=>'subcategory' ], function (){
                 Route::get('/', "Api\Product\ProductSubCategoryController@index");
-                Route::get('/practice/{practice_uuid}', "Api\Product\ProductSubCategoryController@index");
+                //Route::get('/practice/{practice_uuid}', "Api\Product\ProductSubCategoryController@index");
                 Route::get('/{uuid}', "Api\Product\ProductSubCategoryController@show");
                 Route::post('/', "Api\Product\ProductSubCategoryController@create");
                 Route::delete('/{uuid}', "Api\Product\ProductSubCategoryController@destroy");
@@ -920,7 +920,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
             Route::group( ['prefix'=>'orders' ], function (){
                 Route::get('/', "Api\Product\ProductOrderCategoryController@index");
-                Route::get('/practice/{practice_uuid}', "Api\Product\ProductOrderCategoryController@index");
+                //Route::get('/practice/{practice_uuid}', "Api\Product\ProductOrderCategoryController@index");
                 Route::get('/{uuid}', "Api\Product\ProductOrderCategoryController@show");
                 Route::post('/', "Api\Product\ProductOrderCategoryController@create");
                 Route::delete('/{uuid}', "Api\Product\ProductOrderCategoryController@destroy");
@@ -938,7 +938,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::group( ['prefix'=>'items' ], function (){
             Route::post('/', "Api\Product\ProductController@store");
             Route::post('/upload', "Api\Product\ProductController@upload");
-            Route::get('/all_items', "Api\Product\ProductItemController@all_list");
+            //Route::get('/all_items', "Api\Product\ProductItemController@all_list");
             Route::get('/', "Api\Product\ProductItemController@index");
             Route::post('/{uuid}', "Api\Product\ProductItemController@update");
             Route::get('/{uuid}', "Api\Product\ProductItemController@show");
@@ -958,12 +958,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/', "Api\Product\TaxationController@create");
             Route::post('/{uuid}', "Api\Product\TaxationController@update");
             Route::delete('/{uuid}', "Api\Product\TaxationController@destroy");
-            // Route::get('/', "Api\Product\ProductSalesChargeController@index");
-            // Route::get('/{practice_uuid}', "Api\Product\ProductSalesChargeController@index");
-            // Route::post('/', "Api\Product\ProductSalesChargeController@create");
-            // Route::post('/{uuid}', "Api\Product\ProductSalesChargeController@update");
-            // Route::get('/practice/{practice_uuid}', "Api\Product\ProductSalesChargeController@practice");
-            // Route::delete('/{uuid}', "Api\Product\ProductSalesChargeController@destroy");
         });
 
         Route::group( ['prefix'=>'purchases' ], function (){
@@ -994,18 +988,18 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
             Route::group( ['prefix'=>'sectors' ], function (){
                 Route::get('/', "Api\Product\ProductBrandSectorController@index");
-                Route::get('/practice/{practice_uuid}', "Api\Product\ProductBrandSectorController@index");
-                Route::get('/{id}', "Api\Product\ProductBrandSectorController@show");
+                //Route::get('/practice/{practice_uuid}', "Api\Product\ProductBrandSectorController@index");
+                Route::get('/{uuid}', "Api\Product\ProductBrandSectorController@show");
                 Route::post('/', "Api\Product\ProductBrandSectorController@create");
-                Route::delete('/{id}', "Api\Product\ProductBrandSectorController@destroy");
+                Route::delete('/{uuid}', "Api\Product\ProductBrandSectorController@destroy");
                 Route::post('/{uuid}', "Api\Product\ProductBrandSectorController@update");
             });
 
             Route::get('/', "Api\Product\ProductBrandController@index");
-            Route::get('/practice/{practice_id}', "Api\Product\ProductBrandController@index");
-            Route::get('/{id}', "Api\Product\ProductBrandController@show");
-            Route::post('/', "Api\Product\ProductBrandController@store");
-            Route::delete('/{id}', "Api\Product\ProductBrandController@destroy");
+            //Route::get('/practice/{practice_id}', "Api\Product\ProductBrandController@index");
+            Route::get('/{uuid}', "Api\Product\ProductBrandController@show");
+            Route::post('/', "Api\Product\ProductBrandController@create");
+            Route::delete('/{uuid}', "Api\Product\ProductBrandController@destroy");
             Route::post('/{uuid}', "Api\Product\ProductBrandController@update");
         });
 
@@ -1030,25 +1024,34 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::group( ['prefix'=>'generics'], function (){
             Route::post('/', "Api\Product\ProductGenericController@create");
             Route::post('/{uuid}', "Api\Product\ProductGenericController@update");
-            Route::get('/practice/{practice_uuid}', "Api\Product\ProductGenericController@practice");
+            Route::get('/', "Api\Product\ProductGenericController@index");
+            //Route::get('/practice/{practice_uuid}', "Api\Product\ProductGenericController@practice");
             Route::get('/{uuid}', "Api\Product\ProductGenericController@show");
-            Route::delete('/{id}', "Api\Product\ProductGenericController@destroy");
+            Route::delete('/{uuid}', "Api\Product\ProductGenericController@destroy");
         });
 
         Route::group( ['prefix'=>'formulations'], function (){
             Route::get('/', "Api\Product\Formulation\FormulationController@index");
-            Route::post('/', "Api\Product\Formulation\FormulationController@store");
+            Route::post('/', "Api\Product\Formulation\FormulationController@create");
             Route::post('/{uuid}', "Api\Product\Formulation\FormulationController@update");
             Route::get('/{uuid}', "Api\Product\Formulation\FormulationController@show");
             Route::delete('/{id}', "Api\Product\Formulation\FormulationController@destroy");
         });
 
+        Route::group( ['prefix'=>'profiles'], function (){
+            Route::get('/', "Api\Product\ProductProfileController@index");
+            Route::post('/', "Api\Product\ProductProfileController@create");
+            Route::post('/{uuid}', "Api\Product\ProductProfileController@update");
+            Route::get('/{uuid}', "Api\Product\ProductProfileController@show");
+            Route::delete('/{id}', "Api\Product\ProductProfileController@destroy");
+        });
+
         Route::group( ['prefix'=>'routes' ], function (){
             Route::get('/', "Api\Product\Route\RouteController@index");
-            Route::post('/', "Api\Product\Route\RouteController@store");
+            Route::post('/', "Api\Product\Route\RouteController@create");
             Route::post('/{uuid}', "Api\Product\Route\RouteController@update");
             Route::get('/{uuid}', "Api\Product\Route\RouteController@show");
-            Route::delete('/', "Api\Product\Route\RouteController@destroy");
+            Route::delete('/{uuid}', "Api\Product\Route\RouteController@destroy");
         });
 
         Route::group( ['prefix'=>'vaccines' ], function (){

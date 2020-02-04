@@ -32,14 +32,16 @@ use App\Supplier\Repositories\SupplierRepository;
 class AccountingRepository implements AccountingRepositoryInterface
 {
     protected $model;
-    protected $helpers;
+    protected $helper;
+    protected $retainer_ledger_code;
     //protected $customerRepository;
     //protected $supplierRepository;
 
     public function __construct( Model $model )
     {
         $this->model = $model;
-        $this->helpers = new HelperFunctions();
+        $this->helper = new HelperFunctions();
+        $this->retainer_ledger_code = AccountsCoa::AC_RETAINED_EARNING_CODE;
         // $this->customerRepository = new CustomerRepository(new Customer());
         // $this->supplierRepository = new SupplierRepository( new Supplier() );
     }
@@ -109,27 +111,27 @@ class AccountingRepository implements AccountingRepositoryInterface
         return $custom_chart_of_coa;
 
     }
-    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[],Model $account_owner){
+    public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[],Model $account_owner=null){
         $default_coa = $mainAccount->coas()->get()->first();
         $inputs['accounts_type_id'] = $mainAccount->accounts_type_id;
-        $inputs['code'] = $this->helpers->getAccountNumber();
+        $inputs['code'] = $this->helper->getAccountNumber();
         $inputs['default_coa_id'] = $default_coa->id;
         $inputs['is_sub_account'] = true;
         $inputs['default_code'] = $mainAccount->default_code;
         $custom_chart_of_coa = AccountChartAccount::create($inputs);
         $custom_chart_of_coa = $company->chart_of_accounts()->save($custom_chart_of_coa);
-
-        //$custom_chart_of_coa->bank_accounts()->save($account_owner);
-        $account_owner->ledger_account_id = $custom_chart_of_coa->id;
-        $account_owner->save();
-
+        //Account Owner can be Bank Account, Supplier Account, Customer account etc
+        if($account_owner){
+            $account_owner->ledger_account_id = $custom_chart_of_coa->id;
+            $account_owner->save();
+        }
         return $custom_chart_of_coa;
     }
 
     public function account_statement(Model $company, AccountsHolder $accountsHolder){
 
 
-        $date_range = $this->helpers->get_default_date_range();
+        $date_range = $this->helper->get_default_date_range();
         $opening_balance = 0;
         $billed_amount = 0;
         $paid_amount = 0;
@@ -182,13 +184,13 @@ class AccountingRepository implements AccountingRepositoryInterface
 
         if( sizeof($filters) ){
 
-            $debited_total = $accountChartAccount->debited_vouchers()->whereBetween('voucher_date', [$filters['start'], $filters['end']])->sum('amount');
-            $credited_total = $accountChartAccount->credited_vouchers()->whereBetween('voucher_date', [$filters['start'], $filters['end']])->sum('amount');
+            $debited_total = $accountChartAccount->debited_vouchers()->whereBetween('voucher_date', $filters)->sum('amount');
+            $credited_total = $accountChartAccount->credited_vouchers()->whereBetween('voucher_date', $filters)->sum('amount');
             $debit_parent_balance = $accountChartAccount->debited_parent_vouchers()
-                ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
+                ->whereBetween('voucher_date', $filters)
                 ->sum('amount');
             $credited_parent_total = $accountChartAccount->credited_parent_vouchers()
-                ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
+                ->whereBetween('voucher_date', $filters)
                 ->sum('amount');
         }else{
             $debited_total = $accountChartAccount->debited_vouchers()->sum('amount');
@@ -290,8 +292,8 @@ class AccountingRepository implements AccountingRepositoryInterface
             'frequency'=>$accountsVatReturn->frequency,
             'period_start_date'=>$accountsVatReturn->status,
             'period_due_date'=>$accountsVatReturn->status,
-            'vat_period'=>$this->helpers->format_mysql_date($accountsVatReturn->period_start_date,$format).' - '.$this->helpers->format_mysql_date($accountsVatReturn->period_due_date,$format),
-            'submission_date'=>$this->helpers->format_mysql_date($accountsVatReturn->submission_date,$format),
+            'vat_period'=>$this->helper->format_mysql_date($accountsVatReturn->period_start_date,$format).' - '.$this->helper->format_mysql_date($accountsVatReturn->period_due_date,$format),
+            'submission_date'=>$this->helper->format_mysql_date($accountsVatReturn->submission_date,$format),
             'vat_payable'=>$vat_payable,
             'vat_refundable'=>$vat_refundable,
             'payment_and_refunds'=>0,
@@ -349,9 +351,9 @@ class AccountingRepository implements AccountingRepositoryInterface
         $opening_balance = 0;
         $opening_bal = $accountChartAccount->openingBalances()->get()->first();
         if($opening_bal){
-            $opening_balance->amount;
+            $opening_balance = $opening_bal->amount;
         }
-        $balance = $this->calculate_account_balance($accountChartAccount);
+        $balance = $this->calculate_account_balance($accountChartAccount,$filters);
         $company = $accountChartAccount->owning()->get()->first();
         $total_transaction = $company->vouchers()
             ->where('credited', $accountChartAccount->code)
@@ -377,7 +379,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         //         ->whereBetween('voucher_date', [$filters['start'], $filters['end']])
         //         ->get();
         // }else{
-        //     $filters = $this->helpers->get_default_filter();
+        //     $filters = $this->helper->get_default_filter();
             // $double_entries = $company->vouchers()
             //     ->where('credited', $accountChartAccount->code)
             //     ->orWhere('debited', $accountChartAccount->code)
@@ -464,11 +466,11 @@ class AccountingRepository implements AccountingRepositoryInterface
         $credited_parent = 0;
         $debited_parent = 0;
         $cr_ac = AccountChartAccount::where('code',$credited_code)->get()->first();
-        if($cr_ac->is_sub_account){
+        if( ($cr_ac) && ($cr_ac->is_sub_account) ){
             $credited_parent = $cr_ac->coas()->get()->first()->code;
         }
         $dr_ac = AccountChartAccount::where('code',$debited_code)->get()->first();
-        if($dr_ac->is_sub_account){
+        if( ($dr_ac) && ($dr_ac->is_sub_account) ){
             $debited_parent = $dr_ac->coas()->get()->first()->code;
         }
 
@@ -612,7 +614,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         return $report;
     }
 
-    public function create_trail_balance(Model $company){
+    public function create_trail_balance(Model $company,$filters=[]){
 
         /*
             DEBIT_SIDE = Assets + Expenses + Drawings
@@ -635,6 +637,8 @@ class AccountingRepository implements AccountingRepositoryInterface
         */
 
         $report = array();
+        $report_total['total_debit'] = 0;
+        $report_total['total_credit'] = 0;
         $account_natures = AccountsNature::all();
         foreach ($account_natures as $account_nature ) {
 
@@ -653,50 +657,176 @@ class AccountingRepository implements AccountingRepositoryInterface
                     $temp_main['name'] = $default_account->name;
                     $company_chart_accounts = $company->chart_of_accounts()
                     ->where('default_coa_id',$default_account->id)
-                    //->where('is_sub_account',false)
+                    ->where('is_sub_account',false)
+                    ->where('is_special',true)
                     ->get();
-                    $accounts = array();
+                    //$accounts = array();
                     foreach ($company_chart_accounts as $company_chart_account) {
+                        
+                        // $temp_account['id'] = $company_chart_account->uuid;
+                        // $temp_account['name'] = $company_chart_account->name;
+                        // $temp_account['is_sub_account'] = $company_chart_account->is_sub_account;
+                        // $temp_account['status'] = $company_chart_account->status;
+                        // $temp_account['notes'] = $company_chart_account->notes;
+                        // $temp_account['code'] = $company_chart_account->code;
+                        // $temp_account['balance'] = 10;
+                        // $temp_account['nature_type'] = $this->transform_account_nature($account_nature);
 
-                        $temp_account['id'] = $company_chart_account->uuid;
-                        $temp_account['name'] = $company_chart_account->name;
-                        $temp_account['is_sub_account'] = $company_chart_account->is_sub_account;
-                        $temp_account['status'] = $company_chart_account->status;
-                        $temp_account['notes'] = $company_chart_account->notes;
-                        $temp_account['code'] = $company_chart_account->code;
-                        $temp_account['nature_type'] = $this->transform_account_nature($account_nature);
                         //Get and process vouchers activities that has happened on this account
-                        $transactions = array();
-                        $vouchers = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->table('accounts_vouchers')
-                                        ->where('credited',$company_chart_account->code)
-                                        ->orWhere('debited',$company_chart_account->code)
+                        // $transactions = array();
+                        
+                        if( sizeof($filters) ){
+                            $vouchers = $company_chart_account->vouchers($company_chart_account->code,$filters)->count();
+                        }else{
+                            $vouchers = $company_chart_account->vouchers($company_chart_account->code)->count();
+                        }
                                         //->orWhere('credited_parent',$company_chart_account->code)
                                         //->orWhere('debited_parent',$company_chart_account->code)
-                                        ->get();
-                        $account_balance = $vouchers->count();
-                        foreach ($vouchers as $vouche) {
-                            $voucher = AccountsVoucher::find($vouche->id);
-                            $temp_trans['debit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_DEBIT);
-                            $temp_trans['credit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_CREDIT);
-                            array_push($transactions,$temp_trans);
+                                        //->get();
+                        // $account_balance = $vouchers->count();
+                        // foreach ($vouchers as $vouche) {
+                        //     $voucher = AccountsVoucher::find($vouche->id);
+                        //     $temp_trans['debit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_DEBIT);
+                        //     $temp_trans['credit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_CREDIT);
+                        //     array_push($transactions,$temp_trans);
+                        // }
+                        // $temp_account['transactions'] = $transactions;
+
+                        if( $vouchers > 0 ){
+                            $temp_account = $this->transform_company_chart_of_account($company_chart_account,$filters);
+                            //Log::info($temp_account);
+                            $acc_natu = $temp_account['account_type']['accounts_nature']['name'];
+                            $assets_ = AccountsCoa::ASSETS;
+                            $expense_ = AccountsCoa::EXPENSE;
+                            $equity_ = AccountsCoa::EQUITY;
+                            $revenue_ = AccountsCoa::REVENUE;
+                            $liability_ = AccountsCoa::LIABILITY;
+                            if( ($acc_natu == $assets_) || ($acc_natu == $expense_)  ){
+                                $report_total['total_debit'] += $temp_account['balance'];
+                                array_push($report,$temp_account);
+                            }elseif( $temp_account['default_code']== $this->retainer_ledger_code ){ //Retainer Earning Balance is a Calculated figure
+                                //Log::info($temp_account);
+                                // if($temp_account['default_code'] != $this->retainer_ledger_code){
+                                //     $report_total['total_credit'] += $temp_account['balance'];
+                                //     array_push($report,$temp_account);
+                                // }
+                            }
+                            else{
+                                $report_total['total_credit'] += $temp_account['balance'];
+                                array_push($report,$temp_account);
+                            }
                         }
-                        $temp_account['transactions'] = $transactions;
-                        if($account_balance>0){
-                            array_push($report,$temp_account);
-                        }
-                        
                     }
-                    //$temp_main['company_chart_account'] = $accounts;
                 }
             }
             //$temp['accounts'] = $accounts_under_nature;
 
             //array_push($report,$temp);
         }
-        return $report;
+        $report_total['transactions'] = $report;
+        return $report_total;
     }
 
-    public function create_balance_sheet(Model $company){
+    public function retainedEarnings(Model $company, $filters=[]){
+        /*
+            What Is Retained Earnings?
+            Retained earnings (RE) is the amount of net income 
+            left over for the business after it has paid out dividends to its shareholders.
+            A business generates earnings that can be positive (profits) or negative (losses).
+
+            Retained Earnings Formula and Calculation:
+            RE=BP+Net Income (or Loss)−C−S
+            where:
+            BP=Beginning Period RE
+            C=Cash dividends
+            S=Stock dividends
+            //-------------------
+            //https://xplaind.com/970054/retained-earnings
+            //https://courses.lumenlearning.com/suny-finaccounting/chapter/retained-earnings-entries-and-statements/
+            //https://www.double-entry-bookkeeping.com/retained-earnings/retained-earnings-statement/
+            Opening retained earnings
+            Add/(Less)	Adjustment due to changes in accounting policies and errors
+            Add/(Less)	Net income (loss) for a period
+            Less	Dividends
+            Equals	Closing retained earnings
+​	
+        */
+
+        
+        $accountingVouchers = new AccountingRepository(new AccountsVoucher());
+        $company_retained_earn_ledger_ac = $company->chart_of_accounts()
+            ->where('default_code',$this->retainer_ledger_code)
+            ->where('is_sub_account',false)
+            ->where('is_special',true)
+            ->get()
+            ->first();
+
+        $opening_rn = 0;
+        $adjustments_rn = 0;
+        $net_income = $this->netIncome($company,$filters);
+        $total_dividends = 0;
+        $closing_rn = ( ($opening_rn+$adjustments_rn+$net_income) - $total_dividends );
+        //Log::info($company_retained_earn_ledger_ac);
+        $amount = $closing_rn;
+        $as_of = date('Y-m-d');
+        $trans_name = "Net Income";
+        $transaction_id = $this->helper->getToken(10);
+        if($closing_rn > 0){ //Profit Realized
+            $debited_ac = "0000";
+            $credited_ac = $company_retained_earn_ledger_ac->code;
+        }elseif($closing_rn < 0){ //Loss Realized
+            $amount = $closing_rn * (-1);
+            $debited_ac = $company_retained_earn_ledger_ac->code;
+            $credited_ac = "0000";
+        }
+
+        //Log::info($closing_rn);
+        $double_entry = $company_retained_earn_ledger_ac->voucher($company_retained_earn_ledger_ac->code,$filters);
+        if($double_entry){
+            $double_entry->credited = $credited_ac;
+            $double_entry->debited = $debited_ac;
+            $double_entry->amount = $amount;
+            $double_entry->save();
+        }else{
+            $double_entry = $accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
+        }
+        
+    }
+
+    public function netIncome(Model $company, $filters=[]){
+        $account_types = AccountsType::all();
+        //Net income calculation: Net Income = Total Revenue - Total Expenses;
+        //Total Revenue
+        $total_revenue = 0;
+        $total_expense = 0;
+        $total_income = 0;
+        foreach($account_types as $account_type){
+            if($account_type->name == 'Income' || $account_type->name == 'Other income'){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    if($account->default_code != $this->retainer_ledger_code){
+                        $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                        if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                            $total_income += $account_transformed['balance'];
+                        }
+                    }
+                }
+            }elseif( $account_type->name == 'Cost of sales' || $account_type->name == 'Expenses' || $account_type->name == 'Other expense' ){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        $total_expense += $account_transformed['balance'];
+
+                    }
+                }
+            }
+        }
+        $total_revenue = $total_income - $total_expense;
+        return $total_revenue;
+    }
+
+    public function create_balance_sheet(Model $company, $filters=[]){
 
         /*
             The balance sheet displays the company’s total assets, and how these assets are financed,
@@ -707,7 +837,6 @@ class AccountingRepository implements AccountingRepositoryInterface
              Total Liability = Current Liability + Non-current Liability
              Total Equity = Share Capital + Retained Earning
 
-
              The left side of the balance sheet outlines all a company’s assets. On the right side, 
              the balance sheet outlines the companies liabilities and shareholders’ equity. On either 
              side, the main line items are generally classified by liquidity. More liquid accounts 
@@ -715,61 +844,209 @@ class AccountingRepository implements AccountingRepositoryInterface
              as Plant, Property, and Equipment (PP&E) and Long-Term Debt. The assets and liabilities
               are also separated into two categories: current asset/liabilities and non-current
                (long-term) assets/liabilities.
-
         */
+
+        $this->retainedEarnings($company,$filters);
+        $current_assets = array();
+        $current_assets['title'] = "Current assets";
+        $current_assets['accounts'] = [];
+        $current_assets['total'] = 0;
+
+        $fixed_assets = array();
+        $fixed_assets['title'] = "Property, plant & equipment";
+        $fixed_assets['accounts'] = [];
+        $fixed_assets['total'] = 0;
+
+        $other_assets = array();
+        $other_assets['title'] = "Other assets";
+        $other_assets['accounts'] = [];
+        $other_assets['total'] = 0;
+        $total_assets = 0;
+
+        $current_liability = array();
+        $current_liability['title'] = "Current liabilities";
+        $current_liability['accounts'] = [];
+        $current_liability['total'] = 0;
+        $long_term_liability = array();
+        $long_term_liability['title'] = "Long term liabilities";
+        $long_term_liability['accounts'] = [];
+        $long_term_liability['total'] = 0;
+        $total_liability = 0;
+
+        $owner_equity = array();
+        $owner_equity['title'] = "Shareholder's Equity";
+        $owner_equity['accounts'] = [];
+        $owner_equity['total'] = 0;
+        $total_equity = 0;
+        $total_liability_and_equity = 0;
+
+        $show_balance_sheet = false;
+
         $report = array();
-        $account_natures = AccountsNature::where('name',AccountsCoa::ASSETS)
-            ->orWhere('name',AccountsCoa::LIABILITY)->orWhere('name',AccountsCoa::EQUITY)->get();
-        foreach ($account_natures as $account_nature ) {
 
-            $temp['id'] = $account_nature->id;
-            $temp['nature_type'] = $account_nature->name;
-            $temp_type_account = array(); //--------------------------------------------------------------
-            //$accounts_under_nature = array();
-            //Get account type of this nature
-            $account_types = $account_nature->account_types()->get();
-            Log::info($account_types);
-            foreach ($account_types as $account_type) {
-
-                $temp_types = $this->transform_account_type($account_type);
-                //Get company chart of accounts under this account type
-                $accounts = $company->chart_of_accounts()->where('accounts_type_id',$account_type->id)->get();
-                $account_array = array();
-                foreach ($accounts as $company_chart_account) {
-                    $temp_account['id'] = $company_chart_account->uuid;
-                    $temp_account['name'] = $company_chart_account->name;
-                    $temp_account['is_sub_account'] = $company_chart_account->is_sub_account;
-                    $temp_account['status'] = $company_chart_account->status;
-                    $temp_account['notes'] = $company_chart_account->notes;
-                    $temp_account['code'] = $company_chart_account->code;
-                    $temp_account['nature_type'] = $this->transform_account_nature($account_nature);
-                    //Get and process vouchers activities that has happened on this account
-                    $transactions = array();
-                    $vouchers = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->table('accounts_vouchers')
-                                    ->where('credited',$company_chart_account->code)
-                                    ->orWhere('debited',$company_chart_account->code)
-                                    //->orWhere('credited_parent',$company_chart_account->code)
-                                    //->orWhere('debited_parent',$company_chart_account->code)
-                                    ->get();
-                    $account_balance = $vouchers->count();
-                    foreach ($vouchers as $vouche) {
-                        $voucher = AccountsVoucher::find($vouche->id);
-                        $temp_trans['debit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_DEBIT);
-                        $temp_trans['credit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_CREDIT);
-                        array_push($transactions,$temp_trans);
+        $account_types = AccountsType::all();
+        foreach($account_types as $account_type){
+            //Log::info($account_type->name);
+            if($account_type->name == 'Accounts Receivable(A/R)'){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($current_assets['accounts'],$account_transformed);
+                        $current_assets['total'] += $account_transformed['balance'];
+                        $total_assets += $account_transformed['balance'];
+                        $show_balance_sheet = true;
                     }
-                    $temp_account['transactions'] = $transactions;
-                    if($account_balance > 0){
-                        array_push($account_array,$temp_account);
-                    }
-                    //array_push($account_array,$temp_account);
                 }
-                $temp_types['accounts'] = $account_array;
-                array_push($temp_type_account,$temp_types);
+            }elseif($account_type->name == "Cash and Cash Equivalent"){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($current_assets['accounts'],$account_transformed);
+                        $current_assets['total'] += $account_transformed['balance'];
+                        $total_assets += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
+            }elseif($account_type->name == "Current assets"){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($current_assets['accounts'],$account_transformed);
+                        $current_assets['total'] += $account_transformed['balance'];
+                        $total_assets += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
+            }elseif($account_type->name == "Fixed assets"){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($fixed_assets['accounts'],$account_transformed);
+                        $fixed_assets['total'] += $account_transformed['balance'];
+                        $total_assets += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
+            }elseif($account_type->name == "Non-current assets"){
+                
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+               // Log::info($accounts);
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($other_assets['accounts'],$account_transformed);
+                        $other_assets['total'] += $account_transformed['balance'];
+                        $total_assets += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
+            }elseif($account_type->name == "Current liability" || $account_type->name == "Credit Card" || $account_type->name == "Accounts Payable (A/P)"){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                 foreach($accounts as $account){
+                     $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                     if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                         array_push($current_liability['accounts'],$account_transformed);
+                         $current_liability['total'] += $account_transformed['balance'];
+                         $total_liability += $account_transformed['balance'];
+                         $total_liability_and_equity += $account_transformed['balance'];
+                         $show_balance_sheet = true;
+                     }
+                 }
+            }elseif( $account_type->name == "Non-current liabilities" ){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($long_term_liability['accounts'],$account_transformed);
+                        $long_term_liability['total'] += $account_transformed['balance'];
+                        $total_liability += $account_transformed['balance'];
+                        $total_liability_and_equity += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
+            }elseif( $account_type->name == "Owner's equity" ){
+                $accounts = $company->chart_of_accounts()->where('is_sub_account',false)->where('accounts_type_id',$account_type->id)->where('is_special',true)->get();
+                foreach($accounts as $account){
+                    $account_transformed = $this->transform_company_chart_of_account($account,$filters);
+                    if( ($account_transformed['balance']<0) || ($account_transformed['balance']>0) ){
+                        array_push($owner_equity['accounts'],$account_transformed);
+                        $owner_equity['total'] += $account_transformed['balance'];
+                        $total_equity += $account_transformed['balance'];
+                        $total_liability_and_equity += $account_transformed['balance'];
+                        $show_balance_sheet = true;
+                    }
+                }
             }
-            $temp['account_types'] = $temp_type_account;
-            array_push($report,$temp);
         }
+
+        $report['current_assets'] = $current_assets;
+        $report['fixed_assets'] = $fixed_assets;
+        $report['other_assets'] = $other_assets;
+        $report['total_assets'] = $total_assets;
+        $report['current_liability'] = $current_liability;
+        $report['long_term_liability'] = $long_term_liability;
+        $report['total_liability'] = $total_liability;
+        $report['owner_equity'] = $owner_equity;
+        $report['total_equity'] = $total_equity;
+        $report['total_liability_and_equity'] = $total_liability_and_equity;
+        $report['show_balance_sheet'] = $show_balance_sheet;
+
+        // $account_natures = AccountsNature::where('name',AccountsCoa::ASSETS)
+        //     ->orWhere('name',AccountsCoa::LIABILITY)->orWhere('name',AccountsCoa::EQUITY)->get();
+        // foreach ($account_natures as $account_nature ) {
+
+        //     $temp['id'] = $account_nature->id;
+        //     $temp['nature_type'] = $account_nature->name;
+        //     $temp_type_account = array(); //--------------------------------------------------------------
+        //     //$accounts_under_nature = array();
+        //     //Get account type of this nature
+        //     $account_types = $account_nature->account_types()->get();
+        //     Log::info($account_types);
+        //     foreach ($account_types as $account_type) {
+
+        //         $temp_types = $this->transform_account_type($account_type);
+        //         //Get company chart of accounts under this account type
+        //         $accounts = $company->chart_of_accounts()->where('accounts_type_id',$account_type->id)->get();
+        //         $account_array = array();
+        //         foreach ($accounts as $company_chart_account) {
+        //             $temp_account['id'] = $company_chart_account->uuid;
+        //             $temp_account['name'] = $company_chart_account->name;
+        //             $temp_account['is_sub_account'] = $company_chart_account->is_sub_account;
+        //             $temp_account['status'] = $company_chart_account->status;
+        //             $temp_account['notes'] = $company_chart_account->notes;
+        //             $temp_account['code'] = $company_chart_account->code;
+        //             $temp_account['nature_type'] = $this->transform_account_nature($account_nature);
+        //             //Get and process vouchers activities that has happened on this account
+        //             $transactions = array();
+        //             $vouchers = DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->table('accounts_vouchers')
+        //                             ->where('credited',$company_chart_account->code)
+        //                             ->orWhere('debited',$company_chart_account->code)
+        //                             //->orWhere('credited_parent',$company_chart_account->code)
+        //                             //->orWhere('debited_parent',$company_chart_account->code)
+        //                             ->get();
+        //             $account_balance = $vouchers->count();
+        //             foreach ($vouchers as $vouche) {
+        //                 $voucher = AccountsVoucher::find($vouche->id);
+        //                 $temp_trans['debit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_DEBIT);
+        //                 $temp_trans['credit'] = $this->transform_journal_entry($voucher,AccountsCoa::BALANCE_CREDIT);
+        //                 array_push($transactions,$temp_trans);
+        //             }
+        //             $temp_account['transactions'] = $transactions;
+        //             if($account_balance > 0){
+        //                 array_push($account_array,$temp_account);
+        //             }
+        //             //array_push($account_array,$temp_account);
+        //         }
+        //         $temp_types['accounts'] = $account_array;
+        //         array_push($temp_type_account,$temp_types);
+        //     }
+        //     $temp['account_types'] = $temp_type_account;
+        //     array_push($report,$temp);
+        // }
         return $report;
     }
 

@@ -20,6 +20,7 @@ class CreateProductAdministrationRoutesTable extends Migration
             $table->string('name')->unique()->index();
             $table->string('description')->nullable();
             $table->boolean('default_sys')->default(false);
+            $table->boolean('status')->default(true);
             $table->string('uuid')->index();
             $table->unsignedInteger('owner_id')->nullable();
             $table->string('owner_type')->nullable();

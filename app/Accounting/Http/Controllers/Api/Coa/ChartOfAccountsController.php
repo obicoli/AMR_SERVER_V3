@@ -114,17 +114,47 @@ class ChartOfAccountsController extends Controller
             ->paginate(15);
         }elseif($request->has('balance_sheet_accounts')){
             $open_balance_equity_code = AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE;
+            $ac_payable_code = AccountsCoa::AC_PAYABLE;
+            $ac_receivable_code = AccountsCoa::AC_RECEIVABLE_CODE;
             $company_chart_of_accounts = $company->chart_of_accounts()
                 ->where('is_special',true)
                 ->where('is_sub_account',false)
                 ->where('default_code','!=',$open_balance_equity_code)
+                ->where('code','!=',$open_balance_equity_code)
+                ->where('default_code','!=',$ac_payable_code)
+                ->where('default_code','!=',$ac_receivable_code)
+                ->where('code','!=',$ac_receivable_code)
+                ->where('code','!=',$ac_payable_code)
                 ->orderBy('accounts_type_id')
                 ->paginate(150);
+        }elseif($request->has('account_type')){
+            switch($request->account_type){
+                case "Sales and Purchase Accounts":
+                    $cos_code = AccountsCoa::AC_COST_OF_SALES_CODE;
+                    $purchase_code = AccountsCoa::AC_INVENTORY_CODE;
+                    $company_chart_of_accounts = $company->chart_of_accounts()
+                    ->where('is_special',false)
+                    ->where('is_sub_account',true)
+                    ->where('default_code',$cos_code)
+                    ->orWhere('default_code',$purchase_code)
+                    ->orderBy('accounts_type_id')
+                    ->paginate(15);
+                    break;
+                default:
+                    $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
+                    break;
+            }
+            // $open_balance_equity_code = AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE;
+            // $company_chart_of_accounts = $company->chart_of_accounts()
+            //     ->where('is_special',true)
+            //     ->where('is_sub_account',false)
+            //     ->where('default_code','!=',$open_balance_equity_code)
+            //     ->orderBy('accounts_type_id')
+            //     ->paginate(150);
         }
         else{
             $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
         }
-
         $paged_data = $this->helper->paginator($company_chart_of_accounts);
         foreach ($company_chart_of_accounts as $company_chart_of_account) {
             array_push($paged_data['data'],$this->accountChartAccount->transform_company_chart_of_account($company_chart_of_account));
@@ -136,13 +166,51 @@ class ChartOfAccountsController extends Controller
     public function create(Request $request){
         //Log::info($request);
         $http_resp = $this->http_response['200'];
-        $rule = [
-            'name'=>'required',
-            'account_type_id'=>'required',
-            'detail_type_id'=>'required',
-            //'as_of'=>'required',
-            'is_sub_account'=>'required'
-        ];
+        $http_resp_500 = $this->http_response['500'];
+        $http_resp_422 = $this->http_response['422'];
+        //Find the commpany
+        $company = $this->practices->find($request->user()->company_id);
+
+        if($request->has('sales_purchase')){ //Here Create a Sales or Purchase Account(Though it still chart of account)
+            $rule = [
+                'name'=>'required',
+                'group_type'=>'required',
+            ];
+            $validation = Validator::make($request->all(),$rule,$this->helper->messages());
+            if ($validation->fails()){
+                $http_resp_422['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp_422,422);
+            }
+            //Check if account name is in use
+            $account_name = $company->chart_of_accounts()->where('name',$request->name)->where('default_code',$request->group_type)->get()->first();
+            if($account_name){
+                $http_resp_422['errors'] = ["Account name already in use"];
+                return response()->json($http_resp_422,422);
+            }
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+            try{
+                //
+                $inputs = $request->except(['group_type']);
+                $mainAccount = $company->chart_of_accounts()->where('is_special',true)->where('is_sub_account',false)->where('default_code',$request->group_type)->get()->first();
+                $account = $this->accountChartAccount->create_sub_chart_of_account($company,$mainAccount,$inputs,null);
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
+                $http_resp['description'] = "Account successful created!";
+                return response()->json($http_resp);
+            }catch(\Exception $e){
+                Log::info($e);
+                DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+                return response()->json($http_resp_500,500);
+            }
+        }else{
+            $rule = [
+                'name'=>'required',
+                'account_type_id'=>'required',
+                'detail_type_id'=>'required',
+                //'as_of'=>'required',
+                'is_sub_account'=>'required'
+            ];
+        }
+        
         $validation = Validator::make($request->all(),$rule,$this->helper->messages());
         if ($validation->fails()){
             $http_resp = $this->http_response['422'];
@@ -160,12 +228,12 @@ class ChartOfAccountsController extends Controller
                 return response()->json($http_resp,422);
             }
         }
+        
+        //Here create chart of accounts
         //Log::info($request);
         //DB::beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try{
-            //Find the commpany
-            $company = $this->practices->find($request->user()->company_id);
             //Get selected account type
             $account_type = $this->accountTypes->findByUuid($request->account_type_id);
             $account_nature = $account_type->accounts_natures()->get()->first();
@@ -274,7 +342,7 @@ class ChartOfAccountsController extends Controller
                             (c) Liability : [Dr | Cr]==["Opening Balance Equity" | "New Ac"] Transaction is called "Journal Entry"
                         6. Inventory Account cannot have "Opening Balance" or "Unpaid Balance"
                         7. Once an account has been created with "Opening Balance" Opening Balance field should be hidden
-                        8. Account Payable, Account Receivable dont have "OB" field or creation
+                        8. Account Payable, Account Receivable dont have "OB" field on creation
                     */
                     //Generate a transaction ID
                     $transaction_id = $this->helper->getToken(10);

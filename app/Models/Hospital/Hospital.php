@@ -135,6 +135,7 @@ class Hospital extends Model
     public function generics(){ return $this->morphMany(ProductGeneric::class, 'owner','owner_type','owner_id'); }
     public function product_formulations(){ return $this->morphMany(ProductFormulation::class, 'owner','owner_type','owner_id'); }
     public function product_route(){ return $this->morphMany(ProductAdministrationRoute::class,'owner','owner_type','owner_id'); }
+    public function product_routes(){ return $this->morphMany(ProductRoutes::class, 'owner','owner_type','owner_id'); }
     public function sales_charge(){ return $this->morphMany(ProductSalesCharge::class,'owner','owner_type','owner_id'); }
     public function product_taxations(){ return $this->morphMany(ProductTaxation::class,'owner','owner_type','owner_id'); }
     //-----------------------------------------------------------
@@ -145,7 +146,7 @@ class Hospital extends Model
     
     
     public function product_vaccines(){ return $this->morphMany(ProductVaccine::class, 'owner','owner_type','owner_id'); }
-    public function product_routes(){ return $this->morphMany(ProductRoutes::class, 'owner','owner_type','owner_id'); }
+    
     public function product_requisitions(){ return $this->morphMany(ProductRequistion::class, 'owner','owner_type','owner_id'); }
     public function product_supply(){ return $this->morphMany(ProductSupply::class, 'owner','owner_type','owner_id'); }
     public function product_stock_inward(){ return $this->morphMany(ProductStockInward::class, 'owner','owner_type','owner_id'); }
