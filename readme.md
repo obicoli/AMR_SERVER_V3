@@ -24,6 +24,7 @@
 ##https://accounting-simplified.com/accounting-for-sales-tax-on-purchases.html
 ##https://www.double-entry-bookkeeping.com/accounts-payable/purchase-discount/
 ##https://kristymonahan.com/sales-receipts-vs-receive-payments-vs-bank-deposits-explained/
+##https://ubuntu.com/tutorials/tutorial-create-a-usb-stick-on-ubuntu#3-launch-startup-disk-creator
 
 ## Inventory Module:
 [Vouchers](http://localhost)

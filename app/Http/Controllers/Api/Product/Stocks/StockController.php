@@ -253,11 +253,11 @@ class StockController extends Controller
         Log::info($request);
         $http_resp = $this->http_response['200'];
         $rules = [
-            'facility_id'=>'required',
-            'store_id'=>'required',
-            'product_id'=>'required',
-            'department_id'=>'required',
-            'sub_store_id'=>'required',
+            // 'facility_id'=>'required',
+            // 'store_id'=>'required',
+            'stock_id'=>'required',
+            // 'department_id'=>'required',
+            // 'sub_store_id'=>'required',
             'barcode'=>'required',
             'qty'=>'required',
         ];
@@ -270,18 +270,28 @@ class StockController extends Controller
 
         try{
 
-            $practice = $this->practice->findByUuid($request->facility_id);
+            // $practice = $this->practice->findByUuid($request->facility_id);
+            // $practiceMain = $this->practice->findParent($practice);
+            // $department = $this->departments->findByUuid($request->department_id);
+            // $store = $this->stores->findByUuid($request->store_id);
+            // $sub_store = $this->stores->findByUuid($request->sub_store_id);
+
+            $practice = $this->practice->find($request->user()->company_id);
             $practiceMain = $this->practice->findParent($practice);
-            $department = $this->departments->findByUuid($request->department_id);
-            $store = $this->stores->findByUuid($request->store_id);
-            $sub_store = $this->stores->findByUuid($request->sub_store_id);
+            $department = $this->departments->find($request->user()->department_id);
+            $store = $this->stores->find($request->user()->store_id);
+            $sub_store = $this->stores->find($request->user()->sub_store_id);
+
             //Save transaction
             //Enterprise
             $stock_taking = $practiceMain->product_stock_taking()->create($request->all());
             //Facility
             $stock_taking = $practiceMain->product_stock_taking()->save($stock_taking);
-            //Department
-            $stock_taking = $department->product_stock_taking()->save($stock_taking);
+            //
+            if($department){
+                //Department
+                $stock_taking = $department->product_stock_taking()->save($stock_taking);
+            }
             if($store){
                 $stock_taking = $store->product_stock_taking()->save($stock_taking);
             }
@@ -305,10 +315,10 @@ class StockController extends Controller
         $http_resp = $this->http_response['200'];
         Log::info($request);
         $rules = [
-            'facility_id'=>'required',
-            'store_id'=>'required',
-            'department_id'=>'required',
-            'sub_store_id'=>'required',
+            // 'facility_id'=>'required',
+            // 'store_id'=>'required',
+            // 'department_id'=>'required',
+            // 'sub_store_id'=>'required',
             'barcode'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -320,22 +330,26 @@ class StockController extends Controller
 
         DB::beginTransaction();
         try{
+
             //$product_stock_inw = $this->product_stock_inward->findByUuid($request->barcode);
             // 'barcode' => '8904097385328',
             // 'facility_id' => 'd25b2bfe-f902-4652-8564-c0c62520bec5',
             // 'store_id' => '9c825118-5433-4ef8-8304-6e951d78423c',
             // 'sub_store_id' => 'b090e6ea-1ac0-417e-ab60-070b2443d3b0',
             // 'department_id' => '4c3732b0-a0c5-4098-8cad-6fad5ded9db8',
-            $practice = $this->practice->findByUuid($request->facility_id);
+            
+            $practice = $this->practice->find($request->user()->company_id);
             $practiceMain = $this->practice->findParent($practice);
-            $department = $this->departments->findByUuid($request->department_id);
-            $store = $this->stores->findByUuid($request->store_id);
-            $sub_store = $this->stores->findByUuid($request->sub_store_id);
+            $department = $this->departments->find($request->user()->department_id);
+            $store = $this->stores->find($request->user()->store_id);
+            $sub_store = $this->stores->find($request->user()->sub_store_id);
             //
             $product_stock_inward = $practice->product_stock_inward()->where('barcode',$request->barcode)->first();
             $total = $practice->product_stock_inward()->where('barcode',$request->barcode)->sum('amount');
-            $product_stock_inward = $department->product_stock_inward()->where('barcode',$request->barcode)->first();
-            $total = $department->product_stock_inward()->where('barcode',$request->barcode)->sum('amount');
+            if($department){
+                $product_stock_inward = $department->product_stock_inward()->where('barcode',$request->barcode)->first();
+                $total = $department->product_stock_inward()->where('barcode',$request->barcode)->sum('amount');
+            }
             if($store){
                 $product_stock_inward = $store->product_stock_inward()->where('barcode',$request->barcode)->first();
                 $total = $store->product_stock_inward()->where('barcode',$request->barcode)->sum('amount');
@@ -350,12 +364,6 @@ class StockController extends Controller
                 $item = $this->helper->create_product_attribute($product_item,"Low");
                 $item['stock_total'] = $total;
                 $http_resp['results'] = $item;
-                // foreach ($product_stock_inward as $product_stock) {
-                //     $product_item = 
-                //     $item = $this->helper->create_product_attribute($practiceProductItem,"Low");
-                //     $item['stock_total'] = $item['stock'];
-                //     break;
-                // }
             }else{
                 $http_resp = $this->http_response['422'];
                 Log::info("Wrong Barcode Trying to fetch Item");

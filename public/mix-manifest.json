@@ -1,8 +1,8 @@
 {
     "/js/app.js": "/js/app.js",
     "/css/app.css": "/css/app.css",
-    "/js/doctor.js": "/js/doctor.js",
-    "/css/doctor.css": "/css/doctor.css",
-    "/js/superadmin.js": "/js/superadmin.js",
-    "/css/superadmin.css": "/css/superadmin.css"
+    "/vendors~canvg.js": "/vendors~canvg.js",
+    "/vendors~pdfmake.js": "/vendors~pdfmake.js",
+    "/vendors~xlsx.js": "/vendors~xlsx.js",
+    "/xlsx.js": "/xlsx.js"
 }

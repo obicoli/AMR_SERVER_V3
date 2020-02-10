@@ -258,14 +258,11 @@ class UploadController extends Controller
     }
 
     public function uploads(Request $request){
-
-       // Log::info($request);
         $http_resp = $this->http_response['200'];
         $results = array();
         $mimes = [];
         $rules = [
             'file' => 'required',
-            'practice_id' => 'required',
             'upload_type' => 'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -287,8 +284,7 @@ class UploadController extends Controller
                 $mimes = array('application/vnd.ms-excel','text/plain','text/csv','text/tsv');
                 break;
         }
-
-
+        
         DB::beginTransaction();
         try{
             if(in_array($_FILES['file']['type'],$mimes)){

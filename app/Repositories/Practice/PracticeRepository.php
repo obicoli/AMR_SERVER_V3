@@ -83,7 +83,6 @@ class PracticeRepository implements PracticeRepositoryInterface
             ->first();
     }
 
-
     public function findOwner(Practice $practice)
     {
         // TODO: Implement findOwner() method.
@@ -135,7 +134,6 @@ class PracticeRepository implements PracticeRepositoryInterface
         return $this->practice->all()->where('email',$email);
     }
 
-
     public function save(Practice $practice)
     {
         // TODO: Implement save() method.
@@ -166,7 +164,6 @@ class PracticeRepository implements PracticeRepositoryInterface
         // TODO: Implement getByUserID() method.
         return $this->practice->all()->where('user_id',$user_id);
     }
-
 
     public function update(array $arr, $uuid)
     {
@@ -208,6 +205,8 @@ class PracticeRepository implements PracticeRepositoryInterface
         $temp_data['email'] = $practiceUser->email;
         $temp_data['mobile'] = $practiceUser->mobile;
         $temp_data['status'] = $practiceUser->status;
+        $temp_data['can_access_company'] = $practiceUser->can_access_company;
+        $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
         //$temp_data['specific_facility'] = $practiceUser->facility;
         if($company){
             $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
@@ -220,7 +219,7 @@ class PracticeRepository implements PracticeRepositoryInterface
             $app_data['logo'] = "/assets/img/amref-white.png";
             $app_data['email'] = $parentPract->email;
             $app_data['mobile'] = $parentPract->mobile;
-
+            //
             $main_branch['id'] = $practice_main->uuid;
             $main_branch['name'] = $practice_main->name;
             $main_branch['address'] = $practice_main->address;
@@ -230,9 +229,8 @@ class PracticeRepository implements PracticeRepositoryInterface
             $main_branch['lat'] = $practice_main->latitude;
             $main_branch['lgt'] = $practice_main->longitude;
             $main_branch['category'] = $practice_main->category;
-
+            //
             $main_branch['app_data'] = $app_data;
-
         }else{
             $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at);
             $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at);

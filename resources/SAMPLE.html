@@ -1,0 +1,90 @@
+<table class="items table table-bordered table-hover more-ctm-table">
+    <thead>
+    <tr>
+        <th style="width: 3%">
+            <label class="check-container small element-inlined mg-top-0 mg-bottom-20">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+            </label>
+        </th>
+        <th style="width: 55%">Name</th>
+        <th style="width: 7%">SKU</th>
+        <th style="width: 7%">Barcode</th>
+        <!-- <th style="width: 10%">Type</th> -->
+        <!-- <th style="width: 12%">Retail Price</th> -->
+        <th style="width: 12%">Total Stock</th>
+        <!-- <th style="width: 12%">Available Stock</th> -->
+        <!-- <th style="width: 12%">Expired Stock</th> -->
+        <th style="width: 10%">Reorder Level</th>
+        <th style="width: 6%">Action</th>
+    </tr>
+    </thead>
+    <tbody v-if="practice_product_items.length > 0">
+
+        <tr v-for="(practice_prod,index) in practice_product_items" :key="'practice_prod'+index">
+            <td>
+                <label class="check-container small element-inlined mg-top-0 mg-bottom-10">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
+            <td>
+                <!-- {{practice_prod.item_name.substring(0,12)+"..."}} -->
+                {{practice_prod.item_name}} | {{practice_prod.unit_weight}}{{practice_prod.measure_unit_sympol}} | {{practice_prod.generic_name}} |
+                 <strong>Price:</strong> {{practice_prod.unit_retail}} <i class="tax-text">{{getTax(practice_prod.item_taxes)}}</i> |
+                <small> <i class="fa fa-question-circle cl-grey pointer-cursor fs-16" :title="practice_prod.item_name+' | '+practice_prod.generic_name+' | '+practice_prod.single_unit_weight+' '+practice_prod.product_unit_slug+' | Stock '+practice_prod.item_stock+' | Price '+practice_prod.unit_retail_price+' | Wholesale '+practice_prod.pack_retail_price"></i></small>
+            </td>
+            <td class="dotted">{{practice_prod.sku_code}}</td>
+            <td class="dotted">{{practice_prod.barcode}}</td>
+            <!-- <td>{{practice_prod.product_type}}</td> -->
+            <!-- <td>
+                <div>
+                    {{practice_prod.item_currency}} {{practice_prod.unit_retail_price}}
+                    <i class="tax-text">
+                        {{practice_prod.tax_charges}}
+                    </i>
+                </div>
+            </td> -->
+            <td>
+                <span class="quantity">{{practice_prod.pack_qty * practice_prod.unit_weight * practice_prod.stock_total}} {{practice_prod.measure_unit_sympol}}</span>
+                <span v-if="practice_prod.stock_total < practice_prod.reorder_level" class="lowstocklabel">Low</span>
+            </td>
+            <!-- <td>
+                <span class="quantity">{{practice_prod.item_stock}}</span>
+                <span v-if="practice_prod.item_stock < practice_prod.alert_indicator_level" class="lowstocklabel">Low</span>
+            </td> -->
+            <!-- <td>
+                <span class="quantity">0</span>
+                <span class="expiredstocklabel noprintclass">Expired</span>
+            </td> -->
+            <td class="">{{format_money(practice_prod.reorder_level)}}</td>
+            <td class="actions">
+                <div  class="btn-group float-right" role="group" aria-label="Button group">
+                    <a data-toggle="modal" :data-target="'#product_item_modal_'+index" class="btn-link pointer-cursor">Edit</a>&nbsp;&nbsp;
+                    <div class="btn-group" role="group">
+                        <a :id="'btnGroupDrop2_'+index" class="dropdown-toggle pointer-cursor" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        </a>
+                        <div class="dropdown-menu" :aria-labelledby="'btnGroupDrop2_'+index">
+                            <router-link :to="'/item/'+practice_prod.id+'/view'" class="dropdown-item pointer-cursor"> Product View</router-link>
+                            <a data-toggle="modal" :data-target="'#delete_product_item_modal_'+index" class="dropdown-item pointer-cursor"> Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- (Ajax Modal)-->
+                <div class="modal fade" :id="'delete_product_item_modal_'+index" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog modal-dialog-centered zoomInUp flipOutX">
+                        <delete-modal :modal_title="'Delete Product Item'" :confirm_message="'Are you sure?'" :item_url="initialUrl+'/'+practice_prod.id" :item_obj="practice_prod" v-on:deletionSuccessful="delete_item"></delete-modal>
+                    </div>
+                </div> <!-- Bootstrap model  ends-->
+                <!-- /.content -->
+            </td>
+        </tr>
+    </tbody>
+    <tbody v-if="practice_product_items.length < 1">
+        <tr>
+            <td colspan="9" class="cl-red padding-top-20 padding-bottom-20" style="text-align: center; font-size:15px;">
+                {{search_message}}
+            </td>
+        </tr>
+    </tbody>
+</table>

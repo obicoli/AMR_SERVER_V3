@@ -1,0 +1,845 @@
+[
+  {
+    "id": "992e30fc-50b5-40a8-940e-7b7c5ed39b0c",
+    "item_name": {
+      "id": "851dc497-4bfd-4abd-bd2c-fe7706bbf973",
+      "name": "ZYRTEC 10MG TABS"
+    },
+    "item_type": {
+      "id": "f8da775b-1389-48c4-9872-72d83431266c",
+      "name": "Tablets/capsules"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZYRTEC",
+    "category": {
+      "id": "a335194d-8450-48d7-a3b4-e9621e921831",
+      "name": "Antihistamine"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "a8b23ced-c117-4cfb-aca7-abed6c683871",
+      "name": "Antihistamine"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "e07a0b65-3c5f-4dc9-973d-84725c9cebf5",
+      "name": "Tablets"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "d26c4287-f6ea-4e27-bde7-9099b9f2daca",
+      "name": "GLAXOSMITHKLINE"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "efd4a7b0-82aa-4040-b0df-8be80a275620",
+      "name": "ZYRTEC 10MG TABS"
+    },
+    "brand_sector": {
+      "id": "2b051765-cbe2-4b9e-ba4d-9550d12aed79",
+      "name": "ZYRTEC 10MG TABS"
+    },
+    "measure_unit": {
+      "id": "3c41bd3e-e84e-4ad9-abf0-40bf793fa1d9",
+      "name": "Miligram",
+      "slug": "Mg"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "30",
+    "pack_qty": "30",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "7a14da89-aab3-4208-a5c0-e1d1a7d7d0cd",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 1000,
+    "opening_stock": 1000
+  },
+  {
+    "id": "d3aaf848-5f71-4678-88b1-432d7b7a71b9",
+    "item_name": {
+      "id": "b18a08e4-87a4-436d-aee1-4b2e8c2f5c8a",
+      "name": "Zedex Natural Syrup"
+    },
+    "item_type": {
+      "id": "b684bf41-9684-435c-b9c3-3ee9361066bf",
+      "name": "syrup"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZED.NAT",
+    "category": {
+      "id": "349ad12e-5270-4f8f-8e07-45b1ecd8bf4c",
+      "name": "Cough Syrup"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "6168116c-2c0d-45c1-9868-b2d419fd9550",
+      "name": "Mucolytics"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "dd80c976-a0d5-4e03-a9dd-86dc820c17c5",
+      "name": "Syrup"
+    },
+    "supplier": {
+      "id": "3bf2078d-3375-48c1-8dc1-87107c909cfb",
+      "company": "AGA KHAN"
+    },
+    "manufacturer": {
+      "id": "9f5cc812-e1ea-444d-b621-e2dc318eb5c4",
+      "name": "SANOFI PASTEUR"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "0aafea4c-49e6-469f-b6b6-ebee39e7ac7e",
+      "name": "Zedex Natural Syrup"
+    },
+    "brand_sector": {
+      "id": "c82aafe4-89d6-451b-90ea-5efff976f3cf",
+      "name": "Zedex Natural Syrup"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [
+      {
+        "id": "411dfadd-879b-472a-9709-a005e2d95c90",
+        "collected_on_purchase": 1,
+        "collected_on_sales": 1,
+        "agent_name": "KRA",
+        "name": "VAT",
+        "registration_number": "1234567890",
+        "description": "Value Added Tax",
+        "start_period": "1",
+        "filling_frequency": "Monthly",
+        "reporting_method": "Accrual",
+        "purchase_rate": 16,
+        "sales_rate": 16,
+        "amount": 0,
+        "status": 1
+      },
+      {
+        "id": "a42b3ae3-6397-4ecd-9893-9901fccc981f",
+        "collected_on_purchase": 1,
+        "collected_on_sales": 1,
+        "agent_name": "KRA",
+        "name": "Zero",
+        "registration_number": "123456789",
+        "description": "Zero Rated",
+        "start_period": "1",
+        "filling_frequency": "Monthly",
+        "reporting_method": "Accrual",
+        "purchase_rate": 0,
+        "sales_rate": 0,
+        "amount": 0,
+        "status": 1
+      }
+    ],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "94116c87-0906-4ddf-b975-74e1ac6a4ebc",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 1000,
+    "opening_stock": 1000
+  },
+  {
+    "id": "8856b93c-7f67-42cc-a0f3-e71cd98923e2",
+    "item_name": {
+      "id": "e492d41b-e35f-4c3c-a31e-bf73852189ae",
+      "name": "ZEDCAL SUSPENSION"
+    },
+    "item_type": {
+      "id": "a4bf319c-4c29-4960-86e9-3eec71a487d3",
+      "name": "Suspension"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZEDCAL",
+    "category": {
+      "id": "f12c0853-587b-4fe4-9d97-c4b16f16f703",
+      "name": "Supplements"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "cd8612bd-0ee3-48ab-828d-4337e156dd1c",
+      "name": "Supplement"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "4df348cc-7d24-4faf-b887-5eedc19f0f25",
+      "name": "Suspension"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "9f5cc812-e1ea-444d-b621-e2dc318eb5c4",
+      "name": "SANOFI PASTEUR"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "8b265c58-5939-4df2-854b-22e9a7e835be",
+      "name": "ZEDCAL SUSPENSION"
+    },
+    "brand_sector": {
+      "id": "b3b35af1-cdde-41cd-b1cc-205193c35c5e",
+      "name": "ZEDCAL SUSPENSION"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "8080dffd-153f-44d6-ba16-8df5cd869629",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 5000,
+    "opening_stock": 5000
+  },
+  {
+    "id": "8d84e576-55b2-423b-8a5d-0edf7cc8a487",
+    "item_name": {
+      "id": "3b3b2f86-721d-48e0-834f-85abdda1a733",
+      "name": "ZEDEX 100ML SYRUP"
+    },
+    "item_type": {
+      "id": "b684bf41-9684-435c-b9c3-3ee9361066bf",
+      "name": "syrup"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZEDEX 100ML",
+    "category": {
+      "id": "349ad12e-5270-4f8f-8e07-45b1ecd8bf4c",
+      "name": "Cough Syrup"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "0da63b23-f343-4143-95f1-633bd7578739",
+      "name": "Bronchodilator"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "dd80c976-a0d5-4e03-a9dd-86dc820c17c5",
+      "name": "Syrup"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "9f5cc812-e1ea-444d-b621-e2dc318eb5c4",
+      "name": "SANOFI PASTEUR"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "b1ca91a0-0c30-4b00-b89c-9d72bc6a935c",
+      "name": "ZEDEX 100ML SYRUP"
+    },
+    "brand_sector": {
+      "id": "ff7cd1d2-e64d-4f01-af2b-7c434b09efd3",
+      "name": "ZEDEX 100ML SYRUP"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "f996cc75-5373-43b0-9648-5cfd0e741f6e",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 3000,
+    "opening_stock": 3000
+  },
+  {
+    "id": "99420489-edc8-4b1d-813b-05da6947b347",
+    "item_name": {
+      "id": "8788e5ea-7035-421e-9c3e-354a5c70e551",
+      "name": "ZEFCOLIN SYRUP"
+    },
+    "item_type": {
+      "id": "b684bf41-9684-435c-b9c3-3ee9361066bf",
+      "name": "syrup"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZEF",
+    "category": {
+      "id": "349ad12e-5270-4f8f-8e07-45b1ecd8bf4c",
+      "name": "Cough Syrup"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "cff73e9b-b707-4697-b2af-7bfb41ac63bc",
+      "name": "Cough Suppresant"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "dd80c976-a0d5-4e03-a9dd-86dc820c17c5",
+      "name": "Syrup"
+    },
+    "supplier": {
+      "id": "9765a75f-1b4d-46e9-bd93-4906639b9796",
+      "company": "SANOFI PASTEUR"
+    },
+    "manufacturer": {
+      "id": "d26c4287-f6ea-4e27-bde7-9099b9f2daca",
+      "name": "GLAXOSMITHKLINE"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "f34ef6be-a24b-483f-97cf-e99d5b9f86aa",
+      "name": "ZEFCOLIN SYRUP"
+    },
+    "brand_sector": {
+      "id": "9324331f-70b3-4282-9741-ad1bb711acae",
+      "name": "ZEFCOLIN SYRUP"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "54b4564b-9782-4915-b6f2-545475969f12",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 2000,
+    "opening_stock": 2000
+  },
+  {
+    "id": "236a2e74-488c-4ce8-9b0c-e93f83ab7846",
+    "item_name": {
+      "id": "7d80b36f-1298-4ab0-b942-9f7f6e1b66a0",
+      "name": "ZENTEL 400MG TABS"
+    },
+    "item_type": {
+      "id": "f8da775b-1389-48c4-9872-72d83431266c",
+      "name": "Tablets/capsules"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZENTEL",
+    "category": {
+      "id": "aad6dd89-dfba-442a-b2ec-c47f5438a6b6",
+      "name": "Antihelmintics"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "b5678cd9-68dd-41f9-afe3-33344ddd9843",
+      "name": "Antihelminthetics"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "e07a0b65-3c5f-4dc9-973d-84725c9cebf5",
+      "name": "Tablets"
+    },
+    "supplier": {
+      "id": "27498280-513f-4ed7-86b4-1ee8c509f0ee",
+      "company": "KAM PHARMACY"
+    },
+    "manufacturer": {
+      "id": "d26c4287-f6ea-4e27-bde7-9099b9f2daca",
+      "name": "GLAXOSMITHKLINE"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "764e358d-f448-4ce4-b004-4932cb8dc1d3",
+      "name": "ZENTEL 400MG TABS"
+    },
+    "brand_sector": {
+      "id": "fe4722c4-0589-4a37-8327-4cde93dda6f9",
+      "name": "ZENTEL 400MG TABS"
+    },
+    "measure_unit": {
+      "id": "3c41bd3e-e84e-4ad9-abf0-40bf793fa1d9",
+      "name": "Miligram",
+      "slug": "Mg"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "deca84ba-fe21-4687-b941-3f7f0cfd1203",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 0,
+    "opening_stock": 0
+  },
+  {
+    "id": "70bb7b7f-cb41-4508-8028-c438e262d79d",
+    "item_name": {
+      "id": "54f5c932-e862-4192-8e36-0b46ea240440",
+      "name": "ZENTEL SUSPENSION 20ML"
+    },
+    "item_type": {
+      "id": "a4bf319c-4c29-4960-86e9-3eec71a487d3",
+      "name": "Suspension"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZENTEL SUSPENSION",
+    "category": {
+      "id": "aad6dd89-dfba-442a-b2ec-c47f5438a6b6",
+      "name": "Antihelmintics"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "b5678cd9-68dd-41f9-afe3-33344ddd9843",
+      "name": "Antihelminthetics"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "4df348cc-7d24-4faf-b887-5eedc19f0f25",
+      "name": "Suspension"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "d26c4287-f6ea-4e27-bde7-9099b9f2daca",
+      "name": "GLAXOSMITHKLINE"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "b300e1bb-e3b4-48ba-bd46-d0b35c889d8b",
+      "name": "ZENTEL SUSPENSION 20ML"
+    },
+    "brand_sector": {
+      "id": "25fb9556-dea8-4e5b-ab62-3b5b76fcbabc",
+      "name": "ZENTEL SUSPENSION 20ML"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "49d25c5a-6ca4-44a4-81dc-bd0028b6b199",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 0,
+    "opening_stock": 0
+  },
+  {
+    "id": "42ab13e7-a30f-4170-9aee-94245950fbc1",
+    "item_name": {
+      "id": "8daac8ca-ccff-4eba-9e02-4f2695ef2f15",
+      "name": "ZINNAT TABS 500 MGS"
+    },
+    "item_type": {
+      "id": "f8da775b-1389-48c4-9872-72d83431266c",
+      "name": "Tablets/capsules"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZIN.TABS",
+    "category": {
+      "id": "64c40d83-0937-44f3-ae60-086b58040534",
+      "name": "Antibiotic"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "b12cf1a3-de19-436c-8cfe-a4c5d20f3b69",
+      "name": "Antibacterial"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "e07a0b65-3c5f-4dc9-973d-84725c9cebf5",
+      "name": "Tablets"
+    },
+    "supplier": {
+      "id": "da875f88-51da-4452-be9f-ff468132407a",
+      "company": "GLAXOSMITHKLINE"
+    },
+    "manufacturer": {
+      "id": "6c84d048-b2bf-49c3-9f30-5d9d8c5aa2ea",
+      "name": "NJIMIA PHARMACEUTICALS"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "744a5e82-ad77-4fca-ba29-666f97c4a4ca",
+      "name": "ZINNAT TABS 500 MGS"
+    },
+    "brand_sector": {
+      "id": "b2fdf8ff-e990-41ab-b992-f43bcfb984bc",
+      "name": "ZINNAT TABS 500 MGS"
+    },
+    "measure_unit": {
+      "id": "3c41bd3e-e84e-4ad9-abf0-40bf793fa1d9",
+      "name": "Miligram",
+      "slug": "Mg"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "10",
+    "pack_qty": "10",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "cb513871-2e0a-4f37-8d4f-05fe2c9f9670",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 0,
+    "opening_stock": 0
+  },
+  {
+    "id": "fa377580-99c2-45c2-8858-29a348a67f01",
+    "item_name": {
+      "id": "4e72ed7d-09b0-41bc-806b-71199ca330ed",
+      "name": "Zincat-OD"
+    },
+    "item_type": {
+      "id": "a4bf319c-4c29-4960-86e9-3eec71a487d3",
+      "name": "Suspension"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZINC-OD",
+    "category": {
+      "id": "f12c0853-587b-4fe4-9d97-c4b16f16f703",
+      "name": "Supplements"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "cd8612bd-0ee3-48ab-828d-4337e156dd1c",
+      "name": "Supplement"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "4df348cc-7d24-4faf-b887-5eedc19f0f25",
+      "name": "Suspension"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "6c84d048-b2bf-49c3-9f30-5d9d8c5aa2ea",
+      "name": "NJIMIA PHARMACEUTICALS"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "7a84aac5-c4de-4ada-bd08-bd29095f10c7",
+      "name": "Zincat-OD"
+    },
+    "brand_sector": {
+      "id": "3f54a0e7-78c2-437b-913f-74a9975eec44",
+      "name": "Zincat-OD"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "940bd6f9-db17-4988-b41a-b2828b784eab",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 0,
+    "opening_stock": 0
+  },
+  {
+    "id": "99d95a53-21f2-43a7-8843-97a6ba9048ec",
+    "item_name": {
+      "id": "df6e49bf-01ac-4ef1-8f53-735527b11ddf",
+      "name": "ZINNAT 250MG/5ML 50ML"
+    },
+    "item_type": {
+      "id": "81cb4b9e-4e1f-40b2-a019-f3a21c16d937",
+      "name": "Mixture/Syrup"
+    },
+    "generic": {
+      "id": "",
+      "name": ""
+    },
+    "sku_code": "ZINNAT",
+    "category": {
+      "id": "64c40d83-0937-44f3-ae60-086b58040534",
+      "name": "Antibiotic"
+    },
+    "order_category": {
+      "id": "76c93b7f-567a-4e9f-a28c-979bdc9f149e",
+      "name": "Drugs"
+    },
+    "sub_category": {
+      "id": "b12cf1a3-de19-436c-8cfe-a4c5d20f3b69",
+      "name": "Antibacterial"
+    },
+    "route": {
+      "id": 3,
+      "name": "PO"
+    },
+    "formulation": {
+      "id": "4df348cc-7d24-4faf-b887-5eedc19f0f25",
+      "name": "Suspension"
+    },
+    "supplier": {
+      "id": "83b0c990-9d35-438b-9a29-d324fa760541",
+      "company": "NJIMIA PHARMACEUTICALS"
+    },
+    "manufacturer": {
+      "id": "d26c4287-f6ea-4e27-bde7-9099b9f2daca",
+      "name": "GLAXOSMITHKLINE"
+    },
+    "profile": {
+      "id": "462cc75d-5cca-471c-896a-81dc826b5edc",
+      "name": "DRUGS"
+    },
+    "brand": {
+      "id": "531446c9-ccd8-4c6e-9d80-cdfa90f5e301",
+      "name": "ZINNAT 250MG/5ML 50ML"
+    },
+    "brand_sector": {
+      "id": "de31a73d-8ba2-4afb-974e-76a602f3c31f",
+      "name": "ZINNAT 250MG/5ML 50ML"
+    },
+    "measure_unit": {
+      "id": "e2d5f465-2598-4016-b05f-b8c83510eb04",
+      "name": "Ml",
+      "slug": "Ml"
+    },
+    "single_unit_weight": "0",
+    "units_per_pack": "1",
+    "pack_qty": "1",
+    "alert_indicator_level": "0",
+    "taxes": [],
+    "note": "",
+    "store_location": "",
+    "price": {
+      "id": "e1702484-3684-48ba-a46c-c44fd3c183df",
+      "unit_cost": 100,
+      "unit_retail_price": 150,
+      "pack_cost": 1000,
+      "pack_retail_price": 1500
+    },
+    "qty": 0,
+    "amount": 0,
+    "discount_allowed": 0,
+    "sub_stock_total": 0,
+    "stock": 0,
+    "opening_stock": 0
+  }
+]

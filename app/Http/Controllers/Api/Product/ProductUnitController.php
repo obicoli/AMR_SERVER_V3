@@ -10,6 +10,7 @@ use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Module\Module;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,21 +31,18 @@ class ProductUnitController extends Controller
         $this->practice = new PracticeRepository(new Practice());
     }
 
-    public function index($practice_uuid=null){
+    public function index(Request $request){
+        $http_resp = $this->http_response['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $headQuarter = $this->practice->findParent($company);
+        $categories = $headQuarter->product_units()->orderByDesc('created_at')->paginate(12);
         $results = array();
-        if($practice_uuid){
-            $http_resp = $this->http_response['200'];
-            $practice = $this->practice->findByUuid($practice_uuid);
-            $practicePractice = $this->practice->findParent($practice);
-            $units = $practicePractice->product_units()->orderByDesc('created_at')->paginate(10);
-            $paged_data = $this->helper->paginator($units);
-            foreach( $units as $unit ){
-                array_push($results,$this->productUnit->transform_($unit));
-            }
-            $paged_data['data'] = $results;
-            $http_resp['results'] = $paged_data;
-        }else{
+        foreach($categories as $category){
+            array_push($results,$this->productUnit->transform_unit($category));
         }
+        $paged_data = $this->helper->paginator($categories);
+        $paged_data['data'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
@@ -53,7 +51,6 @@ class ProductUnitController extends Controller
         $rules = [
             'name'=>'required',
             'slug'=>'required',
-            'practice_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules);
         if ($validation->fails()){
@@ -61,25 +58,28 @@ class ProductUnitController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        DB::beginTransaction();
+
+        $user = $request->user();
+        $practice = $this->practice->find($user->company_id);
+        $practiceParent = $this->practice->findParent($practice);
+
+        if ( $practiceParent->product_units()->where('name',$request->name)->get()->first() ){
+            $http_resp = $this->http_response['422'];
+            $http_resp['errors'] = ['Name already exists'];
+            return response()->json($http_resp,422);
+        }
+
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $practiceParent = $this->practice->findParent($practice);
-            if ( $practiceParent->product_units()->where('name',$request->name)->get()->first() ){
-                $http_resp = $this->http_response['422'];
-                $http_resp['errors'] = ['Name already exists'];
-                return response()->json($http_resp,422);
-            }else{
-                $practiceParent->product_units()->create($request->all());
-            }
+            $practiceParent->product_units()->create($request->all());
             $http_resp['description'] = "Created successful!";
-        }catch (\Exception $exception){
-            Log::info($exception);
-            DB::rollBack();
+        }catch (\Exception $e){
+            Log::info($e);
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             $http_resp = $this->http_response['500'];
             return response()->json($http_resp,500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 
@@ -89,7 +89,6 @@ class ProductUnitController extends Controller
         $rules = [
             'name'=>'required',
             'slug'=>'required',
-            'practice_id'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
         if ($validation->fails()){
@@ -97,27 +96,40 @@ class ProductUnitController extends Controller
             $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        DB::beginTransaction();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         try{
             $product_unit = $this->productUnit->findByUuid($uuid);
             $product_unit->update($request->all());
             $http_resp['description'] = "Updated successful!";
         }catch (\Exception $exception){
             Log::info($exception);
-            DB::rollBack();
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             $http_resp = $this->http_response['500'];
             return response()->json($http_resp,500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
+    }
+
+    public function show($uuid){
 
     }
-    public function show($uuid){}
+
     public function destroy($uuid){
         $http_resp = $this->http_response['200'];
-        $productUnit = $this->productUnit->findByUuid($uuid);
-        $this->productUnit->destroy($productUnit->id);
-        $http_resp['description'] = "Deleted successful!";
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
+        try{
+            $brand = $this->productUnit->findByUuid($uuid);
+            $brand->delete();
+            $http_resp['description'] = "Deleted successful";
+        }catch(\Exception $e){
+            $http_resp = $this->http_response['500'];
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+            Log::info($e);
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
         return response()->json($http_resp);
     }
+
 }

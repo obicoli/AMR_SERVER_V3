@@ -459,7 +459,7 @@ label
 }
 table td
 {
-	padding: 5px 5px !important;
+	/* padding: 5px 5px !important; */
 }
 .pos_box
 {

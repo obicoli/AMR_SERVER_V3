@@ -36,61 +36,63 @@ class DashboardController extends Controller
         if( $request->has('report_type') ){
             $report_type = $request->report_type;
             switch ($report_type) {
-                case 'value':
-                    # code...
+                case 'Item Widgets':
+                case 'Customer Widgets':
+                case 'Supplier Widgets':
+                    $widgets = DashboardSetting::all()->where('type',$report_type)->sortBy('type')->groupBy('type');
                     break;
                 default:
                     $widgets = DashboardSetting::all()->sortBy('type')->groupBy('type');
                     // $widgets = $company->dashboard_widgets()->groupBy('type')->get();
-                    foreach ($widgets as $index => $widget){
-                        //Log::info($index);
-                        $temp_data['type'] = $index;
-                        $looped_data = array();
-                        foreach($widget as $widge){
-                            $company_widget = DB::connection(Module::MYSQL_DB_CONN)
-                                ->table('company_widgets')
-                                ->where('practice_id',$company->id)
-                                ->where('widget_id',$widge->id)
-                                ->get()->first();
-                                $temp_d['id'] = $company_widget->id;
-                                $temp_d['name'] = $widge->name;
-                                $temp_d['type'] = $widge->type;
-                                $temp_d['display'] = $widge->display;
-                                $temp_d['description'] = $widge->description;
-                                $temp_d['status'] = $company_widget->status;
-                                array_push($looped_data,$temp_d);
-                        }
-                        $temp_data['type'] = $index;
-                        $temp_data['data'] = $looped_data;
-                        array_push($results,$temp_data);
-                    }
+                    // foreach ($widgets as $index => $widget){
+                    //     //Log::info($index);
+                    //     $temp_data['type'] = $index;
+                    //     $looped_data = array();
+                    //     foreach($widget as $widge){
+                    //         $company_widget = DB::connection(Module::MYSQL_DB_CONN)
+                    //             ->table('company_widgets')
+                    //             ->where('practice_id',$company->id)
+                    //             ->where('widget_id',$widge->id)
+                    //             ->get()->first();
+                    //             $temp_d['id'] = $company_widget->id;
+                    //             $temp_d['name'] = $widge->name;
+                    //             $temp_d['type'] = $widge->type;
+                    //             $temp_d['display'] = $widge->display;
+                    //             $temp_d['description'] = $widge->description;
+                    //             $temp_d['status'] = $company_widget->status;
+                    //             array_push($looped_data,$temp_d);
+                    //     }
+                    //     $temp_data['type'] = $index;
+                    //     $temp_data['data'] = $looped_data;
+                    //     array_push($results,$temp_data);
+                    // }
                     break;
             }
         }else{
             $widgets = DashboardSetting::all()->groupBy('type');
-            // $widgets = $company->dashboard_widgets()->groupBy('type')->get();//->sortBy('type')
-            foreach ($widgets as $index => $widget){
-                //Log::info($index);
-                $temp_data['type'] = $index;
-                $looped_data = array();
-                foreach($widget as $widge){
-                    $company_widget = DB::connection(Module::MYSQL_DB_CONN)
-                        ->table('company_widgets')
-                        ->where('practice_id',$company->id)
-                        ->where('widget_id',$widge->id)
-                        ->get()->first();
-                        $temp_d['id'] = $company_widget->id;
-                        $temp_d['name'] = $widge->name;
-                        $temp_d['type'] = $widge->type;
-                        $temp_d['display'] = $widge->display;
-                        $temp_d['description'] = $widge->description;
-                        $temp_d['status'] = $company_widget->status;
-                        array_push($looped_data,$temp_d);
-                }
-                $temp_data['type'] = $index;
-                $temp_data['data'] = $looped_data;
-                array_push($results,$temp_data);
+        }
+
+        foreach ($widgets as $index => $widget){
+            //Log::info($index);
+            $temp_data['type'] = $index;
+            $looped_data = array();
+            foreach($widget as $widge){
+                $company_widget = DB::connection(Module::MYSQL_DB_CONN)
+                    ->table('company_widgets')
+                    ->where('practice_id',$company->id)
+                    ->where('widget_id',$widge->id)
+                    ->get()->first();
+                    $temp_d['id'] = $company_widget->id;
+                    $temp_d['name'] = $widge->name;
+                    $temp_d['type'] = $widge->type;
+                    $temp_d['display'] = $widge->display;
+                    $temp_d['description'] = $widge->description;
+                    $temp_d['status'] = $company_widget->status;
+                    array_push($looped_data,$temp_d);
             }
+            $temp_data['type'] = $index;
+            $temp_data['data'] = $looped_data;
+            array_push($results,$temp_data);
         }
         $http_resp['results'] = $results;
         return response()->json($http_resp);

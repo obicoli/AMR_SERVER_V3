@@ -1,0 +1,426 @@
+<template>
+
+    <div>
+
+        <!-- <processing-overlay :message="msg" :status="progress_overlay"></processing-overlay> -->
+
+        <top-nav-bar :inventory="true" :bg_f7="true"></top-nav-bar>
+
+        <side-bar></side-bar>
+
+        <div class="wp-content mg-top-50 content-calculated-height-wc">
+
+            <div class="row">
+
+                <div class="col-md-12 col-lg-12 col-sm-12 padding-left-0">
+
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12 col-sm-12 padding-right-0 padding-left-0 bg-ced content-calculated-height-wc">
+                            
+                            <div class="box box-primary bg-ced border-top-0 border-bottom-0 no-shadowed padding-right-20 content-calculated-height-110 top-20">
+                                
+                                <div class="page-content bg-ced padding-0 mg-right-0 mg-left-0 min-height-100-vh">
+                                    <div class="dgrid dgrid-grid ui-widget dgrid-03 mg-bottom-30 universal-grid border-ccc" role="grid">
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-10 col-lg-10 padding-right-0 border-bottom">
+                                                <div :hidden="salesorders.length===0 && default_filter==='All'" class="width-100-pc float-left">
+                                                    <div class="width-40-pc float-left">
+                                                        <div class="btn-group" role="group" aria-label="Button group">
+                                                            <div class="btn-group" role="group">
+                                                                <a :id="'btnGroupDrop2_1'" class="dropdown-toggle fs-14 pointer-cursor fw-600 txt-uppercase" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    {{default_filter}} Sales Orders ({{pagination.total}})
+                                                                </a>
+                                                                <div class="dropdown-menu" :aria-labelledby="'btnGroupDrop2_1'">
+                                                                    <!-- <a @click="filterItems('All')" class="dropdown-item pointer-cursor">All</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.DRAFT)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.DRAFT}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.PENDING_APPROVAL)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.PENDING_APPROVAL}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.OPEN)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.OPEN}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.OVERDUE)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.OVERDUE}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.UNPAID)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.UNPAID}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.PARTIAL_PAID)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.PARTIAL_PAID}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.PAID)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.PAID}}</a>
+                                                                    <a @click="filterItems(PROCESS_STATUS.VOID)" class="dropdown-item pointer-cursor">{{PROCESS_STATUS.VOID}}</a>
+                                                                    <a class="dropdown-item separator"></a>
+                                                                    <a class="dropdown-item pointer-cursor">New Custom view</a> -->
+                                                                    <a class="dropdown-item pointer-cursor">All</a>
+                                                                    <a class="dropdown-item pointer-cursor">Draft</a>
+                                                                    <a class="dropdown-item pointer-cursor">Pending Approval</a>
+                                                                    <a class="dropdown-item pointer-cursor">Approved</a>
+                                                                    <a class="dropdown-item pointer-cursor">Open</a>
+                                                                    <a class="dropdown-item pointer-cursor">Overdue</a>
+                                                                    <a class="dropdown-item pointer-cursor">Partially Invoiced</a>
+                                                                    <a class="dropdown-item pointer-cursor">Invoiced</a>
+                                                                    <a class="dropdown-item pointer-cursor">Closed</a>
+                                                                    <a class="dropdown-item pointer-cursor">Void</a>
+                                                                    <a class="dropdown-item separator"></a>
+                                                                    <a class="dropdown-item pointer-cursor">+ New Custom view</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- <div class="width-60-pc float-right">
+                                                        <quick-link :active_link="'estimates'"></quick-link>
+                                                    </div> -->
+                                                </div>
+                                                
+                                                <div class="width-100-pc float-left mg-top-30 mg-bottom-50">
+                                                    <div v-if="page_ready && salesorders.length===0" class="width-100-pc float-left mg-top-10 mg-bottom-50 text-center">
+                                                        <div class="width-100-pc text-center float-left">
+                                                            <a class="fs-15 txt-uppercase cl-444 fw-600">Sales Orders</a><br>
+                                                            <a class="fs-14 cl-444">Start Managing Your Sales Activities!</a><br>
+                                                            <small class="fs-13 cl-777">Create, customize and send professional Sales Orders.</small><br><br>
+                                                            <a data-toggle="modal" data-target="#new_sales_order_modal" class="btn btn-secondary banking-process-amref">Create Sales Orders</a>
+                                                        </div>
+                                                        <div class="width-100-pc text-center float-left mg-top-20">
+                                                            <img src="/assets/icons/dashboard/sales_order.png" class=" mg-bottom-20">
+                                                        </div>
+                                                    </div>
+                                                    <div v-else-if="page_ready && salesorders.length>0" class="width-100-pc float-left mg-top-30 mg-bottom-50">
+                                                        <div class="width-45-pc float-left mg-right-15 mg-bottom-15">
+                                                            <div class="width-60-pc float-left">
+                                                                <div class="dijitInline firstName dijitTextBox width-100-pc">
+                                                                    <input placeholder="Search..." :disabled="is_initializing || processing" type="text">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="width-25-pc float-right mg-bottom-15">
+                                                            <div class="btn-group float-right" role="group">
+                                                                <button :disabled="is_initializing || processing" :id="'btnGroupDrop2_1'" class="dropdown-toggle btn btn-secondary banking-process-amref" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    New Transaction
+                                                                </button>
+                                                                <div class="dropdown-menu" :aria-labelledby="'btnGroupDrop2_1'">
+                                                                    <a data-toggle="modal" data-target="#new_estimate_modal" class="dropdown-item pointer-cursor">Estimate</a>
+                                                                    <a data-toggle="modal" data-target="#new_bill_id" class="dropdown-item pointer-cursor">Retainer Invoice</a>
+                                                                    <a data-toggle="modal" data-target="#new_sales_order_modal" class="dropdown-item pointer-cursor">Sales Order</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="po_list_id_0" class="width-100-pc float-left">
+                                                            <table class="table banking-transaction table-hover mg-bottom-5">        
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width:2%;">
+                                                                            <input :disabled="is_initializing || processing" type="checkbox" class="pointer-cursor" @click="check_all($event)">
+                                                                        </th>
+                                                                        <th style="width:26%">Customer</th>
+                                                                        <th style="width:15%">Date</th>
+                                                                        <th style="width:15%;">Sales Order#</th>
+                                                                        <th style="width:12%;">Reference</th>
+                                                                        <th style="width:15%;">Status</th>
+                                                                        <th style="width:15%;" class="text-right">Total</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody v-if="processing || is_initializing">
+                                                                    <tr>
+                                                                        <td class="somepad text-center" colspan="9">
+                                                                            <img src="/assets/icons/dashboard/loader.gif">
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                                <tbody v-for="(salesord,index) in salesorders" :key="'chart_of_accounts_'+index">
+                                                                    <tr>
+                                                                        <td class="somepad">
+                                                                            <input :disabled="is_initializing || processing" v-model="selected_salesorders" type="checkbox" class="pointer-cursor" :value="salesord.id">
+                                                                        </td>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor">
+                                                                            {{salesord.customer.legal_name}}
+                                                                        </router-link>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor">
+                                                                            {{salesord.trans_date}}
+                                                                        </router-link>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor">
+                                                                            {{salesord.trans_number}}
+                                                                        </router-link>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor">
+                                                                            {{salesord.reference_number}}
+                                                                        </router-link>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor">
+                                                                            <a v-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.ACCEPTED" class="txt-uppercase fs-12 fw-600 cl-success-light">Accepted</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.DRAFT" class="documentStatus draft">{{PROCESS_STATUS.DRAFT}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.DECLINED" class="txt-uppercase fs-12 fw-600 cl-amref">Declined</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.EXPIRED" class="txt-uppercase fs-12 fw-600 cl-787887">Expired</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.INVOICED" class="documentStatus invoiced">{{PROCESS_STATUS.INVOICED}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.PAID" class="documentStatus paid">{{PROCESS_STATUS.PAID}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.PARTIAL_PAID" class="documentStatus paid">{{PROCESS_STATUS.PARTIAL_PAID}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.SENT" class="txt-uppercase fs-12 fw-600 cl-blue-link">Sent</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.OPEN" class="documentStatus open">{{PROCESS_STATUS.OPEN}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.CLOSED" class="documentStatus closed">{{PROCESS_STATUS.CLOSED}}</a>
+                                                                            <a v-else-if="salesord.status[salesord.status.length-1].status===PROCESS_STATUS.PENDING_APPROVAL" class="documentStatus pending">{{PROCESS_STATUS.PENDING_APPROVAL}}</a>
+                                                                            <a v-else="" class="documentStatus pending">Pending</a>
+                                                                        </router-link>
+                                                                        <router-link tag="td" :to="SALES_ORDER_URL+'/'+salesord.id+'/view'" class="somepad pointer-cursor text-right fw-600">
+                                                                            {{currency+' '+format_money(salesord.net_total)}}
+                                                                        </router-link>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="width-20-pc float-left">
+                                                            <div class="btn-group" role="group">
+                                                                <button :disabled="is_initializing || processing || selected_salesorders.length===0 " :id="'btnGroupDrop2_1'" class="dropdown-toggle btn btn-secondary banking-process-amref" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    <span v-if="selected_salesorders.length">{{selected_salesorders.length}} salesorders selected</span>
+                                                                    <span v-else>Batch Action</span>
+                                                                </button>
+                                                                <div class="dropdown-menu" :aria-labelledby="'btnGroupDrop2_1'">
+                                                                    <!-- <a data-toggle="modal" data-target="#" class="dropdown-item pointer-cursor fs-12">Add Bill</a>
+                                                                    <a class="dropdown-item separator"></a>
+                                                                    <a data-toggle="modal" data-target="#" class="dropdown-item pointer-cursor fs-12">Update status</a>
+                                                                    <a data-toggle="modal" data-target="#" class="dropdown-item pointer-cursor fs-12">Copy Purchase Order</a>
+                                                                    <a class="dropdown-item separator"></a>
+                                                                    <a data-toggle="modal" data-target="#" class="dropdown-item pointer-cursor fs-12">Delete</a> -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="width-80-pc float-right text-right">
+                                                            <paginate-template v-if="pagination.last_page > 1" :pagination="pagination" :offset="5" @paginate="filterItems('Page')" :custom="true"></paginate-template>
+                                                        </div>
+                                                    </div>
+                                                    <div v-else class="width-100-pc float-left mg-top-60 text-center">
+                                                        <img class="loader" src="/assets/icons/dashboard/loader.gif">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-12 col-lg-12 padding-right-0 border-bottom">
+                                                <sales-order-modal v-if="page_ready" :modal_title="'New Sales Order'" :customers="customers" :modal_id="'new_sales_order_modal'" :payment_terms="payment_terms" :filters="filters" :taxations="taxations" :currency="currency" :sales_order_api="CUSTOMERS_SALES_ORDERS_API" @create-salesorder-event="loadSalesorders(true)"></sales-order-modal>
+                                                <estimate-modal v-if="page_ready" :modal_title="'New Estimate'" :customers="customers" :modal_id="'new_estimate_modal'" :payment_terms="payment_terms" :filters="filters" :taxations="taxations" :currency="currency" :estimate_api="CUSTOMERS_ESTIMATES_API" @create-estimate-event="loadEstimates(true)"></estimate-modal>
+                                                <copy-right></copy-right>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import SideBar from "../../../partials/sidebars/SideBar";
+    import TopNavBar from "../../../partials/topbars/TopNavBar";
+    import PaginateTemplate from '../../../partials/pagination/PaginateTemplate';
+    import CopyRight from '../../../partials/CopyRight';
+    import DeleteModal from "../../../partials/modals/DeleteModal";
+    import ProcessingOverlay from "../../../../../progress/ProcessingOverlay";
+    import {get, post} from "../../../../../../helpers/api";
+    import Auth from "../../../../../../store/auth";
+    import EstimateModal from "../../../partials/modals/customer/EstimateModal";
+    import SalesOrderModal from "../../../partials/modals/customer/SalesOrderModal";
+
+    import {INVENTORY_WEB_ROUTES} from "../../../../../../router/web_routes";
+    import {removeElement,paginator,formatMoney, createHtmlErrorString} from "../../../../../../helpers/functionmixin";
+    import {AC_TYPES, PROCESS_STATUS,ACCOUNTING,TRANSACTION_TYPES} from "../../../../../../helpers/process_status";
+    import {CUSTOMERS_SALES_ORDERS_API,PRODUCT_TAX_URL,CHART_OF_ACCOUNTS, CUSTOMERS_API,CUSTOMERS_TERMS_API,CUSTOMERS_ESTIMATES_API} from '../../../../../../router/api_routes';
+    export default {
+        name: "Index",
+        components: {TopNavBar,PaginateTemplate,SideBar,DeleteModal,CopyRight,EstimateModal,SalesOrderModal,
+        ProcessingOverlay},
+        data(){
+            return {
+                
+                selected_salesorders: [],
+                pagination: paginator(),
+                currency: ACCOUNTING.CURRENCY,
+                PROCESS_STATUS: PROCESS_STATUS,
+                filters: {},
+                customers: [],
+                taxations: [],
+                bank_accounts: [],
+                payment_terms: [],
+                page_ready: false,
+                is_initializing: false,
+                processing: false,
+                QUOTE_URL: INVENTORY_WEB_ROUTES.SALES.QUOTE,
+                SALES_ORDER_URL: INVENTORY_WEB_ROUTES.SALES.SALES_ORDERS,
+                salesorders: [],
+                default_filter: 'All',
+                default_api: CUSTOMERS_SALES_ORDERS_API+'?page=1',
+                CUSTOMERS_SALES_ORDERS_API:CUSTOMERS_SALES_ORDERS_API,
+                CUSTOMERS_ESTIMATES_API: CUSTOMERS_ESTIMATES_API
+            }
+        },
+        watch: {
+            default_api: function(){
+                this.loadEstimates(true);
+            }
+        },
+        methods: {
+
+            check_all(event){
+                this.selected_salesorders = [];
+                if(event.target.checked){
+                    for (let index = 0; index < this.salesorders.length; index++) {
+                        const element = this.salesorders[index];
+                        this.selected_salesorders.push(element.id);
+                    }
+                }
+            },
+
+            format_money(money_to){
+                return formatMoney(money_to);
+            },
+
+            filterItems(filter_by='All'){
+                switch (filter_by) {
+                    case PROCESS_STATUS.CANCELLED:
+                    case PROCESS_STATUS.CLOSED:
+                    case PROCESS_STATUS.PARTIAL_BILLED:
+                    case PROCESS_STATUS.BILLED:
+                    case PROCESS_STATUS.OPEN:
+                    case PROCESS_STATUS.DRAFT:
+                    case PROCESS_STATUS.PENDING_APPROVAL:
+                    case PROCESS_STATUS.APPROVED:
+                    case PROCESS_STATUS.PAID:
+                    case PROCESS_STATUS.UNPAID:
+                    case PROCESS_STATUS.UNPAID:
+                    case PROCESS_STATUS.VOID:
+                    case PROCESS_STATUS.OVERDUE:
+                    case PROCESS_STATUS.PARTIAL_PAID:
+                        this.default_filter = filter_by;
+                        this.default_api = CUSTOMERS_SALES_ORDERS_API+'?page='+this.pagination.current_page+'&filter_by='+this.default_filter;
+                        break;
+                    case "Page":
+                        if(this.default_filter==='All'){
+                            this.default_api = CUSTOMERS_SALES_ORDERS_API+'?page='+this.pagination.current_page;
+                        }else{
+                            this.default_api = CUSTOMERS_SALES_ORDERS_API+'?page='+this.pagination.current_page+'&filter_by='+this.default_filter;
+                        }
+                        break;
+                    default:
+                        this.default_filter = filter_by;
+                        this.default_api = CUSTOMERS_SALES_ORDERS_API+'?page='+this.pagination.current_page;
+                        break;
+                }
+            },
+
+            // loadSuppliers(){
+            //     get(SUPPLIER_URL)
+            //     .then((res) => {
+            //         if(res.data.status_code === 200) {
+            //             this.suppliers = res.data.results.data;
+            //             this.filters = res.data.results.filters;
+            //             //this.page_ready = true;
+            //             this.loadTerms();
+            //         }
+            //     }).catch((err) => {
+            //         this.progress_overlay = "hide";
+            //         this.page_loaded = false;
+            //         if(err.response.status === 422) {
+            //             this.$awn.warning(createHtmlErrorString(err.response.data.errors));
+            //         }else if (err.response.status === 500){
+            //             this.$awn.warning(err.response.data.description);
+            //         }
+            //         else{
+            //             this.processing = false;
+            //             this.$awn.warning(err.response.data.description);
+            //         }
+            //     });
+            // },
+
+            loadCustomers(){
+                get(CUSTOMERS_API)
+                .then((res) => {
+                    if(res.data.status_code === 200) {
+                        this.customers = res.data.results.data;
+                        this.loadTaxes();
+                    }
+                }).catch((err) => {
+                    this.progress_overlay = "hide";
+                    this.page_loaded = false;
+                    if(err.response.status === 422) {
+                        this.$awn.warning(createHtmlErrorString(err.response.data.errors));
+                    }else if (err.response.status === 500){
+                        this.$awn.warning(err.response.data.description);
+                    }
+                    else{
+                        this.processing = false;
+                        this.$awn.warning(err.response.data.description);
+                    }
+                });
+            },
+            loadSalesorders(show_progress=false){
+                this.is_initializing = show_progress;
+                get(this.default_api)
+                .then((res) => {
+                    if(res.data.status_code === 200) {
+                        this.salesorders = res.data.results.data;
+                        this.filters = res.data.results.filters;
+                        this.pagination = res.data.results.pagination;
+                        console.info(this.salesorders);
+                        this.page_ready = true;
+                        this.progress_overlay = "hide";
+                        this.page_ready = true;
+                        this.is_initializing = false;
+                        this.processing = false;
+                    }
+                }).catch((err) => {
+                    this.progress_overlay = "hide";
+                    this.page_ready = true;
+                });
+            },
+
+            loadTerms(){
+                get(CUSTOMERS_TERMS_API)
+                .then((res) => {
+                    if(res.data.status_code === 200) {
+                        this.payment_terms = res.data.results.data;
+                        //console.info(this.payment_terms);
+                        this.loadSalesorders();
+                    }
+                }).catch((err) => {
+                    this.progress_overlay = "hide";
+                    this.page_loaded = false;
+                    if(err.response.status === 422) {
+                        this.$awn.warning(createHtmlErrorString(err.response.data.errors));
+                    }else if (err.response.status === 500){
+                        this.$awn.warning(err.response.data.description);
+                    }
+                    else{
+                        this.processing = false;
+                        this.$awn.warning(err.response.data.description);
+                    }
+                });
+            },
+
+            loadTaxes(){
+                get(PRODUCT_TAX_URL+'?output_tax=ok')
+                .then((res) => {
+                    if(res.data.status_code === 200) {
+                        this.taxations = res.data.results.data;
+                        this.loadTerms();
+                    }
+                }).catch((err) => {
+                    this.progress_overlay = "hide";
+                    this.page_loaded = false;
+                    if(err.response.status === 422) {
+                        this.$awn.warning(createHtmlErrorString(err.response.data.errors));
+                    }else if (err.response.status === 500){
+                        this.$awn.warning(err.response.data.description);
+                    }
+                    else{
+                        this.processing = false;
+                        this.$awn.warning(err.response.data.description);
+                    }
+                });
+            },
+
+        },
+
+        mounted() {
+            this.is_initializing = true;
+            this.loadCustomers();
+        }
+    }
+</script>
+
+<style lang="scss">
+    th {
+        position: sticky;
+        top: 0px;
+    }
+</style>

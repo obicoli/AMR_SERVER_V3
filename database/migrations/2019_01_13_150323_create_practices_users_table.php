@@ -18,6 +18,7 @@ class CreatePracticesUsersTable extends Migration
             $table->increments('id');
             $table->string('uuid')->index();
             $table->boolean('facility')->default(true);
+            $table->boolean('can_access_company')->default(true);
             $table->string('first_name')->index()->nullable();
             $table->string('other_name')->index()->nullable();
             $table->string('email')->index()->nullable();

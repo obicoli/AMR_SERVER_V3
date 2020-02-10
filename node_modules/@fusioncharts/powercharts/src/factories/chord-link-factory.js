@@ -1,0 +1,1 @@
+import Ribbon from"../dataset/chord/ribbon";export default function(manager){var links=manager.config.links;for(var key in links){if(links.hasOwnProperty(key)){if(links[key].visible){manager.attachChild(Ribbon,"ribbon",key).configure(links[key])}}}}

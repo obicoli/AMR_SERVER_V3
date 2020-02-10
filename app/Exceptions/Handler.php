@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 
 class Handler extends ExceptionHandler
 {
@@ -51,9 +52,7 @@ class Handler extends ExceptionHandler
             $exception instanceof \jeremykenedy\LaravelRoles\Exceptions\RoleDeniedException ||
             $exception instanceof \jeremykenedy\LaravelRoles\Exceptions\PermissionDeniedException ||
             $exception instanceof \jeremykenedy\LaravelRoles\Exceptions\LevelDeniedException;
-
         $errors_code = Config::get('response.http');
-
         if ($userLevelCheck) {
             if ($request->expectsJson()) {
                 return response()->json($errors_code['403'],403);
@@ -68,6 +67,8 @@ class Handler extends ExceptionHandler
     }
 
     protected function getExceptionHTTPStatusCode($e){
+        // return method_exists($e, 'getStatusCode') ?
+        //     $e->getStatusCode() : 500;
         return method_exists($e, 'getStatusCode') ?
             $e->getStatusCode() : 500;
     }

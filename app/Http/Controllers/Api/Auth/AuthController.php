@@ -30,6 +30,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Mobile\Repository\MobileRepository;
+use App\Models\Module\Module;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -66,6 +67,12 @@ class AuthController extends Controller
         $this->mobileApp = new MobileRepository( new User() );
     }
 
+    public function validatedToken(Request $request){
+        $http_resp = $this->response_type['200'];
+        Log::info($request);
+        return response()->json($http_resp);
+    }
+
     public function changepassword(Request $request){
 
         $http_resp = $this->response_type['200'];
@@ -82,15 +89,40 @@ class AuthController extends Controller
         }
 
         $user = $this->user->findRecord($request->user()->id);
-        if( $user && Hash::check($request->old_password, $user->password) ){
-            $this->user->setPassword($user, $request->all());
-            $http_resp['description'] = 'Password successful updated';
-            return response()->json($http_resp, 200);
+        if( Hash::check($request->old_password, $request->user()->password ) ){
+        }else{
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['The old password is incorrect'];
+            return response()->json($http_resp, 422);
         }
-        $http_resp = $this->response_type['422'];
-        $http_resp['errors'] = ['The old password is incorrect'];
-        return response()->json($http_resp, 422);
 
+        if($request->old_password == $request->password){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Please choose a new password to continue!'];
+            return response()->json($http_resp, 422);
+        }
+
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
+        try{
+
+            $practice = $this->practice->find($request->user()->company_id);
+            $practiceUser = $this->practiceUser->findByUserIdPracticeId($user->id,$practice->id,$user->email);
+            $new_hashed_password = $this->user->createPassword($request->password);
+            $updates['status'] = "Active";
+            $updates['password'] = $new_hashed_password;
+            $this->practiceUser->update($updates,$practiceUser->uuid);
+            $user->password = $new_hashed_password;
+            $user->save();
+            $http_resp['description'] = "Password successful changed!";
+
+        }catch(\Exception $e){
+            $http_resp = $this->response_type['500'];
+            Log::info($e);
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            return response()->json($http_resp, 500);
+        }
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        return response()->json($http_resp);
     }
 
     public function register(Request $request){
@@ -122,7 +154,7 @@ class AuthController extends Controller
             return response()->json($http_resp, 422);
         }
 
-        DB::beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try {
             Log::info($request);
             //Hash user password
@@ -140,12 +172,12 @@ class AuthController extends Controller
             //send verification email
             $this->initiateVerification($user);
         }catch (\Exception $e){
-            DB::rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             Log::info($e);
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp, 500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         //return 200 http response
         return response()->json($http_resp, 200);
     }
@@ -293,15 +325,18 @@ class AuthController extends Controller
             return response()->json($http_resp,422);
         }
 
-        DB::beginTransaction();
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
 
             $user = $this->user->findByUuid($request->user_uuid);
             $practice = $this->practice->findByUuid($request->practice_id);
             $practiceUser = $this->practiceUser->findByUserIdPracticeId($user->id,$practice->id,$user->email);
+            $new_hashed_password = $this->user->createPassword($request->password);
             $updates['status'] = "Active";
-            $updates['password'] = $this->user->createPassword($request->password);
+            $updates['password'] = $new_hashed_password;
             $this->practiceUser->update($updates,$practiceUser->uuid);
+            $user->password = $new_hashed_password;
+            $user->save();
             $practiceUser = $this->practiceUser->findByUserIdPracticeId($user->id,$practice->id,$user->email);
 
             // if ($user && Hash::check($request->password, $practiceUser->password) ){
@@ -329,11 +364,11 @@ class AuthController extends Controller
             // return response()->json($http_resp, 400);
         }catch(\Exception $e){
             Log::info($e);
-            DB::rollBack();
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
             $http_resp = $this->response_type['500'];
             return response()->json($http_resp, 500);
         }
-        DB::commit();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
 
     }

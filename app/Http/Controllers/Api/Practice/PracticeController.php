@@ -38,6 +38,7 @@ use App\Models\Product\ProductType;
 use App\Models\Hospital\Hospital;
 use App\Models\Module\Module;
 use App\Models\Practice\PracticeFinanceSetting;
+use App\Models\Practice\PracticeUser;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
 
@@ -73,9 +74,8 @@ class PracticeController extends Controller
         $this->accountsCoa = new AccountingRepository( new AccountsCoa() );
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->customers = new CustomerRepository( new Customer() );
-
         //$this->user_transformer = new UserTransformer();
-        //$this->practiceUser = new PracticeUserRepository(new PracticeUsers());
+        $this->practiceUser = new PracticeRepository(new PracticeUser());
     }
 
     public function index(Request $request){
@@ -83,48 +83,26 @@ class PracticeController extends Controller
         $results = array();
         $company = $this->practice->find($request->user()->company_id);
         $parentPractice = $this->practice->findParent($company);
-        $facilities = $parentPractice->practices()->get();
+        $facilities = $parentPractice->practices()->paginate(10);
+        $paged_data = $this->helper->paginator($facilities);
         foreach( $facilities as $facility ){
-            array_push($results,$this->practice->transform_($facility));
+            array_push($paged_data['data'],$this->practice->transform_($facility));
         }
-        $http_resp['results'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
     }
 
-    // public function facilities($facility_id){
-    //     $http_resp = $this->response_type['200'];
-    //     $practice = $this->practice->findByUuid($facility_id);
-    //     $parent_main = $this->practice->findParent($practice);
-    //     $branches = $parent_main->practices()->get()->sortBy('name');
-    //     $results = array();
-    //     foreach($branches as $branch){
-    //         $data['id'] = $branch->uuid;
-    //         $data['name'] = $branch->name;
-    //         $data['address'] = $branch->address;
-    //         $data['email'] = $branch->email;
-    //         $data['longitude'] = $branch->longitude;
-    //         $data['latitude'] = $branch->latitude;
-    //         $data['mobile'] = $branch->mobile;
-    //         array_push($results,$data);
-    //     }
-    //     $http_resp['results'] = $results;
-    //     return response()->json($http_resp);
-    // }
-
-    // public function practice($uuid){
-    //     $http_resp = $this->response_type['200'];
-    //     $practice = $this->practice->findByUuid($uuid);
-    //     //$owner = $practice->owner()->get()->first();
-    //     $parent_main = $this->practice->findParent($practice);
-    //     $branches = $parent_main->practices()->get();
-    //     $http_resp['results'] = $this->practice->transform_collection($branches);
-    //     return response()->json($http_resp);
-    // }
-
     public function show(Request $request, $uuid){
         $http_resp = $this->response_type['200'];
-        $practice = $this->practice->find($request->user()->company_id);
-        $http_resp['results'] = $this->practice->transform_($practice);
+        $company = $this->practice->findByUuid($uuid);
+        $users = array();
+        $trans_data = $this->practice->transform_($company);
+        $company_users = $company->users()->orderByDesc('created_at')->paginate(10);
+        foreach ($company_users as $company_user) {
+            array_push($users,$this->practiceUser->transform_user($company_user));
+        }
+        $trans_data['users'] = $users;
+        $http_resp['results'] = $trans_data;
         return response()->json($http_resp);
     }
 

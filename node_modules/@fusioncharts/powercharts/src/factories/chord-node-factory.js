@@ -1,0 +1,1 @@
+import Node from"../dataset/chord/node.js";export default function(manager){var config=manager.config;config.nodesOrder.forEach((function(label){manager.attachChild(Node,"node",label).configure(config.nodes[label])}))}

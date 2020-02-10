@@ -13,7 +13,7 @@ use App\Models\Module\Module;
 class PracticeFinanceSetting extends Model
 {
     use SoftDeletes, Accountable,UuidTrait;
-    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
+    protected $connection = Module::MYSQL_DB_CONN;
     protected $table = "practice_finance_settings";
     protected $fillable = [
         'practice_id',

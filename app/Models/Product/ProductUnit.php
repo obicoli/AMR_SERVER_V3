@@ -11,14 +11,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ProductUnit extends Model
 {
     use SoftDeletes, UuidTrait, Accountable;
-
     protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
-
     protected $table = 'product_units';
-
     protected $fillable = [
         'name',
         'slug',
         'status',
+        'description',
     ];
 }

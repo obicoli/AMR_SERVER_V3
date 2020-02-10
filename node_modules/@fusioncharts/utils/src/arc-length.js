@@ -1,0 +1,1 @@
+var arcLengthDeg=function arcLengthDeg(r,theta){if(r===void 0){r=0}if(theta===void 0){theta=0}return 2*Math.PI*r*(theta/360)},arcLengthRad=function arcLengthRad(r,theta){if(r===void 0){r=0}if(theta===void 0){theta=0}return r*theta};export default arcLengthDeg;export{arcLengthDeg,arcLengthRad};

@@ -1,0 +1,1 @@
+var TIME_SPAN=[new Date(2e3,0,1),new Date(2e3,0,2)],UTC_TIME_SPAN=[Date.UTC(2e3,0,1),Date.UTC(2e3,0,2)];export{TIME_SPAN,UTC_TIME_SPAN};

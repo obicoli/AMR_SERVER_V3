@@ -39,7 +39,7 @@ class PracticeUser extends Model
 
     const USER_TYPE = "Facility Staff";
 
-    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
+    protected $connection = Module::MYSQL_DB_CONN;
 
     protected $table = 'practices_users';
 
@@ -51,6 +51,7 @@ class PracticeUser extends Model
         'user_id',
         'first_name',
         'other_name',
+        'can_access_company',
         'email',
         'mobile',
         'gender',
@@ -59,6 +60,9 @@ class PracticeUser extends Model
         'address',
         'billable',
     ];
+
+    public function getCompanyId(){ return $this->practice_id; }
+    public function getCanAccessCompany(){ return $this->can_access_company; }
 
     public function product_po(){ return $this->morphMany(ProductPo::class, 'received','received_type','received_id'); }
     public function practice(){ return $this->belongsTo(Practice::class,'practice_id'); }

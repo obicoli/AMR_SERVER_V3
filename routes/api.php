@@ -18,6 +18,7 @@ Route::group( ['prefix'=>'oauth', 'middleware' => ['cors'] ], function (){
 
     Route::group( ['middleware' => ['auth:api'] ], function (){
         Route::post('/logout', "Api\Auth\AuthController@logout");
+        Route::post('/validate/token', "Api\Auth\AuthController@validatedToken");
         Route::post('/change/password', "Api\Auth\AuthController@changepassword");
     });
     Route::post('/login', "Api\Auth\AuthController@login");
@@ -223,7 +224,7 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::group( ['prefix'=>'dashboard' ], function (){
             Route::get('/', "Api\Practice\DashboardController@index");
             Route::post('/', "Api\Practice\DashboardController@create");
-            Route::post('/{id}', "Api\Practice\DashboardController@update");
+            Route::post('/{uuid}', "Api\Practice\DashboardController@update");
             Route::get('/reports', "Api\Practice\DashboardController@reports");
         });
 
@@ -273,12 +274,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             //     Route::delete('/{id}', "Api\Practice\PracticeUserWorkPlaceController@destroy");
             // });
 
-            Route::post('/invite', "Api\Practice\PracticeUserController@invite");
+            //Route::post('/invite', "Api\Practice\PracticeUserController@invite");
             //Route::post('/master', "Api\Practice\PracticeUserController@master");
             Route::post('/', "Api\Practice\PracticeUserController@create");
+            Route::post('/{uuid}', "Api\Practice\PracticeUserController@update");
             Route::get('/', "Api\Practice\PracticeUserController@index");
             Route::get('/{uuid}', "Api\Practice\PracticeUserController@show");
-            //Route::get('/practice/{practice_uuid}', "Api\Practice\PracticeUserController@practice");
             Route::delete('/{uuid}', "Api\Practice\PracticeUserController@destroy");
         });
 
@@ -295,7 +296,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         //Route::get('/{practice_uuid}/{resource_type}', "Api\Practice\PracticeController@show_resource_based");//->middleware('permission:view.practice');
         Route::post('/{uuid}', "Api\Practice\PracticeController@update");//->middleware('permission:edit.practice');
         Route::delete('/{uuid}', "Api\Practice\PracticeController@delete");//->middleware('permission:delete.practice');
-
     });
 
     Route::group( ['prefix'=>'departments' ], function (){
@@ -1014,10 +1014,10 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
         Route::group( ['prefix'=>'units' ], function (){
             Route::get('/', "Api\Product\ProductUnitController@index");
-            Route::get('/practice/{practice_uuid}', "Api\Product\ProductUnitController@index");
-            Route::get('/{id}', "Api\Product\ProductUnitController@show");
+            //Route::get('/practice/{practice_uuid}', "Api\Product\ProductUnitController@index");
+            Route::get('/{uuid}', "Api\Product\ProductUnitController@show");
             Route::post('/', "Api\Product\ProductUnitController@create");
-            Route::delete('/{id}', "Api\Product\ProductUnitController@destroy");
+            Route::delete('/{uuid}', "Api\Product\ProductUnitController@destroy");
             Route::post('/{uuid}', "Api\Product\ProductUnitController@update");
         });
 

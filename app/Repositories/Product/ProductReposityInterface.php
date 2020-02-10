@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Inventory\ProductStock;
 use App\Models\Product\ProductItem;
 use App\Models\Product\ProductTaxation;
+use App\Models\Product\ProductUnit;
 use App\Models\Product\Sales\ProductPriceRecord;
 use App\Models\Product\Store\ProductStore;
 
@@ -33,6 +34,7 @@ interface ProductReposityInterface
     public function update(array $arr, $id);
     public function paginated($paginate=15);
     //
+    public function transform_unit(ProductUnit $productUnit);
     public function transform_attribute(Model $model);
     public function transform_taxation(ProductTaxation $productTaxation);
     public function transform_store(ProductStore $productStore);

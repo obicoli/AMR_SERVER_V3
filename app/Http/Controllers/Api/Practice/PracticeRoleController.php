@@ -38,15 +38,18 @@ class PracticeRoleController extends Controller
     }
 
     public function index(Request $request){
+
         $http_resp = $this->response_type['200'];
         $practice = $this->practice->find($request->user()->company_id);
         $results = array();
-        $practice_roles = $practice->roles()->get()->sortBy('name');
+        $practice_roles = $practice->roles()->orderByDesc('created_at')->paginate(10);
+        $paged_data = $this->helper->paginator($practice_roles);
         foreach( $practice_roles as $practice_role ){
-            array_push($results,$this->practice->transform_role($practice_role,$practice));
+            array_push($paged_data['data'],$this->practice->transform_role($practice_role,$practice));
         }
-        $http_resp['results'] = $results;
+        $http_resp['results'] = $paged_data;
         return response()->json($http_resp);
+
     }
 
     public function show($id){
@@ -54,16 +57,6 @@ class PracticeRoleController extends Controller
         $http_resp['results'] = $this->practice->getRole($id);
         return response()->json($http_resp);
     }
-
-    // public function practice($practice_uuid){
-    //     Log::info($practice_uuid);
-    //     $http_resp = $this->response_type['200'];
-    //     $practice = $this->practice->findByUuid($practice_uuid);
-    //     $practice = $this->practice->findOwner($practice);
-    //     Log::info($practice);
-    //     $http_resp['results'] = $this->practiceRole->getPracticeRoles($practice);
-    //     return response()->json($http_resp);
-    // }
 
     public function create(Request $request){
         //Log::info($request);

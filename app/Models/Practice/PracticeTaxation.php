@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PracticeTaxation extends Model
 {
     use SoftDeletes, Accountable,UuidTrait;
-    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
+    protected $connection = Module::MYSQL_DB_CONN;
     protected $table = "practice_taxations";
     protected $fillable = [
         'product_taxation_id',

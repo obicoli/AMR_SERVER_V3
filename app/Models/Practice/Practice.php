@@ -87,7 +87,7 @@ class Practice extends Model implements AccountableInterface
 {
     use SoftDeletes, Accountable,UuidTrait, AccountableTrait;
 
-    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
+    protected $connection = Module::MYSQL_DB_CONN;
 
     const AC_VERIFICATION = "EMAIL VERIFICATION";
     const NAME_SPACE = "App\Models\Practice\Practice";
@@ -249,7 +249,7 @@ class Practice extends Model implements AccountableInterface
     //practice user
     public function user(){return $this->belongsToMany(User::class,'practices_users','user_id','practice_id');}
     //practice users & there associated roles and permissions
-    public function users(){ return $this->hasMany(PracticeUser::class,'practice_id'); }
+    public function users(){ return $this->hasMany(PracticeUser::class,'practice_id','id'); }
     //Roles
     public function roles(){ return $this->hasMany(PracticeRole::class,'practice_id'); }
 

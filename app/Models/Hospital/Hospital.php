@@ -34,6 +34,7 @@ use App\Models\Account\Payments\AccountPaymentMethod;
 use App\Models\Account\Payments\AccountPaymentTransaction;
 use App\Models\Account\COA\AccountChartAccount;
 use App\Models\His\Rtc\HisRtcUserTrack;
+use App\Models\Module\Module;
 use App\Models\NotificationCenter\Inventory\InventoryAlert;
 use App\Models\NotificationCenter\Inventory\NotificationInventoryMailbox;
 use App\Models\Product\Inventory\Inward\ProductStockInward;
@@ -61,6 +62,7 @@ class Hospital extends Model
 
     use SoftDeletes,UuidTrait, Accountable, AccountableTrait;
 
+    protected $connection = Module::MYSQL_DB_CONN;
     protected $table = "hospitals";
 
     protected $guarded = [

@@ -176,6 +176,16 @@ class ProductReposity implements ProductReposityInterface
         ];
     }
 
+    public function transform_unit(ProductUnit $productUnit){
+        return [
+            'id' => $productUnit->uuid,
+            'name' => $productUnit->name,
+            'description' => $productUnit->description,
+            'status' => $productUnit->status,
+            'slug'=>$productUnit->slug,
+        ];
+    }
+
     public function transform_store(ProductStore $productStore){
         if($productStore){
             return [

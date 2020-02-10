@@ -60,18 +60,33 @@ class PracticeUserController extends Controller
         $practice = $this->practice->find($request->user()->company_id);
         $practice_users = $practice->users()->get();
         foreach( $practice_users as $practice_user ){
-            array_push($results,$this->practiceUsers->transform_user($practice_user,null,$practice));
+
+            $transformed_user = $this->practiceUsers->transform_user($practice_user);
+            $company = $this->practice->find($practice_user->getCompanyId());
+            if($company){
+                $transformed_user['facility'] = $this->practice->transform_company($company);
+            }else{
+                $transformed_user['facility'] = null;
+            }
+            array_push($results,$transformed_user);
         }
         $http_resp['results'] = $results;
         return response()->json($http_resp);
     }
 
-    // public function practice(Request $request, $practice_uuid){
-    //     $http_resp = $this->response_type['200'];
-    //     $practice = $this->practice->findByUuid($practice_uuid);
-    //     $http_resp['results'] = $this->practice->getUsers($practice);
-    //     return response()->json($http_resp);
-    // }
+    public function show($uuid){
+        $http_resp = $this->response_type['200'];
+        $practice_user = $this->practiceUsers->findByUuid($uuid);
+        $transformed_user = $this->practiceUsers->transform_user($practice_user);
+        $company = $this->practice->find($practice_user->getCompanyId());
+        if($company){
+            $transformed_user['facility'] = $this->practice->transform_company($company);
+        }else{
+            $transformed_user['facility'] = null;
+        }
+        $http_resp['results'] = $transformed_user;
+        return response()->json($http_resp);
+    }
 
     public function create(Request $request){
         Log::info($request);
@@ -206,19 +221,34 @@ class PracticeUserController extends Controller
         return response()->json($http_resp);
     }
 
-    public function update(Request $request,$uuid){}
+    public function update(Request $request,$uuid){
+
+        $http_resp = $this->response_type['200'];
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
+        try{
+            $practiceUser = $this->practiceUsers->findByUuid($uuid);
+            $practiceUser->update($request->except(['email']));
+            $http_resp['description'] = "Your profile successful updated!";
+        }catch (\Exception $exception){
+            $http_resp = $this->response_type['500'];
+            Log::info($exception);
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        return response()->json($http_resp);
+
+    }
 
     public function destroy($uuid){
         $http_resp = $this->response_type['200'];
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
-
             $practiceUser = $this->practiceUsers->findByUuid($uuid);
             $usery = PracticeUser::find($practiceUser->id);
             $usery->detachAllRoles();
             $this->practiceUsers->delete($uuid);
             $http_resp['description'] = "User deleted successful!";
-            
         }catch (\Exception $exception){
             $http_resp = $this->response_type['500'];
             Log::info($exception);
@@ -229,95 +259,88 @@ class PracticeUserController extends Controller
         return response()->json($http_resp);
     }
 
-    public function show($uuid){
-        $http_resp = $this->response_type['200'];
-        $practice_user = $this->practiceUsers->findByUuid($uuid);
-        $http_resp['results'] = $this->practiceUsers->transform_user($practice_user);
-        return response()->json($http_resp);
-    }
-
-    public function invite(Request $request){
-
-        $http_resp = $this->response_type['200'];
-
-        $rules = [
-            'practice_user_uuid'=>'required',
-            'practice_id'=>'required',
-        ];
-        $validation = Validator::make($request->all(),$rules, $this->helper->messages());
-        if ($validation->fails()){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-            return response()->json($http_resp,422);
-        }
-
-        try{
-
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $practiceUser = $this->practiceUsers->findByUuid($request->practice_user_uuid);
-            $user = $this->user->findRecord($practiceUser->user_id);
-            $other_data['send_to'] = $practiceUser->first_name;
-            $other_data['name'] = "Master admin";
-            $other_data['uuid'] = $practice->uuid;
-            $this->initiatePracticeUserInvitation($user,$practice,$other_data);
-            $http_resp['description'] = "Invitation sent successful!";
-
-        }catch (\Exception $exception){
-            $http_resp = $this->response_type['500'];
-            Log::info($exception);
-            DB::rollBack();
-            return response()->json($http_resp,500);
-        }
-        DB::commit();
-        return response()->json($http_resp);
-    }
-
-    public function master(Request $request){
-
-        $http_resp = $this->response_type['200'];
-
-        $rules = [
-            'practice_user_uuid'=>'required',
-            'practice_id'=>'required',
-        ];
-        $validation = Validator::make($request->all(),$rules, $this->helper->messages());
-        if ($validation->fails()){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-            return response()->json($http_resp,422);
-        }
-
-        try{
-
-            $practice = $this->practice->findByUuid($request->practice_id);
-            $practiceUser = $this->practiceUsers->findByUuid($request->practice_user_uuid);
-            $user = $this->user->findRecord($practiceUser->user_id);
-            //$this->initiatePracticeUserInvitation($user,$practice);
-            $session_user = $request->user();
-            $sessionpracticeUser = $this->practiceUsers->findByUserIdPracticeId($session_user->id,$practice->id,$session_user->email);
-
-            $activation = new Activation();
-            $activation->token = $this->helper->getToken(60);
-            $activation->owner_id = $user->id;
-            $activation->owner_type = $practice->uuid;
-            $activation->save();
-
-            $mail_data = $practice->toArray();
-            $mail_data['practice_name'] = $practice->name;
-            $mail_data['send_by'] = $sessionpracticeUser->first_name;
-            $mail_data['send_to'] = $practiceUser->first_name;
-            $mail_data['token'] = $activation->token;
-            $this->initiateMails($user, Settings::MAKE_MASTER_ADMIN,$mail_data);
-            $http_resp['description'] = $practiceUser->first_name." ".$practiceUser->other_name." was invited to be master admin";
-
-        }catch (\Exception $exception){
-            $http_resp = $this->response_type['500'];
-            Log::info($exception);
-            DB::rollBack();
-            return response()->json($http_resp,500);
-        }
-        DB::commit();
-        return response()->json($http_resp);
-    }
+//    public function invite(Request $request){
+//
+//        $http_resp = $this->response_type['200'];
+//
+//        $rules = [
+//            'practice_user_uuid'=>'required',
+//            'practice_id'=>'required',
+//        ];
+//        $validation = Validator::make($request->all(),$rules, $this->helper->messages());
+//        if ($validation->fails()){
+//            $http_resp = $this->response_type['422'];
+//            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+//            return response()->json($http_resp,422);
+//        }
+//
+//        try{
+//
+//            $practice = $this->practice->findByUuid($request->practice_id);
+//            $practiceUser = $this->practiceUsers->findByUuid($request->practice_user_uuid);
+//            $user = $this->user->findRecord($practiceUser->user_id);
+//            $other_data['send_to'] = $practiceUser->first_name;
+//            $other_data['name'] = "Master admin";
+//            $other_data['uuid'] = $practice->uuid;
+//            $this->initiatePracticeUserInvitation($user,$practice,$other_data);
+//            $http_resp['description'] = "Invitation sent successful!";
+//
+//        }catch (\Exception $exception){
+//            $http_resp = $this->response_type['500'];
+//            Log::info($exception);
+//            DB::rollBack();
+//            return response()->json($http_resp,500);
+//        }
+//        DB::commit();
+//        return response()->json($http_resp);
+//    }
+//
+//    public function master(Request $request){
+//
+//        $http_resp = $this->response_type['200'];
+//
+//        $rules = [
+//            'practice_user_uuid'=>'required',
+//            'practice_id'=>'required',
+//        ];
+//        $validation = Validator::make($request->all(),$rules, $this->helper->messages());
+//        if ($validation->fails()){
+//            $http_resp = $this->response_type['422'];
+//            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+//            return response()->json($http_resp,422);
+//        }
+//
+//        try{
+//
+//            $practice = $this->practice->findByUuid($request->practice_id);
+//            $practiceUser = $this->practiceUsers->findByUuid($request->practice_user_uuid);
+//            $user = $this->user->findRecord($practiceUser->user_id);
+//            //$this->initiatePracticeUserInvitation($user,$practice);
+//            $session_user = $request->user();
+//            $sessionpracticeUser = $this->practiceUsers->findByUserIdPracticeId($session_user->id,$practice->id,$session_user->email);
+//
+//            $activation = new Activation();
+//            $activation->token = $this->helper->getToken(60);
+//            $activation->owner_id = $user->id;
+//            $activation->owner_type = $practice->uuid;
+//            $activation->save();
+//
+//            $mail_data = $practice->toArray();
+//            $mail_data['practice_name'] = $practice->name;
+//            $mail_data['send_by'] = $sessionpracticeUser->first_name;
+//            $mail_data['send_to'] = $practiceUser->first_name;
+//            $mail_data['token'] = $activation->token;
+//            $this->initiateMails($user, Settings::MAKE_MASTER_ADMIN,$mail_data);
+//            $http_resp['description'] = $practiceUser->first_name." ".$practiceUser->other_name." was invited to be master admin";
+//
+//        }catch (\Exception $exception){
+//            $http_resp = $this->response_type['500'];
+//            Log::info($exception);
+//            DB::rollBack();
+//            return response()->json($http_resp,500);
+//        }
+//        DB::commit();
+//        return response()->json($http_resp);
+//    }
 
 }

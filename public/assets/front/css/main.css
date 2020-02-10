@@ -71,7 +71,7 @@ div#preloader {
 section {
   padding: 25px 0;
   position: relative;
-  z-index: 2;
+  /* z-index: 1; */
 }
 
 .container {
@@ -353,7 +353,7 @@ ul {
 }
 
 .form-control {
-  min-height: 42px;
+  /* min-height: 42px; */
   border: 1px solid #fff;
 }
 
@@ -1806,6 +1806,6 @@ img.landing-logo{
 }
 
 .dropdown-menu a.dropdown-item{
-  font-size: 13px!important;
+  /* font-size: 12px; */
 }
 

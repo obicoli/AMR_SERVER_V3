@@ -6,6 +6,7 @@ use App\Models\Addresses\DeliveryAddress;
 use App\Models\Conversation\Groups;
 use App\Models\Conversation\GroupUser;
 use App\Models\Doctor\Doctor;
+use App\Models\Module\Module;
 use App\Models\Patient\Patient;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\Practice\Practice;
@@ -22,6 +23,8 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable, SoftDeletes, HasRoleAndPermission,UuidTrait;
+
+    protected $connection = Module::MYSQL_DB_CONN;
 
     /**
      * The database table used by the model.

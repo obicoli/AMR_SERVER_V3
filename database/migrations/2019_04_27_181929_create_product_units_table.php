@@ -21,6 +21,7 @@ class CreateProductUnitsTable extends Migration
             $table->string('uuid')->index();
             $table->boolean('status')->default(true);
             $table->string('slug')->index()->nullable();
+            $table->string('description')->index()->nullable();
             $table->string('owner_type')->index()->nullable();
             $table->unsignedInteger('owner_id')->index()->nullable();
             $table->softDeletes();

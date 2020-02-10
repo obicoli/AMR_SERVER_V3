@@ -246,60 +246,63 @@ class UsersTableSeeder extends Seeder
                 'mobile'=>2547098722222,
             ]);
             $settings1 = $store->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
-            $store2 = $pharmacy->practices()->create([
-                // 'type'=>'Pharmacy',
-                'country'=>'Kenya',
-                'city'=>'Nairobi',
-                'category'=>'Branch',
-                'address'=>'Kibera, Mara road, Westy',
-                'approval_status'=>'approved',
-                'status'=>true,
-                'postal_code' => '9000009',
-                'latitude'=>-1.287232,////
-                'longitude' => 36.6982105,////
-                'registration_number'=>'432-1230999',
-                'name'=>'Kibera Community Health Centre-Amref',
-                'email'=>'kibera@amref.com',
-                'support_email'=>'kibera@amref.com',
-                'mobile'=>254709879999,
-            ]);
-            $settings1 = $store2->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
-            $facility_upperhill = $pharmacy->practices()->create([
-                // 'type'=>'Pharmacy',
-                'country'=>'Kenya',
-                'city'=>'Nairobi',
-                'category'=>'Branch',
-                'address'=>'Mara road, UpperHill',
-                'approval_status'=>'approved',
-                'status'=>true,
-                'postal_code' => '9000008',
-                'latitude'=>-1.2858812,////
-                'longitude' => 36.7973609,////
-                'registration_number'=>'432-12300',
-                'name'=>'Amref Enterprises Limited',
-                'email'=>'amrefupperhill@amref.com',
-                'support_email'=>'amrefupperhill@amsref.com',
-                'mobile'=>254709811111,
-            ]);
-            $settings1 = $facility_upperhill->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
-            $facility_buru = $pharmacy->practices()->create([
-                // 'type'=>'Pharmacy',
-                'country'=>'Kenya',
-                'city'=>'Nairobi',
-                'category'=>'Branch',
-                'address'=>'Mara road, Buruburu',
-                'approval_status'=>'approved',
-                'status'=>true,
-                'postal_code' => '90000028333',
-                'latitude'=>-1.283939,
-                'longitude'=>36.879508,
-                'registration_number'=>'432-123100444',
-                'name'=>'AMREF Buruburu',
-                'email'=>'amrefburubauru@amref.com',
-                'support_email'=>'amrefburuburu@amsref.com',
-                'mobile'=>254709876323333,
-            ]);
-            $settings1 = $facility_buru->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
+
+            // $store2 = $pharmacy->practices()->create([
+            //     // 'type'=>'Pharmacy',
+            //     'country'=>'Kenya',
+            //     'city'=>'Nairobi',
+            //     'category'=>'Branch',
+            //     'address'=>'Kibera, Mara road, Westy',
+            //     'approval_status'=>'approved',
+            //     'status'=>true,
+            //     'postal_code' => '9000009',
+            //     'latitude'=>-1.287232,////
+            //     'longitude' => 36.6982105,////
+            //     'registration_number'=>'432-1230999',
+            //     'name'=>'Kibera Community Health Centre-Amref',
+            //     'email'=>'kibera@amref.com',
+            //     'support_email'=>'kibera@amref.com',
+            //     'mobile'=>254709879999,
+            // ]);
+            // $settings1 = $store2->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
+
+            // $facility_upperhill = $pharmacy->practices()->create([
+            //     // 'type'=>'Pharmacy',
+            //     'country'=>'Kenya',
+            //     'city'=>'Nairobi',
+            //     'category'=>'Branch',
+            //     'address'=>'Mara road, UpperHill',
+            //     'approval_status'=>'approved',
+            //     'status'=>true,
+            //     'postal_code' => '9000008',
+            //     'latitude'=>-1.2858812,////
+            //     'longitude' => 36.7973609,////
+            //     'registration_number'=>'432-12300',
+            //     'name'=>'Amref Enterprises Limited',
+            //     'email'=>'amrefupperhill@amref.com',
+            //     'support_email'=>'amrefupperhill@amsref.com',
+            //     'mobile'=>254709811111,
+            // ]);
+            // $settings1 = $facility_upperhill->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
+
+            // $facility_buru = $pharmacy->practices()->create([
+            //     // 'type'=>'Pharmacy',
+            //     'country'=>'Kenya',
+            //     'city'=>'Nairobi',
+            //     'category'=>'Branch',
+            //     'address'=>'Mara road, Buruburu',
+            //     'approval_status'=>'approved',
+            //     'status'=>true,
+            //     'postal_code' => '90000028333',
+            //     'latitude'=>-1.283939,
+            //     'longitude'=>36.879508,
+            //     'registration_number'=>'432-123100444',
+            //     'name'=>'AMREF Buruburu',
+            //     'email'=>'amrefburubauru@amref.com',
+            //     'support_email'=>'amrefburuburu@amsref.com',
+            //     'mobile'=>254709876323333,
+            // ]);
+            // $settings1 = $facility_buru->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
 
             //SET HOSPITAL/ENTERPRISE DEPARTMENT/Add Departiments to ENTERPRISE
             // $pharmacy->departments()->create(['name'=>'Procurement']);
@@ -314,28 +317,31 @@ class UsersTableSeeder extends Seeder
             // $pharmacy->departments()->create(['name'=>'Radiodology']);
             //Stores
             $practice1 = Practice::find(1);
-            $practice2 = Practice::find(2);
-            $practice3 = Practice::find(3);
-            $practice4 = Practice::find(4);
+            // $practice2 = Practice::find(2);
+            // $practice3 = Practice::find(3);
+            // $practice4 = Practice::find(4);
             $store1 = $pharmacy->stores()->create(['name'=>'KCO Main Store','type'=>'main']);
             $sub_store = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
             $practice1->stores()->save($store1);
             $practice1->stores()->save($sub_store);
             //Amref westlands Pharmacy Sub store
-            $store_westlands = $pharmacy->stores()->create(['name'=>'Kibera Store','type'=>'main']);
-            $sub_store1 = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
-            $practice2->stores()->save($sub_store1);
-            $practice2->stores()->save($store_westlands);
-            //Amref Upperhill Pharmacy Sub store
-            $store_upperhil = $pharmacy->stores()->create(['name'=>'Upper Hill Store','type'=>'main']);
-            $sub_store_upperhil = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
-            $practice3->stores()->save($sub_store_upperhil);
-            $practice3->stores()->save($store_upperhil);
-            //Amref Buru Pharmacy Sub store
-            $store_buruburu = $pharmacy->stores()->create(['name'=>'Buruburu Store','type'=>'main']);
-            $sub_store_buru = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
-            $facility_buru->stores()->save($store_buruburu);
-            $facility_buru->stores()->save($sub_store_buru);
+            // $store_westlands = $pharmacy->stores()->create(['name'=>'Kibera Store','type'=>'main']);
+            // $sub_store1 = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
+            // $practice2->stores()->save($sub_store1);
+            // $practice2->stores()->save($store_westlands);
+
+            // //Amref Upperhill Pharmacy Sub store
+            // $store_upperhil = $pharmacy->stores()->create(['name'=>'Upper Hill Store','type'=>'main']);
+            // $sub_store_upperhil = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
+            // $practice3->stores()->save($sub_store_upperhil);
+            // $practice3->stores()->save($store_upperhil);
+
+            // //Amref Buru Pharmacy Sub store
+            // $store_buruburu = $pharmacy->stores()->create(['name'=>'Buruburu Store','type'=>'main']);
+            // $sub_store_buru = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
+            // $facility_buru->stores()->save($store_buruburu);
+            // $facility_buru->stores()->save($sub_store_buru);
+
             //Add Departiments to Facility
             // $departments = $pharmacy->departments()->get();
             // foreach($departments as $department){
@@ -351,28 +357,10 @@ class UsersTableSeeder extends Seeder
                 'practice_id' => $practica->id,
                 'slug' => 'master.admin',
                 'name' => 'Master admin',
-                'description' => 'System Adminstrator',
+                'description' => 'Controls entire system',
             ]);
-            PracticeRole::create([
-                'practice_id' => $practica->id,
-                'slug' => 'general.manager',
-                'name' => 'General Manager',
-                'description' => 'Main Branch Manager. Can manage all branches',
-            ]);
-            PracticeRole::create([
-                'practice_id' => $practica->id,
-                'slug' => 'branch.manager',
-                'name' => 'Branch Manager',
-                'description' => 'Sub branch Manager. Manages all activities at branch level',
-            ]);
-            PracticeRole::create([
-                'practice_id' => $practica->id,
-                'slug' => 'pharmacist',
-                'name' => 'Pharmacist',
-                'description' => 'Pharmacy. Manages all activities at Pharmacy',
-            ]);
-            
             $practiceMasterRole = PracticeRole::all()->where('slug','master.admin')->first();
+            
             //$generalManagerRole = PracticeRole::all()->where('slug','general.manager')->first();
             // $branchManagerRole = PracticeRole::all()->where('slug','branch.manager')->first();
             // $pharmacistRole = PracticeRole::all()->where('slug','pharmacist')->first();
@@ -380,23 +368,15 @@ class UsersTableSeeder extends Seeder
             $permissions = Permission::all();
             foreach($permissions as $permission){
                 $practiceMasterRole->attachPermission($permission);
-                //$generalManagerRole->attachPermission($permission);
-                //$branchManagerRole->attachPermission($permission);
-                //$pharmacistRole->attachPermission($permission);
-                // if( ($permission->slug=="create.branch") || ($permission->slug=="edit.branch") || ($permission->slug=="view.branch") || ($permission->slug=="delete.branch") ){
-                // }else{
-                //     $branchManagerRole->attachPermission($permission);
-                //     $pharmacistRole->attachPermission($permission);
-                // }
             }
-
-            //Adding Users to facilities
+            //Adding Master Admin to facilities
             $user1 = User::create([
                 'email'                          => 'master@amref.com',
                 'mobile'                          => '254709098765',
                 'password'                       => Hash::make('123456'),
                 'status'                      => 'Activated',
             ]);
+
             // $user2 = User::create([
             //     'email'                          => 'generalmanager@amref.com',
             //     'mobile'                          => '254709098700',
