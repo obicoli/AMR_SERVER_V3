@@ -12,8 +12,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" @click="delete_stuff" class="btn combo-button combo-default">
-                        <span v-if="processing"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i>Deleting...</span>
-                        <span v-else><i class="fa fa-trash-o" aria-hidden="true"></i> Yes, delete</span>
+                        <span v-if="processing"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i>Processing...</span>
+                        <span v-else><i class="fa fa-trash-o" aria-hidden="true"></i> Yes</span>
                     </button>
                     <button :disabled="processing" data-dismiss="modal" class="btn-pending-md pointer-cursor">
                         Close

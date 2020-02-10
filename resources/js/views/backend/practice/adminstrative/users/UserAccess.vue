@@ -53,7 +53,7 @@
                                                     </div>
                                                     <div class="width-49-pc float-left mg-top-20">
                                                         <h3 class="fw-600 fs-12 cl-444">List of all users you have invited to <router-link class="cl-amref txt-uppercase" to="/">{{company.name}} Company</router-link></h3>
-                                                        <div v-if="is_initializing" class="width-100-pc float-left">
+                                                        <div v-if="is_initializing" class="width-100-pc float-left text-center">
                                                             <img class="loader" src="/assets/icons/dashboard/loader.gif">
                                                         </div>
                                                         <div v-else class="width-100-pc float-left user-access-card">
@@ -66,20 +66,23 @@
                                                                         <th style="width: 5%;" class=""></th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody v-for="(company_user,index) in company_users" :key="'company_users_'+index">
-                                                                    <tr v-if="company_user.status==='Invited'">
-                                                                        <td class="padded">{{company_user.first_name+' '+company_user.other_name}}</td>
-                                                                        <td class="padded">{{company_user.email}}</td>
-                                                                        <td class="padded"><a class="cl-blue-link">{{company_user.role.name}}</a></td>
-                                                                        <td class="padded text-right"></td>
+                                                                <tbody>
+                                                                    <tr v-for="(invited_user,index) in invited_users" :key="'company_users_'+index">
+                                                                        <td class="padded">{{invited_user.first_name+' '+invited_user.other_name}}</td>
+                                                                        <td class="padded">{{invited_user.email}}</td>
+                                                                        <td class="padded"><a class="cl-blue-link">{{invited_user.role.name}}</a></td>
+                                                                        <td class="padded text-right">
+                                                                            <a v-if="invited_user.role.slug!=='master.admin'" @click="deleteUser(invited_user,'Add Access')" data-toggle="modal" data-target="#remove_user_modal_id" class="documentStatus paid" title="Allow User">+</a>
+                                                                        </td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
                                                         </div>
+                                                        <small class="fs-11">Click Add button to give them access to {{company.name}} Company</small>
                                                     </div>
                                                     <div class="width-49-pc float-right mg-top-20">
                                                         <h3 class="fw-600 fs-12 cl-444">Users that have access to <router-link class="cl-amref txt-uppercase" to="/">{{company.name}} Company</router-link> </h3>
-                                                        <div v-if="is_initializing" class="width-100-pc float-left">
+                                                        <div v-if="is_initializing" class="width-100-pc float-left text-center">
                                                             <img class="loader" src="/assets/icons/dashboard/loader.gif">
                                                         </div>
                                                         <div v-else class="width-100-pc float-left user-access-card">
@@ -98,14 +101,13 @@
                                                                         <td class="padded">{{company_user.email}}</td>
                                                                         <td class="padded"><a data-toggle="modal" data-target="#add_role_1" class="cl-blue-link fs-12 fw-600">Permissions</a></td>
                                                                         <td class="padded text-center">
-                                                                            <a v-if="company_user.can_access_company" data-toggle="modal" data-target="#remove_user_modal_id" class="cl-amref" title="Remove User"><i class="fa fa-ban"></i></a>
-                                                                            <a v-else data-toggle="modal" data-target="#remove_user_modal_id" class="cl-success-light" title="Allow User"><i class="fa fa-check-square-o"></i></a>
+                                                                            <a v-if="company_user.role.slug!=='master.admin'" @click="deleteUser(company_user,'Remove Access')" data-toggle="modal" data-target="#remove_user_modal_id" class="documentStatus draft" title="Remove User">X</a>
                                                                         </td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
                                                         </div>
-                                                        <small>To remove a user, choose the delete button. To set permissions, click the permissions link.</small>
+                                                        <small class="fs-11">To remove a user, choose the delete button. To set permissions, click the permissions link.</small>
                                                     </div>
                                                 </div>
                                                 <div v-else class="width-100-pc float-left text-center mg-top-30">
@@ -128,7 +130,9 @@
                     <delete-modal v-if="page_ready"
                           :modal_id="'remove_user_modal_id'"
                           :confirm_message="'Are you sure?'"
-                          :modal_title="'Remove User'">
+                          :item_url="item_url"
+                          :modal_title="modal_title"
+                          @delete-item-event="loadCompany(company.id)">
                     </delete-modal>
                     <role-modal v-if="page_ready"
                         :modal_id="'add_role_1'"
@@ -157,7 +161,12 @@
     import SalesPurchaseModal from "../../partials/modals/accounting/SalesPurchaseModal";
     import AccountOpeningBalance from "../../partials/modals/accounting/AccountOpeningBalance";
     import {get} from "../../../../../helpers/api";
-    import {PERMISSIONS_API, PRACTICE_ROLE_URL, PRACTICES_API} from "../../../../../router/api_routes";
+    import {
+        PERMISSIONS_API,
+        PRACTICE_ROLE_URL,
+        PRACTICE_USERS_API,
+        PRACTICES_API
+    } from "../../../../../router/api_routes";
     import {createHtmlErrorString} from "../../../../../helpers/functionmixin";
     export default {
         name: "UserAccess",
@@ -166,6 +175,7 @@
             return {
                 companies: [],
                 company: null,
+                current_user: null,
                 company_users: [],
                 invited_users: [],
                 is_initializing: false,
@@ -174,9 +184,18 @@
                 permissions: [],
                 page_ready: false,
                 PRACTICE_ROLE_URL: PRACTICE_ROLE_URL,
+                item_url: null,
+                modal_title: null,
             }
         },
         methods: {
+
+            deleteUser(company_user,action_){
+                this.modal_title = action_;
+                this.item_url = PRACTICE_USERS_API+'/'+company_user.id+'?action='+action_+'&company_id='+this.company.id;
+                this.current_user = company_user;
+            },
+
             selectCompany(event){
                 this.selected_companies = [];
                 if(event.target.checked){
@@ -195,7 +214,16 @@
                         if(res.data.status_code === 200) {
                             this.company = res.data.results;
                             console.info(this.company);
-                            this.company_users = this.company.users;
+                            this.company_users = [];
+                            this.invited_users = [];
+                            for ( let i = 0; i < this.company.users.length; i++ ){
+                                const element = this.company.users[i];
+                                if (element.can_access_company){
+                                    this.company_users.push(element);
+                                }else {
+                                    this.invited_users.push(element);
+                                }
+                            }
                             this.is_initializing = false;
                         }
                     }).catch((err) => {
@@ -239,12 +267,13 @@
             },
             loadPermissions() {
                 get(PERMISSIONS_API)
-                    .then((res) => {
-                        if(res.data.status_code === 200) {
-                            this.permissions = res.data.results;
-                            this.loadCompanies();
-                        }
-                    }).catch((err) => {
+                .then((res) => {
+                    if(res.data.status_code === 200) {
+                        this.permissions = res.data.results;
+                        this.loadCompanies();
+                    }
+                })
+                .catch((err) => {
                 });
             },
         },

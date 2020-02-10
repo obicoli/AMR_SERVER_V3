@@ -1,5 +1,6 @@
 //export const BASE_URL = "http://192.168.0.13:10000";
 export const BASE_URL = "http://localhost:8000";
+//http://192.168.10.217:10000/login
 // Comments
 export const RTC_BASE_URL = "localhost";
 export const RTC_HIS_PORT = "8090";

@@ -60,7 +60,6 @@ class PracticeUserController extends Controller
         $practice = $this->practice->find($request->user()->company_id);
         $practice_users = $practice->users()->get();
         foreach( $practice_users as $practice_user ){
-
             $transformed_user = $this->practiceUsers->transform_user($practice_user);
             $company = $this->practice->find($practice_user->getCompanyId());
             if($company){
@@ -96,11 +95,8 @@ class PracticeUserController extends Controller
             'other_name'=>'required',
             'mobile'=>'required',
             'email'=>'required',
-            //'practice_id'=>'required',
             'role_id'=>'required',
-            //'branch_id'=>'required',
             'mail_invitation'=>'required',
-            //'department_id'=> 'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
         if ($validation->fails()){
@@ -109,6 +105,13 @@ class PracticeUserController extends Controller
             return response()->json($http_resp,422);
         }
         $encoded_mobile = $this->helper->encode_mobile($request->mobile,'KE');
+
+        $practiceRole = PracticeRole::find($request->role_id);
+        if($practiceRole->slug=='master.admin'){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Select another role to continue!'];
+            return response()->json($http_resp,422);
+        }
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
             //get main branch
@@ -155,10 +158,7 @@ class PracticeUserController extends Controller
             }
 
             if ($respo){
-                //$practice_use = $respo['message'];
-                //$this->practiceUsers->setPermission($practice_use,$request->permissions);
-                //attach user a role
-                $practiceRole = PracticeRole::find($request->role_id);
+
                 $this->practiceUsers->attachRole($respo,$practiceRole);
                 
                 //if user is assigned to a department
@@ -181,7 +181,7 @@ class PracticeUserController extends Controller
                     $practiceUserWork->sub_store_id = $sstore->id;
                     $practiceUserWork->save();
                 }
-
+                //--
                 if($request->branch_id != 0){
                     $branch = $this->practice->findByUuid($request->branch_id);
                     $practice = $branch;
@@ -189,7 +189,6 @@ class PracticeUserController extends Controller
                     $practiceUserWork->practice_user_id = $respo->id;
                     $practiceUserWork->save();
                 }
-
                 if ($request->mail_invitation){
                     $practice_us['status'] = 'Invited';
                     //initiate invite by sending invitation email to user
@@ -201,16 +200,13 @@ class PracticeUserController extends Controller
                 }else{
                     $practice_user['status'] = 'Active';
                 }
-
                 $http_resp['description'] = "Created successful!";
-
             }else{
                 DB::connection(Module::MYSQL_DB_CONN)->rollBack();
                 $http_resp = $this->response_type['422'];
                 $http_resp['errors'] = [$respo['message']];
                 return response()->json($http_resp,422);
             }
-
         }catch (\Exception $exception){
             $http_resp = $this->response_type['500'];
             Log::info($exception);
@@ -222,7 +218,6 @@ class PracticeUserController extends Controller
     }
 
     public function update(Request $request,$uuid){
-
         $http_resp = $this->response_type['200'];
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
@@ -237,18 +232,40 @@ class PracticeUserController extends Controller
         }
         DB::connection(Module::MYSQL_DB_CONN)->commit();
         return response()->json($http_resp);
-
     }
 
-    public function destroy($uuid){
+    public function destroy(Request $request, $uuid){
         $http_resp = $this->response_type['200'];
+        $practiceUser = $this->practiceUsers->findByUuid($uuid);
+        $usery = PracticeUser::find($practiceUser->id);
+        $role = $this->practice->getRoles($usery);
+        if ( $role['slug'] == 'master.admin' ){
+            $http_resp['errors'] = ['This action cannot be performed on master admin'];
+            return response()->json($http_resp,422);
+        }
+
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
-            $practiceUser = $this->practiceUsers->findByUuid($uuid);
-            $usery = PracticeUser::find($practiceUser->id);
-            $usery->detachAllRoles();
-            $this->practiceUsers->delete($uuid);
-            $http_resp['description'] = "User deleted successful!";
+            if($request->has('action')){
+                switch ($request->action){
+                    case 'Add Access':
+                        $company = $this->practice->findByUuid($request->company_id);
+                        $practiceUser->can_access_company = true;
+                        $practiceUser->can_access_company = $company->id;
+                        $practiceUser->save();
+                        $http_resp['description'] = "User access successful granted!";
+                        break;
+                    case 'Remove Access':
+                        $practiceUser->can_access_company = false;
+                        $practiceUser->save();
+                        $http_resp['description'] = "User access successful removed!";
+                        break;
+                }
+            }else{
+                $usery->detachAllRoles();
+                $this->practiceUsers->delete($uuid);
+                $http_resp['description'] = "User deleted successful!";
+            }
         }catch (\Exception $exception){
             $http_resp = $this->response_type['500'];
             Log::info($exception);

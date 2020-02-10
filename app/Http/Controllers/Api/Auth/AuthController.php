@@ -196,11 +196,12 @@ class AuthController extends Controller
             $http_resp['errors'] = $this->helpers->getValidationErrors($validation->errors());
             return response()->json($http_resp,422);
         }
-        //--
+
         $user = $this->user->findByEmailOrMobile($request->email);
         $companyUser = null;
         $accounts = null;
         $account_found = false;
+        //Log::info($user);
         if ( $user && Hash::check($request->password, $user->password) ){
             $practiceUsers = $this->practiceUser->getByEmail($user->email);
             $company = $this->practice->find($user->company_id);

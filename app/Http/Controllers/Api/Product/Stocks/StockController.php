@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api\Product\Stocks;
 
 use App\helpers\HelperFunctions;
+use App\Mobile\Repository\MobileRepository;
 use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeProductItem;
 use App\Models\Product\Product;
+use App\Models\Users\User;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
+use App\Repositories\User\UserRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Config;
@@ -39,7 +42,7 @@ class StockController extends Controller
     protected $productItem;
     protected $practiceProductItem;
     protected $productStocks;
-    // protected $generic;
+    protected $user;
     // protected $manufacturer;
     // protected $item_type;
     // protected $brands;
@@ -51,6 +54,7 @@ class StockController extends Controller
     protected $stores;
     protected $productStockTaking;
     protected $product_stock_inward;
+    protected $mobileApp;
 
     public function __construct(Product $product)
     {
@@ -60,6 +64,7 @@ class StockController extends Controller
         $this->practice = new PracticeRepository(new Practice());
         $this->productItem = new ProductReposity(new PracticeProductItem());
         $this->productStocks = new ProductReposity(new ProductStock());
+        $this->user = new UserRepository( new User() );
         //$this->http_response = Config::get('response.http');
         //$this->helper = new HelperFunctions();
         $this->practiceProductItem = new ProductReposity(new PracticeProductItem());
@@ -77,7 +82,7 @@ class StockController extends Controller
         $this->stores = new ProductReposity(new ProductStore());
         $this->productStockTaking = new ProductReposity( new ProductStockTaking() );
         $this->product_stock_inward = new ProductReposity( new ProductStockInward() );
-
+        $this->mobileApp = new MobileRepository( new User() );
     }
 
     public function index($practice_id = null,$stock_state="All"){
@@ -149,9 +154,7 @@ class StockController extends Controller
                     break;
             }
         }
-        
         return response()->json($http_resp);
-
     }
 
     public function store(Request $request){
@@ -258,7 +261,7 @@ class StockController extends Controller
             'stock_id'=>'required',
             // 'department_id'=>'required',
             // 'sub_store_id'=>'required',
-            'barcode'=>'required',
+            //'barcode'=>'required',
             'qty'=>'required',
         ];
         $validation = Validator::make($request->all(),$rules, $this->helper->messages());
@@ -275,6 +278,7 @@ class StockController extends Controller
             // $department = $this->departments->findByUuid($request->department_id);
             // $store = $this->stores->findByUuid($request->store_id);
             // $sub_store = $this->stores->findByUuid($request->sub_store_id);
+            $user = $this->user->findRecord($request->user()->id);
 
             $practice = $this->practice->find($request->user()->company_id);
             $practiceMain = $this->practice->findParent($practice);
@@ -299,6 +303,7 @@ class StockController extends Controller
                 $stock_taking = $sub_store->product_stock_taking_sub_store()->save($stock_taking);
             }
             $http_resp['description'] = "Stock taking was successful!";
+            $http_resp['results'] = $this->mobileApp->transformUser($user);
 
         }catch(\Exception $e){
             $http_resp = $this->http_response['500'];
@@ -343,7 +348,7 @@ class StockController extends Controller
             $department = $this->departments->find($request->user()->department_id);
             $store = $this->stores->find($request->user()->store_id);
             $sub_store = $this->stores->find($request->user()->sub_store_id);
-            //
+            //--------------
             $product_stock_inward = $practice->product_stock_inward()->where('barcode',$request->barcode)->first();
             $total = $practice->product_stock_inward()->where('barcode',$request->barcode)->sum('amount');
             if($department){
@@ -358,12 +363,16 @@ class StockController extends Controller
                 $product_stock_inward = $sub_store->product_stock_inward_sub_store()->where('barcode',$request->barcode)->first();
                 $total = $sub_store->product_stock_inward_sub_store()->where('barcode',$request->barcode)->sum('amount');
             }
+            $product_stock_inward = $practice->product_stock_inward()->where('barcode',$request->barcode)->first();
             //
             if($product_stock_inward){
-                $product_item = $product_stock_inward->product_items()->get()->first();
-                $item = $this->helper->create_product_attribute($product_item,"Low");
-                $item['stock_total'] = $total;
-                $http_resp['results'] = $item;
+                //$product_item = $product_stock_inward->product_items()->get()->first();
+//                $item = $this->helper->create_product_attribute($product_item,"Low");
+//                $item['stock_total'] = $total;
+//                $http_resp['results'] = $item;
+                $temp_item['id'] = $product_stock_inward->uuid;
+                $temp_item['name'] = 'Zyncet Syrup 60 mls';
+                $http_resp['results'] = $temp_item;
             }else{
                 $http_resp = $this->http_response['422'];
                 Log::info("Wrong Barcode Trying to fetch Item");

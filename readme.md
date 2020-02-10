@@ -26,6 +26,9 @@
 ##https://kristymonahan.com/sales-receipts-vs-receive-payments-vs-bank-deposits-explained/
 ##https://ubuntu.com/tutorials/tutorial-create-a-usb-stick-on-ubuntu#3-launch-startup-disk-creator
 
+## HR-Clock In, Clock Out Capability
+## HIS Queue Management Capability
+
 ## Inventory Module:
 [Vouchers](http://localhost)
 
