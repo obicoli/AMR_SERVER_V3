@@ -137,15 +137,20 @@ export const ACCOUNTING_WEB_ROUTES = {
 
 export const REPORT_CONFIG_WEB_ROUTES = {
     REPORTS : "/reports",
-    CONFIG : "/company/settings",
-}
+    CONFIG : "/company/settings/bbbbbbb",
+};
 
 export const ADMINSTRATIVE = {
     USER_ACCESS : "/manage/user/access",
     USERS : "/manage/users",
     CHANGE_PASSWORD: "/admin/change/password",
     MY_ACCOUNT: "/admin/my_account",
-}
+};
+
+export const COMPANY = {
+    MANAGE : "/manage/companies",
+    SETTINGS : "/company/settings",
+};
 
 export const BANKS_WEB_ROUTES = {
     DASHBOARD : "/financial/dashboard",

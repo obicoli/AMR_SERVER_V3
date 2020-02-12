@@ -196,7 +196,9 @@ body {
 .bg-amref-dark{ background-color: #323232eb!important; }
 .bg-darker{ background: #323a46!important; }
 .bg-ced{ background-color: #ebeced!important; }
+.bg-e3{ background-color: #e3e3e3!important; }
 /*CLattended-field*/
+.cl-9e{ color: #9e9b9b!important;}
 .cl-000{ color: #000!important; }
 .cl-yellowish{color: #ffab00!important;}
 .cl-444{color: #444!important;}
@@ -214,6 +216,7 @@ body {
 .cl-amref{color: #d34336!important}
 .cl-amref-dark{color: #9d2c27!important}
 .cl-34{ color: #3c424f!important; }
+
 
 
 .vdatetime-calendar__month__day--selected > span > span{
@@ -357,6 +360,7 @@ body {
 .min-height-300{ min-height: 300px!important; }
 .min-height-30{ min-height: 30px!important; }
 .min-height-330{ min-height: 330px!important; }
+.min-height-350{ min-height: 350px!important; }
 .min-height-250{ min-height: 250px!important; }
 .height-45{ height: 45px!important;}
 .max-height-150-px{ max-height: 150px!important;}
@@ -4407,4 +4411,56 @@ ul.sub-submenu-custom li:last-child{
     height: 250px;
     overflow-y: auto;
     background-color: #fff;
+}
+
+/* ================================================ */
+.nav-link-overview-1 {
+    font-family: Montserrat;
+    text-transform: capitalize;
+    font-weight: 600!important;
+    border-radius: 2px!important;
+    font-size: 11px;
+    /*background-color: #e3e3e3;*/
+    background-color: #ebeced;
+    color: #3c424f!important;
+    border-right-color: #ebeced!important;
+    border-left-color: #ebeced!important;
+    border-top-color: #ebeced!important;
+    border-top-left-radius: 3px!important;
+}
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link-overview-1 {
+    color: #6c757d;
+}
+.nav-tabs .nav-link-overview-1.active {
+    color: #fff!important;
+    background: #d34336!important;
+    border-right-color: #d34336!important;
+    border-left-color: #d34336!important;
+    border-top-color: #d34336!important;
+    border-bottom-color: #d34336!important;
+    border-top-left-radius: 3px!important;
+}
+.nav-tabs-side{
+    border-bottom: 1px solid #ebeced!important;
+}
+/* ================================================ */
+
+.nav-pills .nav-link-side-nav {
+    /*border-radius: .25rem;*/
+    border-radius: 0px!important;
+}
+.nav-link-side-nav{
+    font-weight: normal!important;
+    text-transform: none!important;
+    font-size: 12px!important;
+    color: #3c424f!important;
+    padding: 2px 0 2px 10px!important;
+}
+.nav-pills .nav-link-side-nav.active{
+    /*background-color: #e3e3e3!important;*/
+    background-color: #787887!important;
+    color: #fff!important;
+    padding: 6px 0 6px 10px!important;
+    text-decoration: underline;
+    border-right: #ebeced solid 3px;
 }

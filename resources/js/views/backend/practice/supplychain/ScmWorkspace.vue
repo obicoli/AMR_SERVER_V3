@@ -134,7 +134,7 @@
                                                                     VAT returns and VAT reporting.
                                                                 </div>
                                                             </router-link>
-                                                            <router-link :to="REPORT_CONFIG_WEB_ROUTES.CONFIG" tag="div" class="float-left width-200-pxs text-center">
+                                                            <router-link :to="COMPANY.SETTINGS" tag="div" class="float-left width-200-pxs text-center">
                                                                 <div class="canvasoption__icon canvasoption__icon--companysettings"></div>
                                                                 <h6 class="canvasoption__title">Company Settings</h6>
                                                                 <div class="canvasoption__descr">
@@ -171,7 +171,13 @@
     import CopyRight from "../partials/CopyRight";
     import Auth from "../../../../store/auth";
     import {TRANSACTION_TYPES} from "../../../../helpers/process_status";
-    import {REPORT_CONFIG_WEB_ROUTES,BANKS_WEB_ROUTES,INVENTORY_WEB_ROUTES,ACCOUNTING_WEB_ROUTES} from "../../../../router/web_routes";
+    import {
+        REPORT_CONFIG_WEB_ROUTES,
+        BANKS_WEB_ROUTES,
+        INVENTORY_WEB_ROUTES,
+        ACCOUNTING_WEB_ROUTES,
+        COMPANY
+    } from "../../../../router/web_routes";
     export default {
         name: "ScmWorkspace",
         components: {TopNavBar,SideBar,CopyRight},
@@ -194,6 +200,7 @@
                 TRAIL_BALANCE: ACCOUNTING_WEB_ROUTES.STATEMENTS.TRAIL_BALANCE,
                 BALANCE_SHEET: ACCOUNTING_WEB_ROUTES.STATEMENTS.BALANCE_SHEET,
                 PL: ACCOUNTING_WEB_ROUTES.STATEMENTS.PL,
+                COMPANY: COMPANY
             }
         },
         methods: {

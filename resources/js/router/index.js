@@ -73,6 +73,9 @@ import CustomerReports from '../views/backend/practice/inventory/customer/report
 import StockLedger from '../views/backend/practice/inventory/stock/StockLedger';
 import InTransit from '../views/backend/practice/inventory/stock/InTransit';
 
+//==============Company===========
+import ManageCompanies from '../views/backend/practice/company/Index';
+import CompanySettings from '../views/backend/practice/company/View';
 //===============Report and Config
 import Reports from '../views/backend/practice/inventory/reports/Reports';
 import AppSet from '../views/backend/practice/inventory/reports/AppSet';
@@ -228,7 +231,16 @@ import UnderRepaire from '../views/errors/maintanance';
 
 import Config from '../helpers/config';
 import Auth from '../store/auth';
-import {INVENTORY_WEB_ROUTES,ACCOUNTING_WEB_ROUTES,BANKS_WEB_ROUTES,ADMINSTRATIVE_WEB_ROUTES,DEPARTMENTS_WEB_ROUTES,REPORT_CONFIG_WEB_ROUTES,ADMINSTRATIVE} from '../router/web_routes';
+import {
+    INVENTORY_WEB_ROUTES,
+    ACCOUNTING_WEB_ROUTES,
+    BANKS_WEB_ROUTES,
+    ADMINSTRATIVE_WEB_ROUTES,
+    DEPARTMENTS_WEB_ROUTES,
+    REPORT_CONFIG_WEB_ROUTES,
+    ADMINSTRATIVE,
+    COMPANY
+} from '../router/web_routes';
 
 Vue.use(VueRouter);
 const router = new VueRouter({
@@ -419,6 +431,9 @@ const router = new VueRouter({
         //Purchase
         //{   path: '/purchases/create', component: CreatePurchase, meta: { title:'Create Purchase', authenticatedUser: true, requirePharmacy: true, requireApproved:true } },
 
+        //Company
+        {  path: COMPANY.MANAGE, component: ManageCompanies, meta: { title:'Manage Companies', authenticatedUser: true } },
+        {  path: COMPANY.SETTINGS, component: CompanySettings, meta: { title:'Company Settings', authenticatedUser: true } },
         //branch settings level url
         {  path: ADMINSTRATIVE.USERS, component: ManageUsers, meta: { title:'Manage Users', authenticatedUser: true, accessToUsers: true, accessToRoles:true } },
         {  path: ADMINSTRATIVE.USER_ACCESS, component: ControlUserAccess, meta: { title:'Control User Access', authenticatedUser: true, accessToUsers: true, accessToRoles:true } },
