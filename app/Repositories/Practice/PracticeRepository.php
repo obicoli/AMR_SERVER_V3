@@ -17,6 +17,8 @@ use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeProductItem;
 use App\Models\Practice\PracticeStore;
 use App\Models\Practice\PracticeUser;
+use App\Models\Practice\Settings\PracticeCustomerZone;
+use App\Models\Practice\Settings\PracticeStatutory;
 use App\Models\Product\Accounts\ProductAccountDetailType;
 use App\Models\Product\Accounts\ProductAccountNature;
 use App\Models\Product\Accounts\ProductAccountType;
@@ -66,6 +68,32 @@ class PracticeRepository implements PracticeRepositoryInterface
             'address'=>$practice->address,
         ];
     }
+
+    public function transform_statutory(PracticeStatutory $practiceStatutory)
+    {
+        // TODO: Implement transform_statutory() method.
+        return [
+            'id'=>$practiceStatutory->getUuid(),
+            'region'=>$practiceStatutory->getRegion(),
+            'city'=>$practiceStatutory->getCity(),
+            'entity_type'=>$practiceStatutory->getEntityType(),
+            'tax_office'=>$practiceStatutory->getTaxOffice(),
+            'registration_number'=>$practiceStatutory->getRegistrationNumber(),
+            'registered_name'=>$practiceStatutory->getRegistrationName(),
+            'tax_number'=>$practiceStatutory->getTaxNumber(),
+        ];
+    }
+
+    public function transformCustomerZone(PracticeCustomerZone $practiceCustomerZone)
+    {
+        // TODO: Implement transformCustomerZone() method.
+        return [
+            'id'=>$practiceCustomerZone->getUuid(),
+            'accounting_zone'=>$practiceCustomerZone->getAccountingZone(),
+            'invoice_and_quotes'=>$practiceCustomerZone->getInvoiceAndQuotes(),
+        ];
+    }
+
 
     public function find($id)
     {
@@ -212,7 +240,7 @@ class PracticeRepository implements PracticeRepositoryInterface
             $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
             $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
             $parentPract = $this->findParent($company);
-            $practice_main = $parentPract->practices()->where('category','Main')->get()->first();
+            $practice_main = $parentPract->practices()->where('type','HQ')->get()->first();
             $app_data['id'] = $parentPract->uuid;
             $app_data['name'] = $parentPract->name;
             $app_data['address'] = $parentPract->address;
@@ -795,22 +823,25 @@ class PracticeRepository implements PracticeRepositoryInterface
         // TODO: Implement transform_() method.
         $branch_data['id'] = $practice->uuid;
         $branch_data['name'] = $practice->name;
+        $branch_data['legal_name'] = $practice->legal_name;
         $branch_data['country'] = $practice->country;
         $branch_data['city'] = $practice->city;
         $branch_data['mobile'] = $practice->mobile;
         $branch_data['phone'] = $practice->mobile;
         $branch_data['email'] = $practice->email;
+        $branch_data['website'] = $practice->website;
         $branch_data['mail_verified'] = $practice->mail_verified;
         $branch_data['phone_verified'] = $practice->phone_verified;
         $branch_data['type'] = $practice->type;
         $branch_data['address'] = $practice->address;
-        $branch_data['registration_number'] = $practice->registration_number;
-        $branch_data['description'] = $practice->description;
-        $branch_data['website'] = $practice->website;
-        $branch_data['approval_status'] = $practice->approval_status;
+        $branch_data['zip_code'] = $practice->zip_code;
+//        $branch_data['registration_number'] = $practice->registration_number;
+//        $branch_data['description'] = $practice->description;
+//        $branch_data['website'] = $practice->website;
+//        $branch_data['approval_status'] = $practice->approval_status;
         $branch_data['status'] = $practice->status;
-        $branch_data['support_email'] = $practice->support_email;
-        $branch_data['category'] = $practice->category;
+//        $branch_data['support_email'] = $practice->support_email;
+        $branch_data['type'] = $practice->type;
         $branch_data['postal_code'] = $practice->postal_code;
         $branch_data['region'] = $practice->region;
         $branch_data['fax'] = $practice->fax;

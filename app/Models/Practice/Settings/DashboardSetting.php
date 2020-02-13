@@ -20,6 +20,5 @@ class DashboardSetting extends Model
         'description',
         'status'
     ];
-
     public function dashboard_widgets(){ return $this->belongsToMany(Practice::class,'company_widgets','widget_id','practice_id'); }
 }

@@ -16,6 +16,7 @@ interface LocalizationRepositoryInterface
     public function all();
     public function create(array $arr);
     public function find($id);
+    public function findByUuid($uuid);
     public function destroy($id);
     public function update(array $arr, $id);
     public function findByCountryId($country_id);

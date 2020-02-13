@@ -8,6 +8,7 @@ use App\Customer\Models\Customer;
 use App\Customer\Repositories\CustomerRepository;
 use App\helpers\HelperFunctions;
 use App\Models\Doctor\Doctor;
+use App\Models\Localization\Country;
 use App\Models\Patient\Patient;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\Practice\Practice;
@@ -17,6 +18,7 @@ use App\Models\Practice\PracticeUsers;
 use App\Models\Product\Purchase\ProductPurchase;
 use App\Models\Users\User;
 use App\Repositories\Doctor\DoctorRepository;
+use App\Repositories\Localization\LocalizationRepository;
 use App\Repositories\Patient\PatientRepository;
 use App\Repositories\Pharmacy\PharmacyRepository;
 use App\Repositories\Practice\PracticeAssetRepository;
@@ -53,12 +55,12 @@ class PracticeController extends Controller
     protected $helper;
     protected $user;
     protected $role;
-    protected $user_transformer;
     protected $practice_asset;
     protected $pharmacy;
     protected $accountsCoa;
     protected $suppliers;
     protected $customers;
+    protected $countries;
 
     public function __construct(Practice $practice)
     {
@@ -74,8 +76,8 @@ class PracticeController extends Controller
         $this->accountsCoa = new AccountingRepository( new AccountsCoa() );
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->customers = new CustomerRepository( new Customer() );
-        //$this->user_transformer = new UserTransformer();
         $this->practiceUser = new PracticeRepository(new PracticeUser());
+        $this->countries = new LocalizationRepository(new Country());
     }
 
     public function index(Request $request){
@@ -92,19 +94,7 @@ class PracticeController extends Controller
         return response()->json($http_resp);
     }
 
-    public function show(Request $request, $uuid){
-        $http_resp = $this->response_type['200'];
-        $company = $this->practice->findByUuid($uuid);
-        $users = array();
-        $trans_data = $this->practice->transform_($company);
-        $company_users = $company->users()->orderByDesc('created_at')->paginate(10);
-        foreach ($company_users as $company_user) {
-            array_push($users,$this->practiceUser->transform_user($company_user));
-        }
-        $trans_data['users'] = $users;
-        $http_resp['results'] = $trans_data;
-        return response()->json($http_resp);
-    }
+
 
     public function delete($uuid){
         $http_resp = $this->response_type['200'];
@@ -128,7 +118,6 @@ class PracticeController extends Controller
             'postal_code' => 'sometimes|required',
             'business_type' => 'sometimes|required',
             'industry' => 'sometimes|required',
-
         ];
         $validation = Validator::make($request->all(),$rules);
         if ($validation->fails()){
@@ -232,57 +221,118 @@ class PracticeController extends Controller
 
     public function update(Request $request, $uuid){
 
-        // Log::info($request);
         $http_resp = $this->response_type['200'];
         $practice = $this->practice->findByUuid($uuid);
-
-        $rules = [
-            'address' => 'sometimes|required',
-            'city' => 'sometimes|required',
-            'country' => 'sometimes|required',
-            'name' => 'sometimes|required',
-            'status' => 'sometimes|required',
-            'file' => 'sometimes|required|max:500000',
-            'propriator_title' => 'sometimes|required',
-            'website' => 'sometimes|required',
-            'postal_code' => 'sometimes|required',
-            'business_type' => 'sometimes|required',
-            'industry' => 'sometimes|required',
-            'registration_number' => 'sometimes|required|unique:practices,registration_number,'.$practice->id,
-            'email' => 'sometimes|required|unique:practices,email,'.$practice->id,
-            'mobile' => 'sometimes|required|unique:practices,mobile,'.$practice->id,
-        ];
-        $validation = Validator::make($request->all(),$rules);
-        if ($validation->fails()){
-            $http_resp = $this->response_type['422'];
-            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-            return response()->json($http_resp,422);
+        $rules = [];
+        if($request->has('section')){
+            switch ($request->section){
+                case "Company Details":
+                    $rules = [
+                        'address' => 'sometimes|required',
+                        'city' => 'sometimes|required',
+                        'name' => 'sometimes|required',
+                        'status' => 'sometimes|required',
+                        'region' => 'sometimes|required',
+                        'legal_name' => 'sometimes|required',
+                        'phone' => 'sometimes|required',
+                        'mobile' => 'sometimes|required',
+                        'fax' => 'sometimes|required',
+                        'email' => 'sometimes|required',
+                        'postal_code' => 'required',
+                        'zip_code' => 'required',
+                        'country_id' => 'required',
+                    ];
+                    break;
+            }
+            $validation = Validator::make($request->all(),$rules);
+            if ($validation->fails()){
+                $http_resp = $this->response_type['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
+        }else{
+            $rules = [
+                'address' => 'sometimes|required',
+                'city' => 'sometimes|required',
+                'country' => 'sometimes|required',
+                'name' => 'sometimes|required',
+                'status' => 'sometimes|required',
+                'file' => 'sometimes|required|max:500000',
+                'propriator_title' => 'sometimes|required',
+                'website' => 'sometimes|required',
+                'postal_code' => 'sometimes|required',
+                'business_type' => 'sometimes|required',
+                'industry' => 'sometimes|required',
+                'registration_number' => 'sometimes|required|unique:practices,registration_number,'.$practice->id,
+                'email' => 'sometimes|required|unique:practices,email,'.$practice->id,
+                'mobile' => 'sometimes|required|unique:practices,mobile,'.$practice->id,
+            ];
+            $validation = Validator::make($request->all(),$rules);
+            if ($validation->fails()){
+                $http_resp = $this->response_type['422'];
+                $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+                return response()->json($http_resp,422);
+            }
         }
 
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
-            $this->practice->update($request->all(), $uuid);
-            $http_resp['description'] = "Changes saved successful!";
-            if($request->has("file")){
-                $rule = [
-                    'file' => 'required|max:500000',
-                ];
-                $validation = Validator::make($request->all(), $rule);
-                if ($validation->fails()){
-                    $http_resp = $this->response_type['422'];
-                    $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
-                    return response()->json($http_resp,422);
+
+            if($request->has('section')){
+                switch ($request->section){
+                    case "Company Details":
+                        $country = $this->countries->findByUuid($request->country_id);
+                        $inputs = $request->except(['country']);
+                        if($country){ $inputs['country_id'] = $country->id; }
+                        $practice->update($inputs);
+                        break;
+                    case "Statutory Information":
+                        $country = $this->countries->findByUuid($request->country_id);
+                        $statutory = $practice->statutories()->get()->first();
+                        $inputs = $request->except(['country']);
+                        if($country){ $inputs['country_id'] = $country->id; }
+                        if($statutory){
+                            $statutory->update($inputs);
+                        }else{
+                            $practice->statutories()->create($inputs);
+                        }
+                        break;
+                    case "Customer Zone Settings":
+                        $inputs = $request->all();
+                        $customer_zone = $practice->customerZone()->get()->first();
+                        if($customer_zone){
+                            $customer_zone->update($inputs);
+                        }else{
+                            $practice->customerZone()->create($inputs);
+                        }
+                        break;
                 }
-                $doc_tmp_name = $_FILES['file']['tmp_name'];
-                $root_directory_array = $this->helper->create_logo_directory($practice->id);
-                $newFilePath = $root_directory_array['file_server_root'].'/'.$_FILES['file']['name'];
-                $file_path = $root_directory_array['file_public_access'].'/'.$_FILES['file']['name'];
-                if(move_uploaded_file($doc_tmp_name, $newFilePath)){
-                    $practice->logo = $file_path;
-                    $practice->save();
-                    $http_resp['description'] = "Company Logo successful saved";
-                }
+                $http_resp['description'] = "Changes successful saved!";
             }
+
+            //$this->practice->update($request->all(), $uuid);
+
+//            $http_resp['description'] = "Changes saved successful!";
+//            if($request->has("file")){
+//                $rule = [
+//                    'file' => 'required|max:500000',
+//                ];
+//                $validation = Validator::make($request->all(), $rule);
+//                if ($validation->fails()){
+//                    $http_resp = $this->response_type['422'];
+//                    $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+//                    return response()->json($http_resp,422);
+//                }
+//                $doc_tmp_name = $_FILES['file']['tmp_name'];
+//                $root_directory_array = $this->helper->create_logo_directory($practice->id);
+//                $newFilePath = $root_directory_array['file_server_root'].'/'.$_FILES['file']['name'];
+//                $file_path = $root_directory_array['file_public_access'].'/'.$_FILES['file']['name'];
+//                if(move_uploaded_file($doc_tmp_name, $newFilePath)){
+//                    $practice->logo = $file_path;
+//                    $practice->save();
+//                    $http_resp['description'] = "Company Logo successful saved";
+//                }
+//            }
             
         }catch(\Exception $e){
             Log::info($e);
@@ -291,6 +341,57 @@ class PracticeController extends Controller
             return response()->json($http_resp,500);
         }
         DB::connection(Module::MYSQL_DB_CONN)->commit();
+        return response()->json($http_resp);
+    }
+
+    public function show(Request $request, $uuid){
+        //
+        $http_resp = $this->response_type['200'];
+        $company = $this->practice->findByUuid($uuid);
+        //Users
+        $users = array();
+        $trans_data = $this->practice->transform_($company);
+        $company_users = $company->users()->orderByDesc('created_at')->paginate(10);
+        foreach ($company_users as $company_user) {
+            array_push($users,$this->practiceUser->transform_user($company_user));
+        }
+        //Addresses
+        $addresses = $company->addresses()->get();
+        $address_array = array();
+        foreach ($addresses as $address){
+            $temp_addr['id'] = $address->uuid;
+            $temp_addr['address'] = $address->address;
+            array_push($address_array,$temp_addr);
+        }
+        //Country
+        $country = $company->countries()->get()->first();
+        if($country){
+            $trans_data['country'] = $this->countries->transform_country($country);
+        }
+
+        //Statutory
+        $statutory = $company->statutories()->get()->first();
+        if($statutory){
+            $statutory_data = $this->practice->transform_statutory($statutory);
+            $countr = $statutory->countries()->get()->first();
+            if($countr){
+                $statutory_data['country'] = $this->countries->transform_country($countr);
+            }
+            $trans_data['statutory'] = $statutory_data;
+        }else{
+            $trans_data['statutory'] = null;
+        }
+        //Customer Zone
+        $customer_zone = $company->customerZone()->get()->first();
+        if($customer_zone){
+            $trans_data['customer_zone'] = $this->practice->transformCustomerZone($customer_zone);
+        }else{
+            $trans_data['customer_zone'] = null;
+        }
+
+        $trans_data['users'] = $users;
+        $trans_data['addresses'] = $address_array;
+        $http_resp['results'] = $trans_data;
         return response()->json($http_resp);
     }
 

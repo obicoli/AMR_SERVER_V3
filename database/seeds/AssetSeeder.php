@@ -22,7 +22,7 @@ class AssetSeeder extends Seeder
         ]);
         $hospital = Hospital::find(1);
         $hospital->vehicles()->save($vehicle);
-        $facility = $hospital->practices()->where('category','Main')->get()->first();
+        $facility = $hospital->practices()->where('type','HQ')->get()->first();
         $facility->vehicles()->save($vehicle);
     }
 }

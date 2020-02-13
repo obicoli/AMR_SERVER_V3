@@ -23,8 +23,12 @@ use App\Customer\Models\Quote\Estimate;
 use App\Customer\Models\Sales\CustomerSalesReceipt;
 use App\Finance\Models\Banks\BankTransaction;
 use App\Hrs\Models\Employee\HrsEmployee;
+use App\Models\Localization\Country;
 use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Inventory\PracticeAccountHolder;
+use App\Models\Practice\Settings\PracticeAddress;
+use App\Models\Practice\Settings\PracticeCustomerZone;
+use App\Models\Practice\Settings\PracticeStatutory;
 use App\Models\Product\Accounts\ProductChartAccount;
 use App\Models\Product\Accounts\ProductVoucher;
 use App\Models\Product\Order\Order;
@@ -103,9 +107,11 @@ class Practice extends Model implements AccountableInterface
         'name',
         'city',
         'postal_code',
-        'country',
+        'country_id',
+        'zip_code',
+        //'country',
         'uuid',
-        'description',
+        //'description',
         'email',
         'mobile',
         'address',
@@ -113,31 +119,37 @@ class Practice extends Model implements AccountableInterface
         'latitude',
         'longitude',
         'type',
-        'is_verified',
-        'activated',
-        'registration_number',
+//        'is_verified',
+//        'activated',
+//        'registration_number',
         'region',
         'fax',
-        'propriator_title',
-        'propriator_name',
+//        'propriator_title',
+//        'propriator_name',
         'business_type',
-        'industry',
-        'display_assigned_user',
-        'inventory_increase',
-        'inventory_descrease',
-        'warehouse_config',
-        'batch_tracking',
+        'legal_name',
+//        'display_assigned_user',
+//        'inventory_increase',
+//        'inventory_descrease',
+//        'warehouse_config',
+//        'batch_tracking',
     ];
 
     //Columns Based functions
     public function getFinancePeriodStartDate(){ return $this->finance_yr_start; }
     public function getFinancePeriodEndDate(){ return $this->finance_yr_end; }
+    public function getCountryId(){ return $this->country_id; }
+    public function getZipCode(){ return $this->zip_code; }
 
+    //Settings Based
+    public function statutories(){ return $this->hasMany(PracticeStatutory::class,'practice_id','id'); }
+    public function countries(){ return $this->belongsTo(Country::class,'country_id','id'); }
+    public function addresses(){ return $this->hasMany(PracticeAddress::class,'practice_id','id'); }
+    public function customerZone(){ return $this->hasMany(PracticeCustomerZone::class,'practice_id'); }
     //Settings
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }
     public function dashboard_widgets(){ return $this->belongsToMany(DashboardSetting::class,'company_widgets','practice_id','widget_id'); }
     public function practice_taxations(){ return $this->hasMany(PracticeTaxation::class,'practice_id','id'); }
-
     //Supplier Module Integration
     public function vendors(){ return $this->morphMany(Supplier::class,'owning','owning_type','owning_id'); }
     public function supplier_bills(){ return $this->morphMany(SupplierBill::class,'owning','owning_type','owning_id'); }
@@ -171,8 +183,6 @@ class Practice extends Model implements AccountableInterface
     public function customer_terms(){ return $this->morphMany(CustomerTerms::class,'owning','owning_type','owning_id'); }
     public function customers(){ return $this->morphMany(Customer::class,'owning','owning_type','owning_id'); }
     //Customer Integration===========Ends=============
-
-
 
     //Banking Integration Starts here
     public function bank_transactions(){ return $this->morphMany(BankTransaction::class,'owning','owning_type','owning_id'); }

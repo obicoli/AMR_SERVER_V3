@@ -187,7 +187,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
     });
 
     Route::group( ['prefix'=>'pharmacies' ], function (){
-
         Route::group( ['prefix'=>'analysis' ], function (){
             Route::get('/', "Api\Pharmacy\PharmacyAnalytic@index");
         });
@@ -200,7 +199,6 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     //USERS API ENDS HERE
     Route::group( ['prefix'=>'users' ], function (){
-
         Route::get('/{uuid}', "Api\Users\UserController@show");
         Route::get('/', "Api\Users\UserController@index");//->middleware('permission:view.users');
         Route::post('/', "Api\Users\UserController@create");//->middleware('permission:create.users');

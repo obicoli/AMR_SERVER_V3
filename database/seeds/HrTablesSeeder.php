@@ -47,7 +47,7 @@ class HrTablesSeeder extends Seeder
 
         //Enter price
         $hospital = Hospital::find(1);
-        $facility = $hospital->practices()->where('category','Main')->get()->first();
+        $facility = $hospital->practices()->where('type','HQ')->get()->first();
         //============================================================================================
         //Create a Regions
         $east_region = HrsRegion::create(['name'=>'East Africa']);

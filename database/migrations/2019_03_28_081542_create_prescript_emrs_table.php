@@ -26,7 +26,7 @@ class CreatePrescriptEmrsTable extends Migration
             $table->foreign('form_id')->references('id')->on('prescription_forms')->onDelete('cascade');
             $table->foreign('route_id')->references('id')->on('prescription_routes')->onDelete('cascade');
             $table->foreign('frequency_id')->references('id')->on('prescription_frequencies')->onDelete('cascade');
-            $table->foreign('drug_id')->references('id')->on('products')->onDelete('cascade');
+//            $table->foreign('drug_id')->references('id')->on('products')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
             $table->string('uuid');

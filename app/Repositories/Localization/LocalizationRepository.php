@@ -35,7 +35,16 @@ class LocalizationRepository implements LocalizationRepositoryInterface
     public function find($id)
     {
         // TODO: Implement find() method.
+        return $this->model->find($id);
     }
+
+    public function findByUuid($uuid)
+    {
+        // TODO: Implement findByUuid() method.
+        return $this->model->all()->where('uuid',$uuid)->first();
+
+    }
+
 
     public function destroy($id)
     {

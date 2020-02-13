@@ -229,23 +229,19 @@ class UsersTableSeeder extends Seeder
             $pharmacyRole = Role::where('slug', '=', 'pharmacy')->first();
             $user->attachRole($pharmacyRole);
             $store = $pharmacy->practices()->create([
-                // 'type'=>'Pharmacy',
-                'country'=>'Kenya',
                 'city'=>'Nairobi',
-                'category'=>'Main',
+                'type'=>'HQ',
                 'address'=>'Langata Rd ST ANCHORAGE AK, 99501',
-                'approval_status'=>'approved',
                 'status'=>true,
                 'postal_code' => '9000010',
                 'latitude'=>-1.319256,////
-                'longitude' => 36.809858,////
-                'registration_number'=>'432-12398',
+                'longitude' => 36.809858,
                 'name'=>'AMREF Wilson Airport',
+                'legal_name'=>'AMREF Enterprises',
                 'email'=>'amref@afyaamkaononi.com',
-                'support_email'=>'amraaef@amref.com',
                 'mobile'=>2547098722222,
             ]);
-            $settings1 = $store->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
+            //$settings1 = $store->practice_finance_settings()->create(['so_prefix'=>'2019-SO-']);
 
             // $store2 = $pharmacy->practices()->create([
             //     // 'type'=>'Pharmacy',
@@ -352,7 +348,7 @@ class UsersTableSeeder extends Seeder
             // }
 
             //$hospital = Hospital::find(1);
-            $practica = $pharmacy->practices()->where('category','Main')->get()->first();
+            $practica = $pharmacy->practices()->where('type','HQ')->get()->first();
             PracticeRole::create([
                 'practice_id' => $practica->id,
                 'slug' => 'master.admin',

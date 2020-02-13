@@ -14,11 +14,16 @@ class Country extends Model
 
     protected $connection = Module::MYSQL_DB_CONN;
     protected $table = 'countries';
-
     protected $fillable = [
         'name',
         'code',
         'currency',
         'currency_sympol'
     ];
+
+    public function getName(){ return $this->name; }
+    public function getCode(){ return $this->code; }
+    public function getCurrency(){ return $this->currency; }
+    public function getCurrencySymbol(){ return $this->currency_sympol; }
+
 }

@@ -16,6 +16,8 @@ use App\Models\Practice\PracticeFinanceSetting;
 use App\Models\Practice\PracticeProductItem;
 use App\Models\Practice\PracticeProductItemStock;
 use App\Models\Practice\PracticeUser;
+use App\Models\Practice\Settings\PracticeCustomerZone;
+use App\Models\Practice\Settings\PracticeStatutory;
 use App\Models\Users\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -58,6 +60,8 @@ interface PracticeRepositoryInterface
     public function getStores(Practice $practice);
     public function transform_collection($collections);
     public function transform_(Practice $practice);
+    public function transform_statutory(PracticeStatutory $practiceStatutory);
+    public function transformCustomerZone(PracticeCustomerZone $practiceCustomerZone);
     //public function deleteDepartment($id);
     //Product
     public function getProductType(Practice $practice);

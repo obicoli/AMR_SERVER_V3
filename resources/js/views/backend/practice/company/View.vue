@@ -36,9 +36,7 @@
                                                                         <a @click="setTab(2)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===2}" :id="'nav-transactions-tab-'+'2'" data-toggle="tab" :href="'#nav-transactions-'+'2'" role="tab" :aria-controls="'nav-transactions-'+'2'" aria-selected="true" :key="'transactions_tab'+'2'">VAT Settings</a>
                                                                         <a @click="setTab(3)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===3}" :id="'nav-transactions-tab-'+'3'" data-toggle="tab" :href="'#nav-transactions-'+'3'" role="tab" :aria-controls="'nav-transactions-'+'3'" aria-selected="true" :key="'transactions_tab'+'3'">Documents and Statements</a>
                                                                         <a @click="setTab(4)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===4}" :id="'nav-transactions-tab-'+'4'" data-toggle="tab" :href="'#nav-transactions-'+'4'" role="tab" :aria-controls="'nav-transactions-'+'4'" aria-selected="true" :key="'transactions_tab'+'4'">Branding</a>
-                                                                        <a @click="setTab(5)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===5}" :id="'nav-transactions-tab-'+'5'" data-toggle="tab" :href="'#nav-transactions-'+'5'" role="tab" :aria-controls="'nav-transactions-'+'5'" aria-selected="true" :key="'transactions_tab'+'5'">User Defined Field</a>
-                                                                        <a @click="setTab(6)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===6}" :id="'nav-transactions-tab-'+'6'" data-toggle="tab" :href="'#nav-transactions-'+'6'" role="tab" :aria-controls="'nav-transactions-'+'6'" aria-selected="true" :key="'transactions_tab'+'6'">Email Signatures</a>
-                                                                        <a @click="setTab(7)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===7}" :id="'nav-transactions-tab-'+'7'" data-toggle="tab" :href="'#nav-transactions-'+'7'" role="tab" :aria-controls="'nav-transactions-'+'7'" aria-selected="true" :key="'transactions_tab'+'7'">Multi-Currency</a>
+                                                                        <a @click="setTab(5)" v-bind:class="{'nav-item nav-link nav-link-overview-1':true,'active':curr_tab===5}" :id="'nav-transactions-tab-'+'5'" data-toggle="tab" :href="'#nav-transactions-'+'5'" role="tab" :aria-controls="'nav-transactions-'+'5'" aria-selected="true" :key="'transactions_tab'+'5'">Email Signatures</a>
                                                                     </div>
                                                                 </nav>
                                                                 <div class="tab-content tab-content-role" id="nav-tabContent">
@@ -47,26 +45,26 @@
                                                                             <div class="row">
                                                                                 <div class="col-2 padding-right-0">
                                                                                     <div class="nav flex-column nav-pills" id="v-pills-tab-0" role="tablist" aria-orientation="vertical">
-                                                                                        <a @click="setSubTab(0)" class="nav-link nav-link-side-nav active" id="v-pills-tabbed0-tab-0" data-toggle="pill" href="#v-pills-tabbed0-0" role="tab" aria-controls="v-pills-tabbed0-0" aria-selected="true">Company Details</a>
-                                                                                        <a @click="setSubTab(1)" class="nav-link nav-link-side-nav" id="v-pills-tabbed1-tab-0" data-toggle="pill" href="#v-pills-tabbed1-0" role="tab" aria-controls="v-pills-tabbed1-0" aria-selected="false">Additional Info</a>
-                                                                                        <a @click="setSubTab(2)" class="nav-link nav-link-side-nav" id="v-pills-tabbed2-tab-0" data-toggle="pill" href="#v-pills-tabbed2-0" role="tab" aria-controls="v-pills-tabbed2-0" aria-selected="false">Customer Zone</a>
+                                                                                        <a class="nav-link nav-link-side-nav active" id="v-pills-tabbed0-tab-0" data-toggle="pill" href="#v-pills-tabbed0-0" role="tab" aria-controls="v-pills-tabbed0-0" aria-selected="true">Company Details</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed1-tab-0" data-toggle="pill" href="#v-pills-tabbed1-0" role="tab" aria-controls="v-pills-tabbed1-0" aria-selected="false">Additional Info</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed2-tab-0" data-toggle="pill" href="#v-pills-tabbed2-0" role="tab" aria-controls="v-pills-tabbed2-0" aria-selected="false">Customer Zone</a>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="col-10 padding-left-0">
                                                                                     <div class="tab-content" id="v-pills-tabContent">
                                                                                         <div class="tab-pane fade show active" id="v-pills-tabbed0-0" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-0">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <company-detail-model></company-detail-model>
+                                                                                                <company-detail-model :company="company" :api="PRACTICES_API+'/'+company.id+'?section=Company Details'" :countries="countries" @company-detail-event="loadCompany()"></company-detail-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed1-0" role="tabpanel" aria-labelledby="v-pills-tabbed1-tab-0">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <addition-info></addition-info>
+                                                                                                <addition-info :statutory="company.statutory" :api="PRACTICES_API+'/'+company.id+'?section=Statutory Information'" :countries="countries"></addition-info>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed2-0" role="tabpanel" aria-labelledby="v-pills-tabbed2-tab-0">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <customer-zone></customer-zone>
+                                                                                                <customer-zone :company="company.customer_zone" :api="PRACTICES_API+'/'+company.id+'?section=Customer Zone Settings'" @addition-info-event="loadCompany()"></customer-zone>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -145,7 +143,82 @@
                                                                         </div>
                                                                     </div>
                                                                     <div v-bind:class="{'tab-pane fade':true,'show active':curr_tab===3}" :id="'nav-transactions-'+'3'" role="tabpanel" :aria-labelledby="'nav-transactions-tab-'+'3'" :key="'tab_index_'+'3'">
-
+                                                                        <div class="width-100-pc float-left fs-12 mg-top-20 padding-20">
+                                                                            <div class="row">
+                                                                                <div class="col-2 padding-right-0">
+                                                                                    <div class="nav flex-column nav-pills" id="v-pills-tab-3" role="tablist" aria-orientation="vertical">
+                                                                                        <a class="nav-link nav-link-side-nav active" id="v-pills-tabbed0-tab-3" data-toggle="pill" href="#v-pills-tabbed0-3" role="tab" aria-controls="v-pills-tabbed0-3" aria-selected="false">Document Prefix</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed1-tab-3" data-toggle="pill" href="#v-pills-tabbed1-3" role="tab" aria-controls="v-pills-tabbed1-3" aria-selected="false">Document Title</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed2-tab-3" data-toggle="pill" href="#v-pills-tabbed2-3" role="tab" aria-controls="v-pills-tabbed2-3" aria-selected="false">Document Message</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed3-tab-3" data-toggle="pill" href="#v-pills-tabbed3-3" role="tab" aria-controls="v-pills-tabbed3-3" aria-selected="false">Statement Message</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-10 padding-left-0">
+                                                                                    <div class="tab-content" id="v-pills-tabContent-3">
+                                                                                        <div class="tab-pane fade show active" id="v-pills-tabbed0-3" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-3">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <doc-num-model></doc-num-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="tab-pane fade" id="v-pills-tabbed1-3" role="tabpanel" aria-labelledby="v-pills-tabbed1-tab-3">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <doc-title-model></doc-title-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="tab-pane fade" id="v-pills-tabbed2-3" role="tabpanel" aria-labelledby="v-pills-tabbed2-tab-3">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <doc-message-model></doc-message-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="tab-pane fade" id="v-pills-tabbed3-3" role="tabpanel" aria-labelledby="v-pills-tabbed3-tab-3">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <statement-message-model></statement-message-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div v-bind:class="{'tab-pane fade':true,'show active':curr_tab===4}" :id="'nav-transactions-'+'4'" role="tabpanel" :aria-labelledby="'nav-transactions-tab-'+'4'" :key="'tab_index_'+'4'">
+                                                                        <div class="width-100-pc float-left fs-12 mg-top-20 padding-20">
+                                                                            <div class="row">
+                                                                                <div class="col-2 padding-right-0">
+                                                                                    <div class="nav flex-column nav-pills" id="v-pills-tab-4" role="tablist" aria-orientation="vertical">
+                                                                                        <a class="nav-link nav-link-side-nav active" id="v-pills-tabbed0-tab-4" data-toggle="pill" href="#v-pills-tabbed0-4" role="tab" aria-controls="v-pills-tabbed0-4" aria-selected="false">Branding</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-10 padding-left-0">
+                                                                                    <div class="tab-content" id="v-pills-tabContent-4">
+                                                                                        <div class="tab-pane fade show active" id="v-pills-tabbed0-4" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-4">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <branding-model></branding-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div v-bind:class="{'tab-pane fade':true,'show active':curr_tab===5}" :id="'nav-transactions-'+'5'" role="tabpanel" :aria-labelledby="'nav-transactions-tab-'+'5'" :key="'tab_index_'+'5'">
+                                                                        <div class="width-100-pc float-left fs-12 mg-top-20 padding-20">
+                                                                            <div class="row">
+                                                                                <div class="col-2 padding-right-0">
+                                                                                    <div class="nav flex-column nav-pills" id="v-pills-tab-5" role="tablist" aria-orientation="vertical">
+                                                                                        <a class="nav-link nav-link-side-nav active" id="v-pills-tabbed0-tab-5" data-toggle="pill" href="#v-pills-tabbed0-5" role="tab" aria-controls="v-pills-tabbed0-5" aria-selected="false">Email Signatures</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="col-10 padding-left-0">
+                                                                                    <div class="tab-content" id="v-pills-tabContent-5">
+                                                                                        <div class="tab-pane fade show active" id="v-pills-tabbed0-5" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-5">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <mail-signature-model></mail-signature-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -184,7 +257,7 @@
     import CopyRight from "../partials/CopyRight";
     import {INVENTORY_WEB_ROUTES} from "../../../../router/web_routes";
     import {get, post} from "../../../../helpers/api";
-    import {CHANGE_PASSWORD, PRACTICE_USERS_API} from "../../../../router/api_routes";
+    import {COUNTRIES_URL, PRACTICE_USERS_API, PRACTICES_API} from "../../../../router/api_routes";
     import Auth from "../../../../store/auth";
     import {createHtmlErrorString, reset_forms} from "../../../../helpers/functionmixin";
     import {ADMIN_PERM} from "../../../../helpers/permissions";
@@ -198,28 +271,31 @@
     import RoundingModel from "./partials/RoundingModel";
     import FinancialModel from "./partials/FinancialModel";
     import VatModel from './partials/VatModel';
+    import DocNumModel from './partials/DocNumModel';
+    import DocTitleModel from './partials/DocTitleModel';
+    import DocMessageModel from './partials/DocMessageModel';
+    import StatementMessageModel from './partials/StatementMessageModel';
+    import BrandingModel from './partials/BrandingModel';
+    import MailSignatureModel from './partials/MailSignatureModel';
 
     export default {
         name: "CompanyView",
         components: {
-            RegionalSettings,
-            TopNavBar,PaginateTemplate,SideBar,CopyRight,CompanyDetailModel,AdditionInfo,OutstandingBalance,
-            CustomerZone,CustomerSupplierSettings,ItemModel,RoundingModel,FinancialModel,VatModel},
+            RegionalSettings,DocTitleModel,BrandingModel,MailSignatureModel,
+            TopNavBar,PaginateTemplate,SideBar,CopyRight,CompanyDetailModel,AdditionInfo,OutstandingBalance,DocMessageModel,
+            CustomerZone,CustomerSupplierSettings,ItemModel,RoundingModel,FinancialModel,VatModel,DocNumModel,StatementMessageModel},
         data(){
             return {
                 curr_tab: 0,
                 sub_curr_tab: 0,
                 is_initializing: false,
                 page_ready: false,
-                company_user: null,
                 INVENTORY_WEB_ROUTES: INVENTORY_WEB_ROUTES,
                 ADMIN_PERM: ADMIN_PERM,
+                PRACTICES_API: PRACTICES_API,
                 processing: false,
-                // form: {
-                //     old_password: null,
-                //     password: null,
-                //     password_confirmation: null,
-                // },
+                company: null,
+                countries: [],
             }
         },
         methods: {
@@ -228,72 +304,40 @@
                 this.curr_tab = curr_ta;
             },
             setSubTab(sub_curr_ta){
-                this.curr_tab = curr_ta;
+                this.curr_tab = sub_curr_ta;
             },
             checkPerms(perm_){
                 return Auth.hasPermission(perm_)
             },
-            changePassword(){
-                this.processing = true;
-                post(CHANGE_PASSWORD,this.form)
-                    .then((res) => {
-                        if(res.data.status_code === 200) {
-                            this.$awn.success(res.data.description);
-                            this.form = reset_forms(this.form);
-                        }
-                        this.processing = false;
-                    }).catch((err) => {
-                    if(err.response.status === 422) {
-                        //console.info(err.response.data.errors);
-                        this.$awn.warning(createHtmlErrorString(err.response.data.errors))
-                    }else if (err.response.status === 500){
-                        this.$awn.warning(err.response.data.description);
-                    }
-                    else{
-                        this.processing = false;
-                        this.$awn.warning(err.response.data.description)
-                    }
-                    this.processing = false;
-                });
-            },
 
-            loadUser(){
-                get(PRACTICE_USERS_API+'/'+Auth.getCurrentAccount('staff_id'))
+            loadCompany(){
+                get(PRACTICES_API+'/'+Auth.getCurrentAccount('id'))
                     .then((res) => {
                         if(res.data.status_code === 200) {
-                            this.company_user = res.data.results;
+                            this.company = res.data.results;
+                            console.info(this.company);
                             this.page_ready = true;
+                            this.is_initializing = false;
+                            this.processing = false;
                         }
                     }).catch((err) => {
                 });
             },
-
-            saveUser(){
-                this.processing = true;
-                post(PRACTICE_USERS_API+'/'+this.company_user.id,this.company_user)
+            loadCountry(){
+                this.is_initializing = true;
+                get(COUNTRIES_URL)
                     .then((res) => {
                         if(res.data.status_code === 200) {
-                            this.$awn.success(res.data.description);
-                            this.loadUser();
+                            this.countries = res.data.results;
+                            console.info(this.countries);
+                            this.loadCompany();
                         }
-                        this.processing = false;
                     }).catch((err) => {
-                    if(err.response.status === 422) {
-                        //console.info(err.response.data.errors);
-                        this.$awn.warning(createHtmlErrorString(err.response.data.errors))
-                    }else if (err.response.status === 500){
-                        this.$awn.warning(err.response.data.description);
-                    }
-                    else{
-                        this.processing = false;
-                        this.$awn.warning(err.response.data.description)
-                    }
-                    this.processing = false;
                 });
             },
         },
         mounted() {
-            this.loadUser();
+            this.loadCountry()
         }
     }
 </script>

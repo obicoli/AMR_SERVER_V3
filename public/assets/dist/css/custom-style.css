@@ -2846,6 +2846,9 @@ table tr td.total-field{
 .ctm-attended-field{
     background-color: #feefc3!important;
 }
+.att-grey{
+    background-color: #ebeced!important;
+}
 .custom-attended-field{
     background-color: #ffe6e6!important;
 }
