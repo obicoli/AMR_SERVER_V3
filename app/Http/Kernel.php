@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\CompanyUserAccessControl;
 use App\Http\Middleware\OriginCors;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
@@ -66,6 +67,7 @@ class Kernel extends HttpKernel
         'role' => \jeremykenedy\LaravelRoles\Middleware\VerifyRole::class,
         'permission' => \jeremykenedy\LaravelRoles\Middleware\VerifyPermission::class,
         'level' => \jeremykenedy\LaravelRoles\Middleware\VerifyLevel::class,
+        'company_user_access' => CompanyUserAccessControl::class,
         //'cors' => \Barryvdh\Cors\HandleCors::class,
         'cors' => \App\Http\Middleware\OriginCors::class,
     ];

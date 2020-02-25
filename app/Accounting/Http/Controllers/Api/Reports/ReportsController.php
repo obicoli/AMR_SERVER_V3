@@ -96,7 +96,7 @@ class ReportsController extends Controller
         $company = $this->practices->find($request->user()->company_id);
         $custom_filter['start_date'] = $company->getFinancePeriodStartDate();
         $custom_filter['end_date'] = $company->getFinancePeriodEndDate();
-        $temp_data['data'] = $this->accountsCoa->create_trail_balance($company,$custom_filter);
+        $temp_data['data'] = $this->accountsCoa->create_trail_balance($company);
         $temp_data['facility'] = $company->name;
         $temp_data['filters'] = $this->helper->get_default_filter($company);
         $temp_data['as_at'] = "As of ".$this->helper->format_mysql_date( date('Y-m-d H:i:s'),'j M Y' );
@@ -119,7 +119,7 @@ class ReportsController extends Controller
                 case "Balance Sheet":
                     $custom_filter['start_date'] = $company->getFinancePeriodStartDate();
                     $custom_filter['end_date'] = $company->getFinancePeriodEndDate();
-                    $temp_data['data'] = $this->accountsCoa->create_balance_sheet($company,$custom_filter);
+                    $temp_data['data'] = $this->accountsCoa->create_balance_sheet($company);
                     break;
             }
         }else{

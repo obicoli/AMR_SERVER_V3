@@ -46,7 +46,7 @@ class RoleRepository implements RoleRepositoryInterface
             $temp_arr = array();
             $temp_data['category'] = $index;
             //$temp_data['has_category'] = false;
-            // $permission_categorys = Permission::all()->where('description',$index)->sortBy('descriptions')->groupBy('descriptions');
+            //$permission_categorys = Permission::all()->where('description',$index)->sortBy('descriptions')->groupBy('descriptions');
             $permission_categorys = Permission::all()->where('description',$index)->groupBy('descriptions');
             foreach ( $permission_categorys as $index2 => $permission_category){
                 //$temp_data['sub_category'] = $index2;

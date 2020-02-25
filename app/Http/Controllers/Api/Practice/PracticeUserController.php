@@ -112,101 +112,123 @@ class PracticeUserController extends Controller
             $http_resp['errors'] = ['Select another role to continue!'];
             return response()->json($http_resp,422);
         }
+
+        if( PracticeUser::all()->where('mobile',$encoded_mobile)->first() ){
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Mobile number '.$encoded_mobile.' already in use!'];
+            return response()->json($http_resp,422);
+        }
+        if( PracticeUser::all()->where('email',$request->email)->first() ){
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Email address '.$request->email.' already in use!'];
+            return response()->json($http_resp,422);
+        }
+
         DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
         try{
             //get main branch
-            $practice = $this->practice->find($request->user()->company_id);
-            $practice_main = $this->practice->findOwner($practice);
+            //$practice = $this->practice->find($request->user()->company_id);
             $company = $this->practice->findByUuid($request->company_id);
+            $practice_main = $this->practice->findOwner($company);
+
             //user record to be used to login to the system
             $record = $request->except(['first_name','other_name','gender','role_name','practice_id','address','store_id','sub_store_id','department_id']);
-            $record['password'] = $this->user->createPassword($request->password);
+            $record['password'] = $this->user->createPassword('123456');
             $record['status'] = "Activated";
             $record['email_verified'] = true;
             $record['mobile_verified'] = true;
             $record['status'] = "Activated";
             $record['mobile'] = $encoded_mobile;
             $record['company_id'] = $company->id;
-            $logins = $this->user->storeRecord($record);
+            $logins = $this->user->storeRecord($record); //User
             //set practice user record and permissions
             $practice_user = $request->all();
 
-            $practice_user['practice_id'] = $practice->id;
+            $practice_user['practice_id'] = $company->id;
             $practice_user['user_id'] = $logins->id;
             $practice_user['mobile'] = $encoded_mobile;
-            if( PracticeUser::all()->where('mobile',$encoded_mobile)->first() ){
-                DB::connection(Module::MYSQL_DB_CONN)->rollBack();
-                $http_resp = $this->response_type['422'];
-                $http_resp['errors'] = ['Mobile number '.$encoded_mobile.' already in use!'];
-                return response()->json($http_resp,422);
-            }
-            if( PracticeUser::all()->where('email',$request->email)->first() ){
-                DB::connection(Module::MYSQL_DB_CONN)->rollBack();
-                $http_resp = $this->response_type['422'];
-                $http_resp['errors'] = ['Email address '.$request->email.' already in use!'];
-                return response()->json($http_resp,422);
-            }
+            $practice_user['password'] = $logins->password;
 
-            $respo = null;
-            if($practice_user['branch_id'] != 0){
-                $branch = $this->practice->findByUuid($request->branch_id);
-                $respo = $this->practiceUsers->setUser($branch, $practice_user);
-                $practice_user['facility'] = true;
+            $practice_user_obj = $this->practiceUsers->create($practice_user);
+            $this->practiceUsers->attachRole($practice_user_obj,$practiceRole);
+            if ($request->mail_invitation){
+                $practice_us['status'] = 'Invited';
+                //initiate invite by sending invitation email to user
+                $other_data['send_to'] = $practice_user_obj->first_name;
+                $other_data['name'] = "Master admin";
+                $other_data['uuid'] = $company->uuid;
+                $this->initiatePracticeUserInvitation($logins,$company,$other_data);
+                $this->practiceUsers->update($practice_us, $practice_user_obj->uuid);
             }else{
-                $practice_user['facility'] = false;
-                $respo = $this->practiceUsers->setUser($practice, $practice_user);
+                $practice_user['status'] = 'Active';
             }
+            $http_resp['description'] = "Created successful!";
 
-            if ($respo){
 
-                $this->practiceUsers->attachRole($respo,$practiceRole);
-                
-                //if user is assigned to a department
-                $practiceUserWork = new PracticeUserWorkPlace();
-                if($request->department_id){
-                    $branch = $this->practice->findByUuid($request->branch_id);
-                    $department = $this->departments->findByUuid($request->department_id);
-                    $practiceUserWork->department_id = $department->id;
-                    $practiceUserWork->practice_id = $branch->id;
-                    $practiceUserWork->practice_user_id = $respo->id;
-                    $practiceUserWork->save();
-                }
-                if($request->store_id){
-                    $store = $this->stores->findByUuid($request->store_id);
-                    $practiceUserWork->store_id = $store->id;
-                    $practiceUserWork->save();
-                }
-                if($request->sub_store_id){
-                    $sstore = $this->stores->findByUuid($request->sub_store_id);
-                    $practiceUserWork->sub_store_id = $sstore->id;
-                    $practiceUserWork->save();
-                }
-                //--
-                if($request->branch_id != 0){
-                    $branch = $this->practice->findByUuid($request->branch_id);
-                    $practice = $branch;
-                    $practiceUserWork->practice_id = $branch->id;
-                    $practiceUserWork->practice_user_id = $respo->id;
-                    $practiceUserWork->save();
-                }
-                if ($request->mail_invitation){
-                    $practice_us['status'] = 'Invited';
-                    //initiate invite by sending invitation email to user
-                    $other_data['send_to'] = $respo->first_name;
-                    $other_data['name'] = "Master admin";
-                    $other_data['uuid'] = $practice->uuid;
-                    $this->initiatePracticeUserInvitation($logins,$practice,$other_data);
-                    $this->practiceUsers->update($practice_us, $respo->uuid);
-                }else{
-                    $practice_user['status'] = 'Active';
-                }
-                $http_resp['description'] = "Created successful!";
-            }else{
-                DB::connection(Module::MYSQL_DB_CONN)->rollBack();
-                $http_resp = $this->response_type['422'];
-                $http_resp['errors'] = [$respo['message']];
-                return response()->json($http_resp,422);
-            }
+//            $respo = null;
+//            if($practice_user['branch_id'] != 0){
+//                $branch = $this->practice->findByUuid($request->branch_id);
+//                $respo = $this->practiceUsers->setUser($branch, $practice_user);
+//                $practice_user['facility'] = true;
+//            }else{
+//                $practice_user['facility'] = false;
+//                $respo = $this->practiceUsers->setUser($practice, $practice_user);
+//            }
+
+//            if ($respo){
+//
+//                //$this->practiceUsers->attachRole($respo,$practiceRole);
+//
+//                //if user is assigned to a department
+////                $practiceUserWork = new PracticeUserWorkPlace();
+////                if($request->department_id){
+////                    $branch = $this->practice->findByUuid($request->branch_id);
+////                    $department = $this->departments->findByUuid($request->department_id);
+////                    $practiceUserWork->department_id = $department->id;
+////                    $practiceUserWork->practice_id = $branch->id;
+////                    $practiceUserWork->practice_user_id = $respo->id;
+////                    $practiceUserWork->save();
+////                }
+////                if($request->store_id){
+////                    $store = $this->stores->findByUuid($request->store_id);
+////                    $practiceUserWork->store_id = $store->id;
+////                    $practiceUserWork->save();
+////                }
+////                if($request->sub_store_id){
+////                    $sstore = $this->stores->findByUuid($request->sub_store_id);
+////                    $practiceUserWork->sub_store_id = $sstore->id;
+////                    $practiceUserWork->save();
+////                }
+//
+//                //--
+////                if($request->branch_id != 0){
+////                    $branch = $this->practice->findByUuid($request->branch_id);
+////                    $practice = $branch;
+////                    $practiceUserWork->practice_id = $branch->id;
+////                    $practiceUserWork->practice_user_id = $respo->id;
+////                    $practiceUserWork->save();
+////                }
+//
+//                if ($request->mail_invitation){
+//                    $practice_us['status'] = 'Invited';
+//                    //initiate invite by sending invitation email to user
+//                    $other_data['send_to'] = $respo->first_name;
+//                    $other_data['name'] = "Master admin";
+//                    $other_data['uuid'] = $practice->uuid;
+//                    $this->initiatePracticeUserInvitation($logins,$practice,$other_data);
+//                    $this->practiceUsers->update($practice_us, $respo->uuid);
+//                }else{
+//                    $practice_user['status'] = 'Active';
+//                }
+//                $http_resp['description'] = "Created successful!";
+//            }else{
+//                DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+//                $http_resp = $this->response_type['422'];
+//                $http_resp['errors'] = [$respo['message']];
+//                return response()->json($http_resp,422);
+//            }
         }catch (\Exception $exception){
             $http_resp = $this->response_type['500'];
             Log::info($exception);

@@ -316,10 +316,10 @@ class UsersTableSeeder extends Seeder
             // $practice2 = Practice::find(2);
             // $practice3 = Practice::find(3);
             // $practice4 = Practice::find(4);
-            $store1 = $pharmacy->stores()->create(['name'=>'KCO Main Store','type'=>'main']);
-            $sub_store = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
-            $practice1->stores()->save($store1);
-            $practice1->stores()->save($sub_store);
+//            $store1 = $pharmacy->stores()->create(['name'=>'KCO Main Store','type'=>'main']);
+//            $sub_store = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
+//            $practice1->stores()->save($store1);
+//            $practice1->stores()->save($sub_store);
             //Amref westlands Pharmacy Sub store
             // $store_westlands = $pharmacy->stores()->create(['name'=>'Kibera Store','type'=>'main']);
             // $sub_store1 = $pharmacy->stores()->create(['name'=>'Pharmacy','type'=>'sub store']);
@@ -461,16 +461,17 @@ class UsersTableSeeder extends Seeder
             // ]);
 
             //$departmen = $pharmacy->departments()->where('name','Pharmacy')->get()->first();
-            $work_area_main = $store_user_main->work_place()->create([
-                'practice_id'=>$store->id,
-                'department_id'=>1,
-                'store_id'=>$store1->id,
-                'sub_store_id'=>$sub_store->id,
-            ]);//Add User to KCO Main Store
+//            $work_area_main = $store_user_main->work_place()->create([
+//                'practice_id'=>$store->id,
+//                'department_id'=>1,
+//                'store_id'=>$store1->id,
+//                'sub_store_id'=>$sub_store->id,
+//            ]);//Add User to KCO Main Store
+
             $user1->company_id = $store->id;
             $user1->department_id = 1;
-            $user1->store_id = $store1->id;
-            $user1->sub_store_id = $sub_store->id;
+//            $user1->store_id = $store1->id;
+//            $user1->sub_store_id = $sub_store->id;
             $user1->company_user_id = $store_user_main->id;
             $user1->save();
             

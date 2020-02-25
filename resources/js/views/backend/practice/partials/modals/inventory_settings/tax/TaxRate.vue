@@ -4,9 +4,8 @@
         <div class="modal-dialog" role="document">
             <form @submit.prevent="save_taxes" class="modal-content">
 
-                <div class="modal-header">
-                    <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
-                    <h4 class="modal-title" id="myModalLabel2">{{title}}</h4>
+                <div class="modal-header width-100-pc text-left">
+                    <h4 class="modal-title width-100-pc">{{title}}</h4>
                 </div>
                 <div class="modal-body">
 
@@ -32,83 +31,39 @@
 
                     <div class="row form-group">
                         <div class="col-lg-4 col-md-4 col-sm-4 label-txt-right padding-right-0">
-                            <label class="fs-14 cl-888">Tax agency name:</label>
-                        </div>
-                        <div class="col-lg-7 col-md-7 col-sm-7">
-                            <input type="text" v-model="tax_form.agent_name" v-bind:class="{'form-control product-entry-input-field':true,'attended_field':tax_form.agent_name}">
-                        </div>
-                    </div>
-
-                    <div class="row form-group">
-                        <div class="col-lg-4 col-md-4 col-sm-4 label-txt-right padding-right-0">
                             <label class="fs-14 cl-888">PIN (Optional)</label>
                         </div>
                         <div class="col-lg-7 col-md-7 col-sm-7">
-                            <input type="text" v-model="tax_form.registration_number" v-bind:class="{'form-control product-entry-input-field':true,'attended_field':tax_form.registration_number}">
+                            <input type="text" disabled v-model="tax_form.tax_number" v-bind:class="{'form-control product-entry-input-field':true,'attended_field':tax_form.tax_number}">
                         </div>
                     </div>
 
-                    <div class="row form-group">
-                        <div class="col-lg-4 col-md-4 col-sm-4 label-txt-right padding-right-0">
-                            <label class="fs-14 cl-888">Start tax period</label>
-                        </div>
-                        <div class="col-lg-7 col-md-7 col-sm-7">
-                            <select @change="setField($event,'start_period')" v-bind:class="{'form-control product-entry-input-field height-32':true,'attended_field':tax_form.start_period}">
-                                <option value="">-select-</option>
-                                <option value="1">Jan</option>
-                                <option value="2">Feb</option>
-                                <option value="3">Mar</option>
-                                <option value="4">Apr</option>
-                                <option value="5">May</option>
-                                <option value="6">Jun</option>
-                                <option value="7">Jul</option>
-                                <option value="8">Aug</option>
-                                <option value="9">Sep</option>
-                                <option value="10">Oct</option>
-                                <option value="11">Nov</option>
-                                <option value="12">Dec</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row form-group">
-                        <div class="col-lg-4 col-md-4 col-sm-4 label-txt-right padding-right-0">
-                            <label class="fs-14 cl-888">Filling frequency</label>
-                        </div>
-                        <div class="col-md-7">
-                            <select @change="setField($event,'filling_frequency')"  v-bind:class="{'form-control product-entry-input-field height-32':true,'attended_field':tax_form.filling_frequency}">
-                                <option value="">-select-</option>
-                                <option>Monthly</option>
-                                <option>Quarterly</option>
-                                <option>Half-yearly</option>
-                                <option>Yearly</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row form-group">
-                        <div class="col-lg-4 col-md-4 col-sm-4 label-txt-right padding-right-0">
-                            <label class="fs-14 cl-888">Reporting method</label>
-                        </div>
-                        <div class="col-md-7">
-                            <select @change="setField($event,'reporting_methods')"  v-bind:class="{'form-control product-entry-input-field height-32':true,'attended_field':tax_form.reporting_method}">
-                                <option value="">-select-</option>
-                                <option>Accrual</option>
-                                <option>Cash</option>
-                            </select>
+                    <div class="row form-group mg-top-10">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-8">
+                            <label class="check-container element-inlined small fs-14 cl-888">Is Default
+                                <input type="checkbox" v-model="tax_form.is_default">
+                                <span class="checkmark"></span>
+                            </label>
                         </div>
                     </div>
 
                     <div class="row form-group mg-top-20">
                         <div class="col-md-4"></div>
                         <div class="col-md-8">
-                            <label class="check-container element-inlined fs-14 cl-888">This tax is collected on sales:
+                            <label class="check-container element-inlined small fs-14 cl-888">This tax is collected on sales:
                                 <input type="checkbox" v-model="tax_form.collected_on_sales">
                                 <span class="checkmark"></span>
-                            </label><br>
-                            <div v-if="tax_form.collected_on_sales" class="form-group ha-input-group">
-                                <label>Sales rate</label>
-                                <input v-model="tax_form.sales_rate" v-bind:class="{'form-control product-entry-input-field ha-input':true,'attended_field':tax_form.sales_rate > 0}" step="any" type="number">
+                            </label>
+                            <div v-if="tax_form.collected_on_sales" class="width-100-pc float-left">
+                                <div class="width-40-pc float-left">
+                                    <label class="company-label fs-12 width-100-pc">Sales rate(%)&nbsp;&nbsp;</label>
+                                </div>
+                                <div class="width-40-pc float-left">
+                                    <div class="dijitInline firstName dijitTextBox width-100-pc">
+                                        <input v-model="tax_form.sales_rate" v-bind:class="{'form-control product-entry-input-field ha-input':true,'attended_field':tax_form.sales_rate > 0}" step="any" type="number">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -116,13 +71,19 @@
                     <div class="row form-group mg-top-10">
                         <div class="col-md-4"></div>
                         <div class="col-md-8">
-                            <label class="check-container element-inlined fs-14 cl-888">This tax is collected on purchases:
+                            <label class="check-container element-inlined small fs-14 cl-888">This tax is collected on purchases:
                                 <input type="checkbox" v-model="tax_form.collected_on_purchase">
                                 <span class="checkmark"></span>
                             </label>
-                            <div v-if="tax_form.collected_on_purchase" class="form-group ha-input-group">
-                                <label>Purchase rate</label>
-                                <input v-model="tax_form.purchase_rate" v-bind:class="{'form-control product-entry-input-field ha-input':true,'attended_field':tax_form.purchase_rate > 0}" step="any" type="number">
+                            <div v-if="tax_form.collected_on_purchase" class="width-100-pc float-left">
+                                <div class="width-40-pc float-left">
+                                    <label class="company-label fs-12 width-100-pc">Purchase rate(%)&nbsp;&nbsp;</label>
+                                </div>
+                                <div class="width-40-pc float-left">
+                                    <div class="dijitInline firstName dijitTextBox width-100-pc">
+                                        <input v-model="tax_form.purchase_rate" v-bind:class="{'form-control product-entry-input-field ha-input':true,'attended_field':tax_form.purchase_rate > 0}" step="any" type="number">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -141,9 +102,9 @@
                 </div>
 
                 <div class="modal-footer">
-                    <div  class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                    <div v-if="user_mode==='Create'" class="btn-group" role="group" aria-label="Button group with nested dropdown">
                         <div class="btn-group" role="group">
-                            <button :disabled="processing" id="btnGroupDrop" type="button" class="btn btn-inventory btn-amref dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button :disabled="processing" id="btnGroupDrop" type="button" class="btn btn-secondary banking-process-amref dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span v-if="processing"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Saving...</span>
                                 <span v-else><i class="fa fa-save" aria-hidden="true"></i> Save</span>
                             </button>
@@ -153,17 +114,10 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <button :disabled="processing" type="submit" class="btn btn-inventory primary">
-                        <span v-if="user_mode==='Create'">
-                            <span v-if="processing"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Creating...</span>
-                            <span v-else><i class="fa fa-save" aria-hidden="true"></i> Create</span>
-                        </span>
-                        <span v-else>
-                            <span v-if="processing"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Updating...</span>
-                            <span v-else><i class="fa fa-save" aria-hidden="true"></i> Update</span>
-                        </span>
-                    </button> -->
-                    <button :disabled="processing" data-dismiss="modal" class="btn btn-inventory">
+                    <button v-else @click="save_taxes('Save & Close')" :disabled="processing" data-dismiss="modal" class="btn btn-secondary banking-process-amref">
+                        Save Changes
+                    </button>
+                    <button :disabled="processing" data-dismiss="modal" class="btn btn-secondary banking-process">
                         Close
                     </button>
                 </div>
@@ -184,27 +138,38 @@
 
     export default {
         name: "TaxModal",
-        //props:['initial_url','practice_id','user_mode','form_data'],
-        props:['practice_id','form_data','initial_url','user_mode','modal_id','title'],
+        props:['form_data','initial_url','user_mode','modal_id','title','registration_number'],
         data(){
             return {
                 processing: false,
                 tax_form:{
                     collected_on_sales: false,
                     collected_on_purchase: false,
-                    agent_name: '',
                     name: '',
-                    registration_number: '',
+                    tax_number: '',
                     description: '',
-                    start_period: '',
-                    filling_frequency: '',
-                    reporting_method: '',
                     purchase_rate: 0,
-                    sales_rate: 0.0,
+                    sales_rate: 0,
                     amount: 0,
                     status: 1,
                 }
             }
+        },
+        watch: {
+            user_mode: function (new_data,old_data) {
+                this.user_mode = new_data;
+                this.setTax();
+            },
+            initial_url: function (new_data,old_data) {
+                this.initial_url = new_data;
+                this.setTax();
+            },
+            form_data: function (new_data,old_data) {
+                if(new_data){
+                    this.form_data = new_data;
+                    this.setTax();
+                }
+            },
         },
         methods: {
 
@@ -215,22 +180,23 @@
                     if(res.data.status_code === 200) {
                         this.$awn.success(res.data.description);
                         if (this.user_mode === 'Edit') {
-                            this.$emit('taxChanged');
+                            $("#"+this.modal_id).modal('hide');
                         }else {
                             switch (action_taken) {
                                 case FORM_ACTIONS.SAVE_NEW:
-                                    this.$emit('taxChanged');
-                                    this.refresh_tax();
+                                    //this.$emit('taxChanged');
+                                    //this.refresh_tax();
                                     //this.tax_form = reset_forms(this.tax_form);
                                     break;
                                 case FORM_ACTIONS.SAVE_CLOSE:
-                                    this.$emit('taxChanged');
+                                    //this.$emit('taxChanged');
                                     //this.tax_form = reset_forms(this.tax_form);
-                                    this.refresh_tax();
+                                    //this.refresh_tax();
                                     $("#"+this.modal_id).modal('hide');
                                     break;
                             }
                         }
+                        this.$emit('vat-rate-event');
                     }
                     this.processing = false;
                 }).catch((err) => {
@@ -247,54 +213,23 @@
                 });
 
             },
-            closeModal(){
-                this.$emit('closeTaxModal');
-            },
-            setField(event,field_name){
-                switch (field_name) {
-                    case "start_period":
-                        this.tax_form.start_period = event.target.value;
-                        break;
-                    case "filling_frequency":
-                        this.tax_form.filling_frequency = event.target.value;
-                        break;
-                    case "reporting_methods":
-                        this.tax_form.reporting_method = event.target.value;
-                        break;
-                }
+            setTax(){
+                this.tax_form = this.form_data;
             },
             refresh_tax(){
                 this.tax_form.collected_on_sales = false;
                 this.tax_form.collected_on_purchase = false;
                 this.tax_form.name = "";
-                this.tax_form.agent_name = "";
                 this.tax_form.registration_number = "";
                 this.tax_form.description = "";
-                this.tax_form.start_period = "";
-                this.tax_form.filling_frequency = "";
-                this.tax_form.reporting_method = "";
                 this.tax_form.purchase_rate = 0;
                 this.tax_form.sales_rate = 0;
                 this.tax_form.amount = 0;
             },
         },
         mounted() {
-            // this.tax_form.practice_id = this.practice_id;
-            // console.info(this.user_mode);
-            // console.info(this.form_data);
-            if (this.user_mode === 'Edit') {
-                this.tax_form.collected_on_sales = this.form_data.collected_on_sales;
-                this.tax_form.collected_on_purchase = this.form_data.collected_on_purchase;
-                this.tax_form.name = this.form_data.name;
-                this.tax_form.agent_name = this.form_data.agent_name;
-                this.tax_form.registration_number = this.form_data.registration_number;
-                this.tax_form.description = this.form_data.description;
-                this.tax_form.start_period = this.form_data.start_period;
-                this.tax_form.filling_frequency = this.form_data.filling_frequency;
-                this.tax_form.reporting_method = this.form_data.reporting_method;
-                this.tax_form.purchase_rate = this.form_data.purchase_rate;
-                this.tax_form.sales_rate = this.form_data.sales_rate;
-            }
+            this.setTax();
+
         }
     }
 </script>
@@ -358,8 +293,9 @@
     }
 
     .modal-header {
-        border-bottom-color: #EEEEEE;
-        background-color: #FAFAFA;
+        border-bottom-color: #f4f4f4!important;
+        background-color: #f4f4f4!important;
+        color: #636872!important;
     }
 
     .modal-body{

@@ -5,6 +5,8 @@ namespace App\Accounting\Repositories;
 use App\Accounting\Models\Banks\AccountMasterBank;
 use App\Accounting\Models\Banks\AccountMasterBankBranch;
 use App\Accounting\Models\Banks\AccountsBank;
+use App\Models\Practice\Taxation\PracticeTaxation;
+use App\Repositories\Practice\PracticeRepository;
 use Illuminate\Database\Eloquent\Model;
 use App\Accounting\Models\COA\AccountChartAccount;
 use App\Accounting\Models\COA\AccountsType;
@@ -34,6 +36,9 @@ class AccountingRepository implements AccountingRepositoryInterface
     protected $model;
     protected $helper;
     protected $retainer_ledger_code;
+    protected $AC_RECEIVABLE_CODE;
+    protected $AC_PAYABLE_CODE;
+    protected $AC_PURCHASE;
     //protected $customerRepository;
     //protected $supplierRepository;
 
@@ -42,6 +47,9 @@ class AccountingRepository implements AccountingRepositoryInterface
         $this->model = $model;
         $this->helper = new HelperFunctions();
         $this->retainer_ledger_code = AccountsCoa::AC_RETAINED_EARNING_CODE;
+        $this->AC_PAYABLE_CODE = AccountsCoa::AC_PAYABLE_CODE;
+        $this->AC_RECEIVABLE_CODE = AccountsCoa::AC_RECEIVABLE_CODE;
+        $this->AC_PURCHASE = AccountsCoa::AC_INVENTORY_CODE;
         // $this->customerRepository = new CustomerRepository(new Customer());
         // $this->supplierRepository = new SupplierRepository( new Supplier() );
     }
@@ -52,9 +60,9 @@ class AccountingRepository implements AccountingRepositoryInterface
         }else{
             return $this->model->all();
         }
-        
         //return $this->model->all()->sortBy('name');
     }
+
     public function find($id){
         return $this->model->find($id);
     }
@@ -76,6 +84,17 @@ class AccountingRepository implements AccountingRepositoryInterface
     public function findByDefaultCode($code){
         return $this->model->all()->where('default_code',$code)->first();
     }
+
+    public function findCompanyMainCoaByDefaultCode(Practice $practice, $default_code)
+    {
+        // TODO: Implement getCompanyMainCoaByDefaultCode() method.
+        return $practice->chart_of_accounts()
+                    ->where('is_sub_account',false)
+                    ->where('default_code',$default_code)
+                    ->get()
+                    ->first();
+    }
+
     public function create($inputs = []){
         return $this->model->create($inputs);
     }
@@ -169,6 +188,17 @@ class AccountingRepository implements AccountingRepositoryInterface
         }
 
     }
+
+    public function getAccountTotalTransactions(AccountChartAccount $accountChartAccount, $filters = [])
+    {
+        // TODO: Implement getAccountTotalTransactions() method.
+        $debited_total = $accountChartAccount->debited_vouchers()->count();
+        $credited_total = $accountChartAccount->credited_vouchers()->count();
+        $debit_parent_balance = $accountChartAccount->debited_parent_vouchers()->count();
+        $credited_parent_total = $accountChartAccount->credited_parent_vouchers()->count();
+        return ($debited_total + $credited_total + $debit_parent_balance + $credited_parent_total);
+    }
+
 
     public function calculate_account_balance(AccountChartAccount $accountChartAccount, $filters=[] ){
         /*
@@ -348,11 +378,33 @@ class AccountingRepository implements AccountingRepositoryInterface
         $default_coa = $accountChartAccount->coas()->get()->first();
         //Get Account Type
         $account_type = $default_coa->account_types()->get()->first();
+        //Opening Balance
         $opening_balance = 0;
+        $debited_ob = "";
+        $credited_ob = "";
+        $is_system_account = false;
+
+        //Check if is a System account
+        $default_code = $accountChartAccount->getDefaultCode();
+        $is_special = $accountChartAccount->getIsSpecial();
+
+        if( ($is_special) && ($default_code==$this->AC_RECEIVABLE_CODE || $default_code==$this->AC_PAYABLE_CODE || $default_code==$this->AC_PURCHASE) ){
+            $is_system_account = true;
+        }
+
         $opening_bal = $accountChartAccount->openingBalances()->get()->first();
         if($opening_bal){
-            $opening_balance = $opening_bal->amount;
+            $support_document = $opening_bal->double_entry_support_document()->get()->first();
+            $double_entry = $support_document->journalEntries()->get()->first();
+            //Log::info($double_entry);
+            //$opening_balance = $opening_bal->amount;
+            if( $double_entry->debited == $accountChartAccount->getCode() ){
+                $debited_ob = $double_entry->amount;
+            }elseif( $double_entry->credited == $accountChartAccount->getCode() ){
+                $credited_ob = $double_entry->amount;
+            }
         }
+        //
         $balance = $this->calculate_account_balance($accountChartAccount,$filters);
         $company = $accountChartAccount->owning()->get()->first();
         $total_transaction = $company->vouchers()
@@ -364,9 +416,9 @@ class AccountingRepository implements AccountingRepositoryInterface
 
         $default_vat = null;
         $vat_type = $accountChartAccount->vatTypes()->get()->first();
-        $taxObject = new ProductReposity(new ProductTaxation());
+        $taxObject = new PracticeRepository( new PracticeTaxation() );
         if($vat_type){
-            $default_vat = $taxObject->transform_taxation($vat_type);
+            $default_vat = $taxObject->transformPracticeTaxation($vat_type);
         }
         // $transactions = [];
         // if(sizeof($filters)){
@@ -402,6 +454,9 @@ class AccountingRepository implements AccountingRepositoryInterface
             'default_code' => $accountChartAccount->default_code,
             'is_sub_account' => $accountChartAccount->is_sub_account,
             'is_special' => $accountChartAccount->is_special,
+            'opening_balance_debited' => $debited_ob,
+            'opening_balance_credited' => $credited_ob,
+            'is_system_account' => $is_system_account,
             'opening_balance' => $opening_balance,
             'balance' => $balance,
             'filters' => $filters,
@@ -411,7 +466,6 @@ class AccountingRepository implements AccountingRepositoryInterface
             'status' => $accountChartAccount->status,
             'notes' => $accountChartAccount->notes,
             'total_transaction'=>$total_transaction,
-            //'default_coa'=>$default_coa,
         ];
     }
 
@@ -749,7 +803,6 @@ class AccountingRepository implements AccountingRepositoryInterface
             Add/(Less)	Net income (loss) for a period
             Less	Dividends
             Equals	Closing retained earnings
-​	
         */
 
         
@@ -766,7 +819,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         $net_income = $this->netIncome($company,$filters);
         $total_dividends = 0;
         $closing_rn = ( ($opening_rn+$adjustments_rn+$net_income) - $total_dividends );
-        //Log::info($company_retained_earn_ledger_ac);
+        //Log::info($closing_rn);
         $amount = $closing_rn;
         $as_of = date('Y-m-d');
         $trans_name = "Net Income";
@@ -780,17 +833,17 @@ class AccountingRepository implements AccountingRepositoryInterface
             $credited_ac = "0000";
         }
 
-        //Log::info($closing_rn);
-        $double_entry = $company_retained_earn_ledger_ac->voucher($company_retained_earn_ledger_ac->code,$filters);
-        if($double_entry){
-            $double_entry->credited = $credited_ac;
-            $double_entry->debited = $debited_ac;
-            $double_entry->amount = $amount;
-            $double_entry->save();
-        }else{
-            $double_entry = $accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
+        if($amount){
+            $double_entry = $company_retained_earn_ledger_ac->voucher($company_retained_earn_ledger_ac->code,$filters);
+            if($double_entry){
+                $double_entry->credited = $credited_ac;
+                $double_entry->debited = $debited_ac;
+                $double_entry->amount = $amount;
+                $double_entry->save();
+            }else{
+                $double_entry = $accountingVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
+            }
         }
-        
     }
 
     public function netIncome(Model $company, $filters=[]){
@@ -1211,7 +1264,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         return $debit;
     }
 
-    public function company_coa_initialization(Model $company){
+    public function setCompanyChartOfAccount(Model $company){
 
         $coas = AccountsCoa::all()->where('sys_default',true)->where('owning_id','')->where('owning_type','');
         foreach( $coas as $coa ){
@@ -1235,15 +1288,14 @@ class AccountingRepository implements AccountingRepositoryInterface
             //Link above debitable_creditable_ac account to a company
             $debitable_creditable_ac = $company->chart_of_accounts()->save($debitable_creditable_ac);
         }
+
     }
 
     public function company_payment_initialization(Model $company){
-
         $company->accounts_payment_methods()->create(['name'=>'Cash']);
         $company->accounts_payment_methods()->create(['name'=>'Cheque']);
         $company->accounts_payment_methods()->create(['name'=>'Credit Card']);
         $company->accounts_payment_methods()->create(['name'=>'Direct Debit']);
-
     }
 
 } 

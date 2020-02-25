@@ -37,12 +37,12 @@ class TaxationController extends Controller
         $companyParent = $this->practices->findParent($company);
         
         if($request->has('input_tax')){
-            $taxes = $companyParent->product_taxations()
+            $taxes = $company->practiceVatTypes()
                 ->where('collected_on_purchase',true)
                 ->orderByDesc('created_at')
                 ->paginate(20);
         }elseif($request->has('output_tax')){
-            $taxes = $companyParent->product_taxations()
+            $taxes = $company->practiceVatTypes()
                 ->where('collected_on_sales',true)
                 ->orderByDesc('created_at')
                 ->paginate(20);

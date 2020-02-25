@@ -42,6 +42,12 @@
                     <a href="#"><i class="fa fa-user-o" aria-hidden="true"><span class="ml-2 align-middle">Adminstration</span></i></a>
                     <admin-menu :title="'Reports & Config'"></admin-menu>
                 </li>
+                <li class="list-group-item pl-3 py-2">
+                    <a href="#"><i class="fa fa-address-book-o" aria-hidden="true"><span class="ml-2 align-middle">Documentation(Soon)</span></i></a>
+                </li>
+                <li class="list-group-item pl-3 py-2">
+                    <a href="#"><i class="fa fa-code" aria-hidden="true"><span class="ml-2 align-middle">Developers</span></i></a>
+                </li>
 
             </ul>
         </div>

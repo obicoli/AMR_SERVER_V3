@@ -11,6 +11,7 @@ use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeProductItem;
 // use App\Models\Practice\PracticeProductItemStock;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Models\Product\Product;
 use App\Models\Product\ProductAdministrationRoute;
 use App\Models\Product\ProductBrand;
@@ -32,7 +33,6 @@ use App\Models\Hospital\Hospital;
 use App\Models\Module\Module;
 use App\Models\Product\Inventory\Inward\ProductStockInward;
 use App\Models\Product\ProductItem;
-use App\Models\Product\ProductTaxation;
 use App\Models\Product\Sales\ProductPriceRecord;
 
 class ProductItemController extends Controller
@@ -75,7 +75,7 @@ class ProductItemController extends Controller
         $this->accountsVouchers = new AccountingRepository( new AccountsVoucher() );
         $this->product_prices = new ProductReposity( new ProductPriceRecord() );
         $this->product_stock_inwards = new ProductReposity( new ProductStockInward() );
-        $this->taxations = new ProductReposity( new ProductTaxation() );
+        $this->taxations = new ProductReposity( new PracticeTaxation() );
     }
 
     public function index(Request $request){

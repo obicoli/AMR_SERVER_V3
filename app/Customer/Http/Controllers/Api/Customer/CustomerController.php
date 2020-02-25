@@ -16,7 +16,7 @@ use App\Models\Account\Account;
 use App\Models\Localization\Country;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
-use App\Models\Product\ProductTaxation;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Support\Facades\Config;
@@ -36,7 +36,6 @@ class CustomerController extends Controller
     protected $payment_methods;
     protected $accountingVouchers;
     protected $taxations;
-    //protected $paymentTerms;
     protected $accountChartAccount;
 
     public function __construct( Customer $customers )
@@ -50,7 +49,7 @@ class CustomerController extends Controller
         $this->payment_methods = new AccountingRepository(new AccountPaymentType());
         $this->accountingVouchers = new AccountingRepository(new AccountsVoucher());
         $this->countries = new AccountingRepository( new Country() );
-        $this->taxations = new ProductReposity( new ProductTaxation() );
+        $this->taxations = new ProductReposity( new PracticeTaxation() );
         $this->accountChartAccount = new AccountingRepository(new AccountChartAccount());
         //$this->paymentTerms = new CustomerRepository(new CustomerTerms());
     }

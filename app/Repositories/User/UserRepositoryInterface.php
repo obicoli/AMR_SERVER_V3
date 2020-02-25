@@ -21,11 +21,15 @@ interface UserRepositoryInterface
 
     public function findRecord($id);
 
+    public function find($id);
+
     public function getRecord();
 
-    public function setRecord(array $arr, $id);
+    //public function setRecord(array $arr, $id);
 
     public function findByEmail($email);
+
+    public function getByEmail($email);
 
     public function findByEmailOrMobile($email_or_mobile);
 
@@ -79,7 +83,7 @@ interface UserRepositoryInterface
 
     public function setReceptionist(User $user, array $arr);
 
-    public function deleteFromPracticeUsers(User $user);
+    //public function deleteFromPracticeUsers(User $user);
 
     public function setNewPatient(array $arr);
 

@@ -34,15 +34,10 @@ use App\Supplier\Models\SupplierReturnStatus;
 class PracticeUser extends Model
 {
     use SoftDeletes, Accountable, UuidTrait, HasRoleAndPermission, HasApiTokens;
-
     const DEFAULT_AVATAR = "/assets/images/profile/avatar.jpg";
-
     const USER_TYPE = "Facility Staff";
-
     protected $connection = Module::MYSQL_DB_CONN;
-
     protected $table = 'practices_users';
-
     protected $fillable = [
         'practice_id',
         'store_id',
@@ -61,13 +56,14 @@ class PracticeUser extends Model
         'billable',
     ];
 
+    public function getUuid(){ return $this->uuid; }
     public function getCompanyId(){ return $this->practice_id; }
     public function getCanAccessCompany(){ return $this->can_access_company; }
 
-    public function product_po(){ return $this->morphMany(ProductPo::class, 'received','received_type','received_id'); }
-    public function practice(){ return $this->belongsTo(Practice::class,'practice_id'); }
+    //public function product_po(){ return $this->morphMany(ProductPo::class, 'received','received_type','received_id'); }
+    public function practice(){ return $this->belongsTo(Practice::class,'practice_id','id'); }
     public function profile(){ return $this->hasOne(Profile::class,'practice_user_id'); }
-    public function work_place(){ return $this->hasMany(PracticeUserWorkPlace::class,'practice_user_id'); }
+    //public function work_place(){ return $this->hasMany(PracticeUserWorkPlace::class,'practice_user_id'); }
     public function purchase_orders_approvals(){ return $this->morphMany(ProductPo::class, 'approvable','approvable_type','approvable_id'); }
     public function his_rtc_tracks(){ return $this->hasMany(HisRtcUserTrack::class,'practice_user_id'); }
     public function product_requisitions(){ return $this->morphMany(ProductRequistion::class,'requested','requested_type','requested_id'); }

@@ -28,12 +28,14 @@ interface AccountingRepositoryInterface
     public function findByVATPin($pin);
     public function findByName($name);
     public function findByDefaultCode($code);
+    public function findCompanyMainCoaByDefaultCode(Practice $practice, $default_code);
     public function create($inputs = []);
     public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);
     public function create_sub_chart_of_account(Practice $company, AccountChartAccount $mainAccount, $inputs=[], Model $account_owner=null);
     //public function getDefaultCoa();
     public function account_statement(Model $company, AccountsHolder $accountsHolder);
     public function get_account_balances(AccountChartAccount $accountChartAccount, $filters=[] );
+    public function getAccountTotalTransactions( AccountChartAccount $accountChartAccount, $filters=[] );
     public function calculate_account_balance(AccountChartAccount $accountChartAccount,$filters=[]);
     // public function transform_bank(AccountMasterBank $accountMasterBank);
     // public function transform_bank_accounts(AccountsBank $accountsBank);
@@ -55,6 +57,6 @@ interface AccountingRepositoryInterface
     public function netIncome(Model $company, $filters=[]);
     public function create_balance_sheet(Model $company, $filters=[]);
     public function transform_journal_entry(AccountsVoucher $accountsVoucher, $journal_type=AccountsCoa::BALANCE_DEBIT,Model $company=null);
-    public function company_coa_initialization(Model $company);
+    public function setCompanyChartOfAccount(Model $company);
     public function company_payment_initialization(Model $company);
 }

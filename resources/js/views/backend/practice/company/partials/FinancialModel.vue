@@ -19,17 +19,22 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="padded">01/01/2019</td>
-                                <td class="padded">01/01/2019</td>
-                                <td class="padded text-center"><input type="checkbox"></td>
-                                <td class="padded"></td>
-                            </tr>
-                            <tr>
-                                <td class="padded">01/01/2019</td>
-                                <td class="padded">01/01/2019</td>
-                                <td class="padded text-center"><input type="checkbox" checked></td>
-                                <td class="padded"></td>
+                            <tr v-for="(financial_year,index) in financial_years">
+                                <td class="padded">{{financial_year.financial_year_start}}</td>
+                                <td class="padded">{{financial_year.financial_year_end}}</td>
+                                <td class="padded text-center"><input type="checkbox" v-model="financial_year.current_accounting_period"></td>
+                                <td class="padded">
+                                    <div class="btn-group float-right" role="group" aria-label="Button group">
+                                        <div class="btn-group" role="group">
+                                            <a :id="'btnGroupDrop23_'+index" class="dropdown-toggle pointer-cursor fw-600 fs-11 cl-blue-link showOnHover" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Action
+                                            </a>
+                                            <div class="dropdown-menu mr-10" :aria-labelledby="'btnGroupDrop23_'+index">
+                                                <a @click="setFinancial(financial_year)" data-toggle="modal" :data-target="'#financial_year_modal'" class="dropdown-item pointer-cursor">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -50,7 +55,10 @@
                             <label class="company-label text-right fs-12 width-100-pc">Set a Lockdown Date&nbsp;&nbsp;</label>
                         </div>
                         <div class="inlineBlock width-10-pc">
-                            <input type="checkbox">
+                            <label class="check-container small element-inlined fs-12 role-label-fw-normal min-width-100 mg-right-10">
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                            </label>
                         </div>
                     </div>
                     <div class="row fullName mg-bottom-2 mg-left-30">
@@ -65,24 +73,45 @@
                     </div>
                 </div>
             </div>
-
         </div>
         <div class="width-100-pc float-left text-center padding-10">
             <a class="btn btn-secondary banking-process">Save</a>
             <a class="btn btn-secondary banking-process-amref">Save & Close</a>
             <router-link :to="INVENTORY_WEB_ROUTES.SCM_WORKSPACE" class="btn btn-secondary banking-process">Cancel</router-link>
         </div>
+        <financial-year-modal :modal_id="'financial_year_modal'" :api="api" :financial_year="financial_yr" :modal_title="'Financial Years'" @financial-year-event="reportEvent"></financial-year-modal>
     </div>
 </template>
 
 <script>
+
     import {INVENTORY_WEB_ROUTES} from "../../../../../router/web_routes";
+    import FinancialYearModal from "../../partials/modals/settings/FinancialYearModal";
 
     export default {
         name: "FinancialModel",
+        props: ['financial_years','api'],
+        components: {FinancialYearModal},
         data(){
             return {
                 INVENTORY_WEB_ROUTES: INVENTORY_WEB_ROUTES,
+                financial_yr: null,
+            }
+        },
+        watch: {
+            api: function (new_data,old_data) {
+                this.api = new_data;
+            },
+            financial_years: function (new_data,old_data) {
+                this.financial_years = new_data;
+            }
+        },
+        methods: {
+            reportEvent(){
+                this.$emit('financial-year-event')
+            },
+            setFinancial(financial_year){
+                this.financial_yr = financial_year;
             }
         }
     }

@@ -14,11 +14,19 @@ use App\Models\Manufacturer\Manufacturer;
 use App\Models\Pharmacy\Pharmacy;
 use App\Models\Practice\Department;
 use App\Models\Practice\Practice;
+use App\Models\Practice\PracticeAsset;
 use App\Models\Practice\PracticeProductItem;
 use App\Models\Practice\PracticeStore;
+use App\Models\Practice\PracticeTransactionDocument;
 use App\Models\Practice\PracticeUser;
+use App\Models\Practice\Settings\PracticeCustomerSetting;
 use App\Models\Practice\Settings\PracticeCustomerZone;
+use App\Models\Practice\Settings\PracticeFinancialSetting;
+use App\Models\Practice\Settings\PracticeGeneralSettings;
+use App\Models\Practice\Settings\PracticeInventorySetting;
 use App\Models\Practice\Settings\PracticeStatutory;
+use App\Models\Practice\Taxation\PracticeTax;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Models\Product\Accounts\ProductAccountDetailType;
 use App\Models\Product\Accounts\ProductAccountNature;
 use App\Models\Product\Accounts\ProductAccountType;
@@ -94,6 +102,132 @@ class PracticeRepository implements PracticeRepositoryInterface
         ];
     }
 
+    public function transformFinancialSettings(PracticeFinancialSetting $practiceFinancialSetting)
+    {
+        // TODO: Implement transFinancialSettings() method.
+        return [
+            'id'=>$practiceFinancialSetting->getUuid(),
+            'financial_year_start'=>$practiceFinancialSetting->getFinancialYearStart(),
+            'financial_year_end'=>$practiceFinancialSetting->getFinancialYearEnd(),
+            'current_accounting_period'=>$practiceFinancialSetting->getCurrentAccountingPeriod(),
+        ];
+    }
+
+    public function transformGeneralSettings(PracticeGeneralSettings $practiceGeneralSettings)
+    {
+        // TODO: Implement transformGeneralSettings() method.
+        return [
+            'id'=>$practiceGeneralSettings->getUuid(),
+            'ageing_monthly'=>$practiceGeneralSettings->getAgeingMonthly(),
+            'ageing_based_on'=>$practiceGeneralSettings->getAgeingBased(),
+            'rounding_type'=>$practiceGeneralSettings->getRoundingType(),
+            'round_to_nearest'=>$practiceGeneralSettings->getRoundToNearest(),
+            'qty_decimal_places'=>$practiceGeneralSettings->getQtyDecimal(),
+            'value_decimal_places'=>$practiceGeneralSettings->getValueDecimal(),
+            'currency_symbol'=>$practiceGeneralSettings->getCurrencySymbol(),
+            'system_date_format'=>$practiceGeneralSettings->getSystemDateFormat(),
+        ];
+    }
+
+    public function transformCustomerSupplierSettings(PracticeCustomerSetting $practiceCustomerSetting)
+    {
+        // TODO: Implement transformCustomerSupplierSettings() method.
+        return [
+            'id'=>$practiceCustomerSetting->getUuid(),
+            'warn_dup_reference'=>$practiceCustomerSetting->getWarnDupReference(),
+            'warn_dup_invoice_number'=>$practiceCustomerSetting->getWarnDupInvoiceNumber(),
+            'inactive_customer_processing'=>$practiceCustomerSetting->getInactiveCustomerProcessing(),
+            'inactive_customer_reports'=>$practiceCustomerSetting->getInactiveCustomerReport(),
+            'inactive_suppliers_processing'=>$practiceCustomerSetting->getInactiveSupplierProcessing(),
+            'inactive_suppliers_reports'=>$practiceCustomerSetting->getInactiveSupplierReport(),
+            'use_inclusive_customer_docs'=>$practiceCustomerSetting->getUseInclusiveCustomerDocuments(),
+            'use_inclusive_suppliers_docs'=>$practiceCustomerSetting->getUseInclusiveSupplierDocuments(),
+            'account_as_default_selection'=>$practiceCustomerSetting->getUseAccountAsDefaultSelection(),
+        ];
+    }
+
+    public function transformInventorySettings(PracticeInventorySetting $practiceInventorySetting)
+    {
+        // TODO: Implement transformInventorySettings() method.
+        return [
+            'id'=>$practiceInventorySetting->getUuid(),
+            'warn_item_qty_zero'=>$practiceInventorySetting->getWarnItemQtyZero(),
+            'disallow_qty_zero'=>$practiceInventorySetting->getDisallowQtyZero(),
+            'warn_item_cost_zero'=>$practiceInventorySetting->getWarnItemCostZero(),
+            'warn_item_selling_zero'=>$practiceInventorySetting->getWarnItemSaleZero(),
+            'warn_item_sale_below_cost'=>$practiceInventorySetting->getWarnSalesBelowCost(),
+            'show_inactive_items'=>$practiceInventorySetting->getShowInactiveItem(),
+            'show_inactive_item_category'=>$practiceInventorySetting->getInactiveItemCategory(),
+            'sales_order_reserve_item'=>$practiceInventorySetting->getSalesOrderReserveItem(),
+            'multi_warehouse_management'=>$practiceInventorySetting->getMultiWarehouseManagement(),
+            'batch_tracking'=>$practiceInventorySetting->getBatchTracking(),
+            'barcode_tracking'=>$practiceInventorySetting->getBarcodeTracking(),
+        ];
+    }
+
+    public function transformPracticeTax(PracticeTax $practiceTax)
+    {
+        // TODO: Implement transformPracticeTax() method.
+        return [
+            'id'=>$practiceTax->getUuid(),
+            'obligation'=>$practiceTax->getObligation(),
+            'tax_number'=>$practiceTax->getTaxNumber(),
+            'tax_station'=>$practiceTax->getTaxStation(),
+            'agent_name'=>$practiceTax->getAgentName(),
+            'filling_frequency'=>$practiceTax->getFilingFrequency(),
+            'reporting_method'=>$practiceTax->getReportingMethod(),
+            'last_period_end'=>null,
+            'last_submission_due'=>null,
+            'vat_system'=>'Invoice Based',
+        ];
+    }
+
+    public function transformPracticeTaxation(PracticeTaxation $practiceTaxation)
+    {
+        // TODO: Implement transformPracticeTaxation() method.
+        $vatTypeData = $practiceTaxation->vatTypes()->get()->first();
+        return [
+            'id'=>$practiceTaxation->getUuid(),
+            'name'=>$vatTypeData->getName(),
+            'purchase_rate'=>$vatTypeData->getPurchaseRate(),
+            'sales_rate'=>$vatTypeData->getSalesRate(),
+            'is_default'=>$vatTypeData->getIsDefault(),
+            'collected_on_purchase'=>$vatTypeData->getCollectedOnPurchase(),
+            'collected_on_sales'=>$vatTypeData->getCollectedOnSales(),
+            'description'=>$vatTypeData->getDescription(),
+            'status'=>$practiceTaxation->getStatus(),
+            'sales_display_as'=>$vatTypeData->getName().'('.$vatTypeData->getSalesRate().'%)',
+            'purchase_display_as'=>$vatTypeData->getName().'('.$vatTypeData->getPurchaseRate().'%)',
+        ];
+    }
+
+    public function transformPracticeTransactionDocument(PracticeTransactionDocument $practiceTransactionDocument)
+    {
+        // TODO: Implement transformPracticeTransactionDocument() method.
+        return [
+            'id'=>$practiceTransactionDocument->getUuid(),
+            'name'=>$practiceTransactionDocument->getName(),
+            'doc_prefix'=>$practiceTransactionDocument->getDocPrefix(),
+            'doc_title'=>$practiceTransactionDocument->getDocTitle(),
+            'doc_message'=>$practiceTransactionDocument->getDocMessage(),
+            'doc_mail_subject'=>$practiceTransactionDocument->getDocMailSubject(),
+            'doc_summary'=>$practiceTransactionDocument->getDocSummary(),
+            'doc_notes'=>$practiceTransactionDocument->getDocNotes(),
+        ];
+    }
+
+    public function transformAsset(PracticeAsset $practiceAsset)
+    {
+        // TODO: Implement transformAsset() method.
+        return [
+            'id'=>$practiceAsset->getUuid(),
+            'file_path'=>$practiceAsset->getFilePath(),
+            'file_mime'=>$practiceAsset->getFileMime(),
+            'file_size'=>$practiceAsset->getFileSize(),
+            'asset_type'=>$practiceAsset->getAssetType(),
+        ];
+    }
+
 
     public function find($id)
     {
@@ -115,12 +249,23 @@ class PracticeRepository implements PracticeRepositoryInterface
     {
         // TODO: Implement findOwner() method.
         //This method return the HeadQuarter(Main Branch)
-        if ($practice->category == 'Main'){
+        if ($practice->type == 'HQ'){
             return $practice;
         }
         $owner = $practice->owner()->get()->first();
-        return $owner->practices()->where('category','Main')->get()->first();
+        return $owner->practices()->where('type','HQ')->get()->first();
     }
+
+    public function findHq(Practice $practice)
+    {
+        // TODO: Implement findHq() method.
+        if ($practice->type == 'HQ'){
+            return $practice;
+        }
+        $owner = $practice->owner()->get()->first();
+        return $owner->practices()->where('type','HQ')->get()->first();
+    }
+
 
     public function findParent(Practice $practice)
     {
@@ -223,11 +368,43 @@ class PracticeRepository implements PracticeRepositoryInterface
     //     return $results;
     // }
 
+    public function transformIndustry(Model $model)
+    {
+        // TODO: Implement transformIndustry() method.
+        $tax = $model->taxation()->get()->first();
+        $taxation = null;
+        if ($tax){
+            $taxation = $this->transformPracticeTax($tax);
+        }
+
+        return [
+            'id'=>$model->getUuid(),
+            'name'=>$model->getName(),
+            'taxation'=>$taxation,
+        ];
+    }
+
+    public function transformAuthentication(PracticeUser $practiceUser)
+    {
+        // TODO: Implement transformAuthentication() method.
+        $practice = $practiceUser->practice()->get()->first();
+        $owner = $practice->owner()->get()->first();
+        $company = null;
+        if($practice){
+            $company = $this->transform_($practice);
+            $company['user'] = $this->transform_user($practiceUser);
+        }
+        $industry = $this->transformIndustry($owner);
+        $industry['company'] = $company;
+        return $industry;
+    }
+
+
     public function transform_user(PracticeUser $practiceUser, $source_type=null, Practice $company=null)
     {
         // TODO: Implement transform_user() method.
         //$results = array();
-        $temp_data['id'] = $practiceUser->uuid;
+        $temp_data['id'] = $practiceUser->getUuid();
         $temp_data['first_name'] = $practiceUser->first_name;
         $temp_data['other_name'] = $practiceUser->other_name;
         $temp_data['email'] = $practiceUser->email;
@@ -235,34 +412,35 @@ class PracticeRepository implements PracticeRepositoryInterface
         $temp_data['status'] = $practiceUser->status;
         $temp_data['can_access_company'] = $practiceUser->can_access_company;
         $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
+
         //$temp_data['specific_facility'] = $practiceUser->facility;
-        if($company){
-            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
-            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
-            $parentPract = $this->findParent($company);
-            $practice_main = $parentPract->practices()->where('type','HQ')->get()->first();
-            $app_data['id'] = $parentPract->uuid;
-            $app_data['name'] = $parentPract->name;
-            $app_data['address'] = $parentPract->address;
-            $app_data['logo'] = "/assets/img/amref-white.png";
-            $app_data['email'] = $parentPract->email;
-            $app_data['mobile'] = $parentPract->mobile;
-            //
-            $main_branch['id'] = $practice_main->uuid;
-            $main_branch['name'] = $practice_main->name;
-            $main_branch['address'] = $practice_main->address;
-            $main_branch['logo'] = "/assets/img/amref-white.png";
-            $main_branch['email'] = $practice_main->email;
-            $main_branch['mobile'] = $practice_main->mobile;
-            $main_branch['lat'] = $practice_main->latitude;
-            $main_branch['lgt'] = $practice_main->longitude;
-            $main_branch['category'] = $practice_main->category;
-            //
-            $main_branch['app_data'] = $app_data;
-        }else{
-            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at);
-            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at);
-        }
+//        if($company){
+//            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at,$company->date_format);
+//            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at,$company->date_format);
+//            $parentPract = $this->findParent($company);
+//            $practice_main = $parentPract->practices()->where('type','HQ')->get()->first();
+//            $app_data['id'] = $parentPract->uuid;
+//            $app_data['name'] = $parentPract->name;
+//            $app_data['address'] = $parentPract->address;
+//            $app_data['logo'] = "/assets/img/amref-white.png";
+//            $app_data['email'] = $parentPract->email;
+//            $app_data['mobile'] = $parentPract->mobile;
+//            //
+//            $main_branch['id'] = $practice_main->uuid;
+//            $main_branch['name'] = $practice_main->name;
+//            $main_branch['address'] = $practice_main->address;
+//            $main_branch['logo'] = "/assets/img/amref-white.png";
+//            $main_branch['email'] = $practice_main->email;
+//            $main_branch['mobile'] = $practice_main->mobile;
+//            $main_branch['lat'] = $practice_main->latitude;
+//            $main_branch['lgt'] = $practice_main->longitude;
+//            $main_branch['category'] = $practice_main->category;
+//            //
+//            $main_branch['app_data'] = $app_data;
+//        }else{
+//            $temp_data['created_at'] = $this->helper->format_mysql_date($practiceUser->created_at);
+//            $temp_data['updated_at'] = $this->helper->format_mysql_date($practiceUser->updated_at);
+//        }
 
         
         //$temp_data['work_station'] = $this->getWorkPlace($practiceUser);
@@ -291,32 +469,33 @@ class PracticeRepository implements PracticeRepositoryInterface
 
         
 
-        if($source_type=="app"){ //For app Login: User who can access facilities
-            if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager" ){//User at Main Branch Level
-                $branches = $parentPract->practices()->get();
-                $brancha = array();
-                foreach($branches as $branch){
-                    $temp_bra = $this->transform_($branch,'Purchase Orders & Category');
-                    array_push($brancha,$temp_bra);
-                }
-                $main_branch['branches'] = $brancha;
-                $temp_data['facility'] = $main_branch;
-            }else{ //User at Branch Level: Login via APP
-                //$temp_data['facility'] = $this->getWorkPlace($practiceUser);
-                //$temp_data['facility'] = $this->transform_($practice,'Purchase Orders & Category');
-            }
-        }elseif($source_type=="web"){//For web login
-            $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
-            if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager"){ //general manager
-                $temp_data['facility'] = $main_branch;
-            }else{ //user at branch level
-                $placo = $this->getWorkPlace($practiceUser);
-                $placo['app_data'] = $app_data;
-                $temp_data['facility'] = $placo;
-            }
-        }else{
-            return $temp_data;
-        }
+//        if($source_type=="app"){ //For app Login: User who can access facilities
+//            if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager" ){//User at Main Branch Level
+//                $branches = $parentPract->practices()->get();
+//                $brancha = array();
+//                foreach($branches as $branch){
+//                    $temp_bra = $this->transform_($branch,'Purchase Orders & Category');
+//                    array_push($brancha,$temp_bra);
+//                }
+//                $main_branch['branches'] = $brancha;
+//                $temp_data['facility'] = $main_branch;
+//            }else{ //User at Branch Level: Login via APP
+//                //$temp_data['facility'] = $this->getWorkPlace($practiceUser);
+//                //$temp_data['facility'] = $this->transform_($practice,'Purchase Orders & Category');
+//            }
+//        }elseif($source_type=="web"){//For web login
+//            $temp_data['role'] = $this->getRoles($practiceUser, $source_type);
+//            if( sizeof($temp_data['role'])>0 && $temp_data['role']['access_level'] == "facility_manager"){ //general manager
+//                $temp_data['facility'] = $main_branch;
+//            }else{ //user at branch level
+//                $placo = $this->getWorkPlace($practiceUser);
+//                $placo['app_data'] = $app_data;
+//                $temp_data['facility'] = $placo;
+//            }
+//        }else{
+//            return $temp_data;
+//        }
+
         // $main_branch['branch'] = $this->getWorkPlace($practiceUser);
         // $temp_data['facility'] = $main_branch;
         //$temp_data['facility'] = $this->getWorkPlace($practiceUser);
@@ -445,62 +624,62 @@ class PracticeRepository implements PracticeRepositoryInterface
         return $practiceUser->work_place()->create($arr);
     }
 
-    public function getWorkPlace(PracticeUser $practiceUser)
-    {
-        // TODO: Implement getWorkPlace() method.
-        $results = array();
-        $work_place = $practiceUser->work_place()->get()->where('status',true)->first();
-        $branchRepo = new ModelRepository(new Practice());
-        $deptRepo = new ModelRepository(new Department());
-        //$practDeptRepo = new ModelRepository(new PracticeDepartment());
-        if ($work_place){
-            $pract = Practice::find($work_place->practice_id);
-            //$pract_department = $practDeptRepo->find($work_place->practice_department_id);
-            $dept = Department::find($work_place->department_id);
-            $store = ProductStore::find($work_place->store_id);
-            $sub_store = ProductStore::find($work_place->sub_store_id);
-            $results['id'] = $pract->uuid;
-            $results['name'] = $pract->name;
-            $results['category'] = $pract->category;
-            $results['email'] = $pract->email;
-            $results['mobile'] = $pract->mobile;
-            $results['lat'] = $pract->latitude;
-            $results['lgt'] = $pract->longitude;
-            $results['department'] = [];
-            $results['store'] = [];
-            $results['sub_store'] = [];
-
-            if($dept){
-                $depo['id'] = $dept->uuid;
-                $depo['name'] = $dept->name;
-                $results['department'] = $depo;
-            }
-            $results['store'] = [];
-            if($store){
-                $sto['id'] = $store->uuid;
-                $sto['name'] = $store->name;
-                $results['store'] = $sto;
-            }
-            $results['sub_store'] = [];
-            if($sub_store){
-                $stos['id'] = $sub_store->uuid;
-                $stos['name'] = $sub_store->name;
-                $results['sub_store'] = $stos;
-            }
-        }else{
-            $pract = Practice::find($practiceUser->practice_id);
-            $results['id'] = $pract->uuid;
-            $results['name'] = $pract->name;
-            $results['category'] = $pract->category;
-            $results['email'] = $pract->email;
-            $results['mobile'] = $pract->mobile;
-            $results['address'] = $pract->address;
-            $results['lat'] = $pract->latitude;
-            $results['lgt'] = $pract->longitude;
-            // $results['department'] = [];
-        }
-        return $results;
-    }
+//    public function getWorkPlace(PracticeUser $practiceUser)
+//    {
+//        // TODO: Implement getWorkPlace() method.
+//        $results = array();
+//        $work_place = $practiceUser->work_place()->get()->where('status',true)->first();
+//        $branchRepo = new ModelRepository(new Practice());
+//        $deptRepo = new ModelRepository(new Department());
+//        //$practDeptRepo = new ModelRepository(new PracticeDepartment());
+//        if ($work_place){
+//            $pract = Practice::find($work_place->practice_id);
+//            //$pract_department = $practDeptRepo->find($work_place->practice_department_id);
+//            $dept = Department::find($work_place->department_id);
+//            $store = ProductStore::find($work_place->store_id);
+//            $sub_store = ProductStore::find($work_place->sub_store_id);
+//            $results['id'] = $pract->uuid;
+//            $results['name'] = $pract->name;
+//            $results['category'] = $pract->category;
+//            $results['email'] = $pract->email;
+//            $results['mobile'] = $pract->mobile;
+//            $results['lat'] = $pract->latitude;
+//            $results['lgt'] = $pract->longitude;
+//            $results['department'] = [];
+//            $results['store'] = [];
+//            $results['sub_store'] = [];
+//
+//            if($dept){
+//                $depo['id'] = $dept->uuid;
+//                $depo['name'] = $dept->name;
+//                $results['department'] = $depo;
+//            }
+//            $results['store'] = [];
+//            if($store){
+//                $sto['id'] = $store->uuid;
+//                $sto['name'] = $store->name;
+//                $results['store'] = $sto;
+//            }
+//            $results['sub_store'] = [];
+//            if($sub_store){
+//                $stos['id'] = $sub_store->uuid;
+//                $stos['name'] = $sub_store->name;
+//                $results['sub_store'] = $stos;
+//            }
+//        }else{
+//            $pract = Practice::find($practiceUser->practice_id);
+//            $results['id'] = $pract->uuid;
+//            $results['name'] = $pract->name;
+//            $results['category'] = $pract->category;
+//            $results['email'] = $pract->email;
+//            $results['mobile'] = $pract->mobile;
+//            $results['address'] = $pract->address;
+//            $results['lat'] = $pract->latitude;
+//            $results['lgt'] = $pract->longitude;
+//            // $results['department'] = [];
+//        }
+//        return $results;
+//    }
 
     public function getAccounts(User $user)
     {
@@ -548,31 +727,35 @@ class PracticeRepository implements PracticeRepositoryInterface
                 $temp_role['id'] = $role->id;
                 $temp_role['name'] = $role->name;
                 $temp_role['slug'] = $role->slug;
-                $temp_role['access_level'] = "branch_manager";
+                //$temp_role['access_level'] = "branch_manager";
                 $temp_perms = array();
 
-                if($source_type && $source_type=="web" || $source_type=="app"){
-                    $perms = DB::table('permission_practice_role')->where('practice_role_id',$role->id)->get();
-                    foreach( $perms as $perm ){
-                        $permission = Permission::find($perm->permission_id);
-                        $temp_arr['id'] = $permission->id;
-                        $temp_arr['slug'] = $permission->slug;
-                        $temp_arr['name'] = $permission->name;
-                        $temp_arr['description'] = $permission->description;
-                        $temp_arr['descriptions'] = $permission->descriptions;
-                        if( !$practiceUser->facility){
-                            $temp_role['access_level'] = "facility_manager";
-                        }
-                        array_push($temp_perms, $temp_arr);
-                    }
-                    if($source_type=="web"){
-                        $temp_role['permissions'] = $temp_perms;
-                        array_push($roler, $temp_role);
-                    }
+                $perms = DB::table('permission_practice_role')->where('practice_role_id',$role->id)->get();
+                foreach( $perms as $perm ){
+                    $permission = Permission::find($perm->permission_id);
+                    $temp_arr['id'] = $permission->id;
+                    $temp_arr['slug'] = $permission->slug;
+                    $temp_arr['name'] = $permission->name;
+                    $temp_arr['description'] = $permission->description;
+                    $temp_arr['descriptions'] = $permission->descriptions;
+//                    if( !$practiceUser->facility){
+//                        $temp_role['access_level'] = "facility_manager";
+//                    }
+                    array_push($temp_perms, $temp_arr);
                 }
+
+//                if($source_type && $source_type=="web" || $source_type=="app"){
+//
+//                    //$temp_role['permissions'] = $temp_perms;
+////                    if($source_type=="web"){
+////                        $temp_role['permissions'] = $temp_perms;
+////                        array_push($roler, $temp_role);
+////                    }
+//                }
+
+                $temp_role['permissions'] = $temp_perms;
                 return $temp_role;
-                array_push($roler, $temp_role);
-                
+                //array_push($roler, $temp_role);
             }
         }
         return $roler;
@@ -821,7 +1004,7 @@ class PracticeRepository implements PracticeRepositoryInterface
     public function transform_(Practice $practice, $resource_type = null)
     {
         // TODO: Implement transform_() method.
-        $branch_data['id'] = $practice->uuid;
+        $branch_data['id'] = $practice->getUuid();
         $branch_data['name'] = $practice->name;
         $branch_data['legal_name'] = $practice->legal_name;
         $branch_data['country'] = $practice->country;
@@ -835,115 +1018,116 @@ class PracticeRepository implements PracticeRepositoryInterface
         $branch_data['type'] = $practice->type;
         $branch_data['address'] = $practice->address;
         $branch_data['zip_code'] = $practice->zip_code;
-//        $branch_data['registration_number'] = $practice->registration_number;
-//        $branch_data['description'] = $practice->description;
-//        $branch_data['website'] = $practice->website;
-//        $branch_data['approval_status'] = $practice->approval_status;
-        $branch_data['status'] = $practice->status;
-//        $branch_data['support_email'] = $practice->support_email;
-        $branch_data['type'] = $practice->type;
-        $branch_data['postal_code'] = $practice->postal_code;
-        $branch_data['region'] = $practice->region;
-        $branch_data['fax'] = $practice->fax;
-        $branch_data['logo'] = $practice->logo;
-        if(!$practice->logo){
-            $branch_data['logo'] = "/assets/img/logos/amref-white.png";
-        }
 
-        $branch_data['propriator_title'] = $practice->propriator_title;
-        $branch_data['propriator_name'] = $practice->propriator_name;
-        $branch_data['business_type'] = $practice->business_type;
-        $branch_data['industry'] = $practice->industry;
-        $branch_data['display_assigned_user'] = $practice->display_assigned_user;
-        $branch_data['inventory_increase'] = $practice->inventory_increase;
-        $branch_data['inventory_descrease'] = $practice->inventory_descrease;
-        $branch_data['warehouse_config'] = $practice->warehouse_config;
-        $branch_data['batch_tracking'] = $practice->batch_tracking;
-        $branch_data['date_format'] = $practice->date_format;
+////        $branch_data['registration_number'] = $practice->registration_number;
+////        $branch_data['description'] = $practice->description;
+////        $branch_data['website'] = $practice->website;
+////        $branch_data['approval_status'] = $practice->approval_status;
+//        $branch_data['status'] = $practice->status;
+////        $branch_data['support_email'] = $practice->support_email;
+//        $branch_data['type'] = $practice->type;
+//        $branch_data['postal_code'] = $practice->postal_code;
+//        $branch_data['region'] = $practice->region;
+//        $branch_data['fax'] = $practice->fax;
+//        $branch_data['logo'] = $practice->logo;
+//        if(!$practice->logo){
+//            $branch_data['logo'] = "/assets/img/logos/amref-white.png";
+//        }
 
-        if ($resource_type){
-            switch ($resource_type){
+//        $branch_data['propriator_title'] = $practice->propriator_title;
+//        $branch_data['propriator_name'] = $practice->propriator_name;
+//        $branch_data['business_type'] = $practice->business_type;
+//        $branch_data['industry'] = $practice->industry;
+//        $branch_data['display_assigned_user'] = $practice->display_assigned_user;
+//        $branch_data['inventory_increase'] = $practice->inventory_increase;
+//        $branch_data['inventory_descrease'] = $practice->inventory_descrease;
+//        $branch_data['warehouse_config'] = $practice->warehouse_config;
+//        $branch_data['batch_tracking'] = $practice->batch_tracking;
+//        $branch_data['date_format'] = $practice->date_format;
 
-                case "Purchase Orders & Category":
-                    $purchase_orders = $practice->purchase_orders()->get()->sortByDesc('created_at');
-                    $pos = array();
-                    $cate = array();
-                    $helper = new HelperFunctions();
-                    foreach($purchase_orders as $purchase_order){
-                        array_push($pos, $helper->format_purchase_order($purchase_order));
-                    }
-                    $branch_data['purchase_orders'] = $pos;
-                    $categories = ProductCategory::all();
-                    foreach($categories as $category){
-                        $temp_dat['id'] = $category->uuid;
-                        $temp_dat['name'] = $category->name;
-                        $cate_prod = array();
-                        $practice_product_items = $category->product_items()->get();
-                        foreach($practice_product_items as $practice_product_item){
-                            $prod = $helper->create_product_attribute($practice_product_item);
-                            $prod['stock_total'] = 0;
-                            array_push($cate_prod, $prod);
-                        }
-                        $temp_dat['products'] = $cate_prod;
-                        array_push($cate, $temp_dat);
-                    }
-                    $branch_data['product_category'] = $cate;
-                    break;
-                case "Human Resource":
-                    //Log::info($this->getUsers($practice));
-                    $branch_data['resources'] = $this->getUsers($practice);
-                    break;
-                case "Practices":
-                    $branch_data['resources'] = $this->getResource($practice, $resource_type);
-                    break;
-                case "Product Items":
-                    //$branch_data['product_items'] = $this->getProductItem($practice);
-                    break;
-                case "Medicine Category":
-                case "Product Type":
-                case "Product Category":
-                case "Manufacturers":
-                case "Departments":
-                    $depars = $practice->departments()->get();
-                    $res = array();
-                    foreach($depars as $depar){
-                        $temps['id'] = $depar->uuid;
-                        $temps['name'] = $depar->name;
-                        array_push($res,$temps);
-                    }
-                    $branch_data['departments'] = $res;
-                    break;
-                case "Brands":
-                case "Units":
-                case "Accounts":
-                case "Currency":
-                case "Branches":
-                case "Account Nature":
-                case "Account Type":
-                case "Brand Sector":
-                case "Taxes":
-                case "Suppliers":
-                case "Payment Methods":
-                    $branch_data['resources'] = $this->getResource($practice, $resource_type);
-                    break;
-                // case "Items Page Initialization":
-                //     $intialized['units'] = $this->getResource($practice, "Units");
-                //     $intialized['brand_sector'] = $this->getResource($practice, "Brand Sector");
-                //     $intialized['brands'] = $this->getResource($practice, "Brands");
-                //     $intialized['product_category'] = $this->getResource($practice, "Product Category");
-                //     $intialized['taxes'] = $this->getResource($practice, "Taxes");
-                //     $intialized['currency'] = $this->getResource($practice, "Currency");//product_types
-                //     $intialized['product_types'] = $this->getResource($practice, "Product Type");
-                //     $intialized['manufacturers'] = $this->getResource($practice, "Manufacturers");
-                //     $intialized['generics'] = $this->getResource($practice, "Generics");
-                //     $intialized['products'] = $this->getResource($practice, "Products");
-                //     $proRepo = new ProductReposity(new PracticeProductItem());
-                //     $intialized['product_items'] = $proRepo->getProductItem($practice);
-                //     $branch_data['resources'] = $intialized;
-                //     //Log::info($branch_data);
-                //     break;
-            }
-        }
+//        if ($resource_type){
+//            switch ($resource_type){
+//
+//                case "Purchase Orders & Category":
+//                    $purchase_orders = $practice->purchase_orders()->get()->sortByDesc('created_at');
+//                    $pos = array();
+//                    $cate = array();
+//                    $helper = new HelperFunctions();
+//                    foreach($purchase_orders as $purchase_order){
+//                        array_push($pos, $helper->format_purchase_order($purchase_order));
+//                    }
+//                    $branch_data['purchase_orders'] = $pos;
+//                    $categories = ProductCategory::all();
+//                    foreach($categories as $category){
+//                        $temp_dat['id'] = $category->uuid;
+//                        $temp_dat['name'] = $category->name;
+//                        $cate_prod = array();
+//                        $practice_product_items = $category->product_items()->get();
+//                        foreach($practice_product_items as $practice_product_item){
+//                            $prod = $helper->create_product_attribute($practice_product_item);
+//                            $prod['stock_total'] = 0;
+//                            array_push($cate_prod, $prod);
+//                        }
+//                        $temp_dat['products'] = $cate_prod;
+//                        array_push($cate, $temp_dat);
+//                    }
+//                    $branch_data['product_category'] = $cate;
+//                    break;
+//                case "Human Resource":
+//                    //Log::info($this->getUsers($practice));
+//                    $branch_data['resources'] = $this->getUsers($practice);
+//                    break;
+//                case "Practices":
+//                    $branch_data['resources'] = $this->getResource($practice, $resource_type);
+//                    break;
+//                case "Product Items":
+//                    //$branch_data['product_items'] = $this->getProductItem($practice);
+//                    break;
+//                case "Medicine Category":
+//                case "Product Type":
+//                case "Product Category":
+//                case "Manufacturers":
+//                case "Departments":
+//                    $depars = $practice->departments()->get();
+//                    $res = array();
+//                    foreach($depars as $depar){
+//                        $temps['id'] = $depar->uuid;
+//                        $temps['name'] = $depar->name;
+//                        array_push($res,$temps);
+//                    }
+//                    $branch_data['departments'] = $res;
+//                    break;
+//                case "Brands":
+//                case "Units":
+//                case "Accounts":
+//                case "Currency":
+//                case "Branches":
+//                case "Account Nature":
+//                case "Account Type":
+//                case "Brand Sector":
+//                case "Taxes":
+//                case "Suppliers":
+//                case "Payment Methods":
+//                    $branch_data['resources'] = $this->getResource($practice, $resource_type);
+//                    break;
+//                // case "Items Page Initialization":
+//                //     $intialized['units'] = $this->getResource($practice, "Units");
+//                //     $intialized['brand_sector'] = $this->getResource($practice, "Brand Sector");
+//                //     $intialized['brands'] = $this->getResource($practice, "Brands");
+//                //     $intialized['product_category'] = $this->getResource($practice, "Product Category");
+//                //     $intialized['taxes'] = $this->getResource($practice, "Taxes");
+//                //     $intialized['currency'] = $this->getResource($practice, "Currency");//product_types
+//                //     $intialized['product_types'] = $this->getResource($practice, "Product Type");
+//                //     $intialized['manufacturers'] = $this->getResource($practice, "Manufacturers");
+//                //     $intialized['generics'] = $this->getResource($practice, "Generics");
+//                //     $intialized['products'] = $this->getResource($practice, "Products");
+//                //     $proRepo = new ProductReposity(new PracticeProductItem());
+//                //     $intialized['product_items'] = $proRepo->getProductItem($practice);
+//                //     $branch_data['resources'] = $intialized;
+//                //     //Log::info($branch_data);
+//                //     break;
+//            }
+//        }
         return $branch_data;
     }
 
@@ -1507,28 +1691,28 @@ class PracticeRepository implements PracticeRepositoryInterface
         return $temp_datas;
     }
 
-    public function setUser(Practice $practice, array $arr)
-    {
-        // TODO: Implement setUser() method.
-
-        $helper = new HelperFunctions();
-        $msg = $helper->msg();
-        if ( $practice->users()->where('mobile',$arr['mobile'])->get()->first() ){
-            // $msg['status'] = false;
-            // $msg['message'] = "Mobile number already in use";
-            // return $msg;
-        }
-        if ( $practice->users()->where('email',$arr['email'])->get()->first() ){
-            // $msg['status'] = false;
-            // $msg['message'] = "Email address already in use";
-            // return $msg;
-        }
-        //return $this->practice->create($arr);
-        // $msg['status'] = true;
-        // $msg['message'] = $practice->users()->create($arr);
-        return $practice->users()->create($arr);
-        
-    }
+//    public function setUser(Practice $practice, array $arr)
+//    {
+//        // TODO: Implement setUser() method.
+//
+//        $helper = new HelperFunctions();
+//        $msg = $helper->msg();
+//        if ( $practice->users()->where('mobile',$arr['mobile'])->get()->first() ){
+//            // $msg['status'] = false;
+//            // $msg['message'] = "Mobile number already in use";
+//            // return $msg;
+//        }
+//        if ( $practice->users()->where('email',$arr['email'])->get()->first() ){
+//            // $msg['status'] = false;
+//            // $msg['message'] = "Email address already in use";
+//            // return $msg;
+//        }
+//        //return $this->practice->create($arr);
+//        // $msg['status'] = true;
+//        // $msg['message'] = $practice->users()->create($arr);
+//        return $practice->users()->create($arr);
+//
+//    }
 
     public function getUser(Practice $practice)
     {

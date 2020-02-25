@@ -89,32 +89,32 @@
                                                                                     <div class="tab-content" id="v-pills-tabContent-1">
                                                                                         <div class="tab-pane fade show active" id="v-pills-tabbed0-1" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-1">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <financial-model></financial-model>
+                                                                                                <financial-model :api="PRACTICES_API+'/'+company.id+'?section=Financial Years'" :financial_years="company.financial_years" @financial-year-event="loadCompany()"></financial-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed1-1" role="tabpanel" aria-labelledby="v-pills-tabbed1-tab-1">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <rounding-model></rounding-model>
+                                                                                                <rounding-model :api="PRACTICES_API+'/'+company.id+'?section=Rounding'" :general_settings="company.general_settings" @rounding-event="loadCompany()"></rounding-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed2-1" role="tabpanel" aria-labelledby="v-pills-tabbed2-tab-1">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <regional-settings></regional-settings>
+                                                                                                <regional-settings :api="PRACTICES_API+'/'+company.id+'?section=Regional Settings'" :general_settings="company.general_settings" @regional-settings-event="loadCompany()"></regional-settings>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed3-1" role="tabpanel" aria-labelledby="v-pills-tabbed3-tab-1">
                                                                                             <div class="width-100-pc float-left">
-                                                                                                <customer-supplier-settings></customer-supplier-settings>
+                                                                                                <customer-supplier-settings :api="PRACTICES_API+'/'+company.id+'?section=Customer and Supplier Settings'" :customer_supplier_setting="company.customer_supplier_setting" @customer-supplier-event="loadCompany()"></customer-supplier-settings>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed4-1" role="tabpanel" aria-labelledby="v-pills-tabbed4-tab-1">
                                                                                             <div class="width-100-pc float-left">
-                                                                                                <item-model></item-model>
+                                                                                                <item-model :api="PRACTICES_API+'/'+company.id+'?section=Item Settings'" :inventory_settings="company.inventory_settings" @inventory-settings-event="loadCompany()"></item-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed5-1" role="tabpanel" aria-labelledby="v-pills-tabbed5-tab-1">
                                                                                             <div class="width-100-pc float-left">
-                                                                                                <outstanding-balance></outstanding-balance>
+                                                                                                <outstanding-balance :api="PRACTICES_API+'/'+company.id+'?section=Outstanding Balances'" :general_settings="company.general_settings" @outstanding-balance-event="loadCompany()"></outstanding-balance>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -134,7 +134,7 @@
                                                                                     <div class="tab-content" id="v-pills-tabContent-2">
                                                                                         <div class="tab-pane fade show active" id="v-pills-tabbed0-2" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-2">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <vat-model></vat-model>
+                                                                                                <vat-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.vat" @vat-settings-event="loadCompany()"></vat-model>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -151,28 +151,34 @@
                                                                                         <a class="nav-link nav-link-side-nav" id="v-pills-tabbed1-tab-3" data-toggle="pill" href="#v-pills-tabbed1-3" role="tab" aria-controls="v-pills-tabbed1-3" aria-selected="false">Document Title</a>
                                                                                         <a class="nav-link nav-link-side-nav" id="v-pills-tabbed2-tab-3" data-toggle="pill" href="#v-pills-tabbed2-3" role="tab" aria-controls="v-pills-tabbed2-3" aria-selected="false">Document Message</a>
                                                                                         <a class="nav-link nav-link-side-nav" id="v-pills-tabbed3-tab-3" data-toggle="pill" href="#v-pills-tabbed3-3" role="tab" aria-controls="v-pills-tabbed3-3" aria-selected="false">Statement Message</a>
+                                                                                        <a class="nav-link nav-link-side-nav" id="v-pills-tabbed4-tab-3" data-toggle="pill" href="#v-pills-tabbed4-3" role="tab" aria-controls="v-pills-tabbed4-3" aria-selected="false">Email Signatures</a>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div class="col-10 padding-left-0">
                                                                                     <div class="tab-content" id="v-pills-tabContent-3">
                                                                                         <div class="tab-pane fade show active" id="v-pills-tabbed0-3" role="tabpanel" aria-labelledby="v-pills-tabbed0-tab-3">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <doc-num-model></doc-num-model>
+                                                                                                <doc-num-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.transaction_documents" @transaction-document-event="loadCompany()"></doc-num-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed1-3" role="tabpanel" aria-labelledby="v-pills-tabbed1-tab-3">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <doc-title-model></doc-title-model>
+                                                                                                <doc-title-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.transaction_documents" @transaction-document-event="loadCompany()"></doc-title-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed2-3" role="tabpanel" aria-labelledby="v-pills-tabbed2-tab-3">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <doc-message-model></doc-message-model>
+                                                                                                <doc-message-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.transaction_documents" @transaction-document-event="loadCompany()"></doc-message-model>
                                                                                             </div>
                                                                                         </div>
                                                                                         <div class="tab-pane fade" id="v-pills-tabbed3-3" role="tabpanel" aria-labelledby="v-pills-tabbed3-tab-3">
                                                                                             <div class="width-90-pc float-left">
-                                                                                                <statement-message-model></statement-message-model>
+                                                                                                <statement-message-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.transaction_documents" @transaction-document-event="loadCompany()"></statement-message-model>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="tab-pane fade" id="v-pills-tabbed4-3" role="tabpanel" aria-labelledby="v-pills-tabbed4-tab-3">
+                                                                                            <div class="width-90-pc float-left">
+                                                                                                <statement-message-model :api="PRACTICES_API+'/'+company.id+'?section=VAT Settings'" :vat="company.transaction_documents" @transaction-document-event="loadCompany()"></statement-message-model>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>

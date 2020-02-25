@@ -25,6 +25,7 @@
 ##https://www.double-entry-bookkeeping.com/accounts-payable/purchase-discount/
 ##https://kristymonahan.com/sales-receipts-vs-receive-payments-vs-bank-deposits-explained/
 ##https://ubuntu.com/tutorials/tutorial-create-a-usb-stick-on-ubuntu#3-launch-startup-disk-creator
+##https://www.javahelps.com/2015/03/install-oracle-jdk-in-ubuntu.html
 
 ## HR-Clock In, Clock Out Capability
 ## HIS Queue Management Capability

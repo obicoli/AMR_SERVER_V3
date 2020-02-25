@@ -11,11 +11,8 @@ use App\Accounting\Repositories\AccountingRepository;
 use App\helpers\HelperFunctions;
 use App\Models\Practice\Practice;
 use App\Models\Hospital\Hospital;
-use App\Models\Product\ProductTaxation;
-
-// use App\Models\Account\Banks\AccountsBank;
-// use App\Models\Account\Banks\AccountsBankBranch;
-// use App\Models\Practice\Accounting\PracticeBank;
+use App\Models\Practice\Taxation\PracticeTaxation;
+use \App\Models\Practice\TransactionDocument;
 
 class AccountingTableSeeder extends Seeder
 {
@@ -26,19 +23,41 @@ class AccountingTableSeeder extends Seeder
      */
     public function run()
     {
-        //Government Tax Rates
+        //Transactional Documents
+        TransactionDocument::create(['name'=>'Quote','doc_prefix'=>'QTN','doc_title'=>'Quotation','doc_mail_subject'=>'Quotation QTN00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Sales Order','doc_prefix'=>'SO','doc_title'=>'Sales Order','doc_mail_subject'=>'Sales Order SO00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Customer Invoice','doc_prefix'=>'INV','doc_title'=>'Tax Invoice','doc_mail_subject'=>'Tax Invoice INV00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Credit Note','doc_prefix'=>'CRN','doc_title'=>'Credit Note','doc_mail_subject'=>'Credit Note CRN00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Customer Receipt','doc_prefix'=>'RCP','doc_title'=>'Receipt','doc_mail_subject'=>'Receipt RCP00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Customer Write-Off','doc_prefix'=>'WRI','doc_title'=>'Customer Write-Off','doc_mail_subject'=>'Customer Write-Off WRI00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Customer Recurring Invoice','doc_prefix'=>'RINV','doc_title'=>'Recurring Invoice','doc_mail_subject'=>'Recurring Invoice RINV00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Customer Adjustment','doc_prefix'=>'CADJ','doc_title'=>'Customer Adjustment','doc_mail_subject'=>'Customer Adjustment CAD00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Supplier Purchase Order','doc_prefix'=>'PO','doc_title'=>'Purchase Order','doc_mail_subject'=>'Purchase Order PO00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Supplier Bill','doc_prefix'=>'BL','doc_title'=>'Bill','doc_mail_subject'=>'Bill BL00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Supplier Return','doc_prefix'=>'RTN','doc_title'=>'Return','doc_mail_subject'=>'Return RTN00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Supplier Payment','doc_prefix'=>'PAY','doc_title'=>'Supplier Payment','doc_mail_subject'=>'Payment PAY00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+        TransactionDocument::create(['name'=>'Supplier Adjustment','doc_prefix'=>'SADJ','doc_title'=>'Supplier Adjustment','doc_mail_subject'=>'Adjustment SADJ00001','doc_summary'=>'Summary','doc_notes'=>'Notes','doc_message'=>'Message']);
+
         $compana = Practice::find(1);
         $parent_owner = $compana->owner()->get()->first();
-        
-        $manual_vat = $parent_owner->product_taxations()->create(['name'=>'General Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>16,'sales_rate'=>16,'registration_number'=>'P051420000J']);
-        $capital_goods = $parent_owner->product_taxations()->create(['name'=>'Other Rates','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>8,'sales_rate'=>8,'registration_number'=>'P051420000J']);
-        $zero_rated = $parent_owner->product_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
-        $exept = $parent_owner->product_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+        //Create a VAT Taxation System
+        $vat_system = $parent_owner->taxation()->create(['obligation'=>'VAT','tax_number'=>'P15K53173R2012A','agent_name'=>'KRA','tax_station'=>'KRA Stations in Nairobi']);
+        $manual_vat = $vat_system->vatTypes()->create(['name'=>'General Rated','purchase_rate'=>16,'sales_rate'=>16]);
+        $capital_goods = $vat_system->vatTypes()->create(['name'=>'Other Rates','purchase_rate'=>8,'sales_rate'=>8]);
+        $zero_rated = $vat_system->vatTypes()->create(['name'=>'Zero Rated','purchase_rate'=>0,'sales_rate'=>0]);
+        $exept = $vat_system->vatTypes()->create(['name'=>'Exempt','purchase_rate'=>0,'sales_rate'=>0]);
+        //Transaction Documents(TO BE DELETED)
+        $trans_documents = TransactionDocument::all();
+        foreach ($trans_documents as $trans_document){
+            $inp = $trans_document->toArray();
+            $inp['practice_id'] = $compana->id;
+            $practice_docs = $trans_document->practiceTransactionDocuments()->create($inp);
+        }
 
-        $manual_vat = $parent_owner->accounts_taxations()->create(['name'=>'General Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>16,'sales_rate'=>16,'registration_number'=>'P051420000J']);
-        $capital_goods = $parent_owner->accounts_taxations()->create(['name'=>'Other Rates','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>8,'sales_rate'=>8,'registration_number'=>'P051420000J']);
-        $zero_rated = $parent_owner->accounts_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
-        $exept = $parent_owner->accounts_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+//        $manual_vat = $parent_owner->accounts_taxations()->create(['name'=>'General Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>16,'sales_rate'=>16,'registration_number'=>'P051420000J']);
+//        $capital_goods = $parent_owner->accounts_taxations()->create(['name'=>'Other Rates','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>8,'sales_rate'=>8,'registration_number'=>'P051420000J']);
+//        $zero_rated = $parent_owner->accounts_taxations()->create(['name'=>'Zero Rated','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
+//        $exept = $parent_owner->accounts_taxations()->create(['name'=>'Exempt','agent_name'=>'KRA','category'=>'VAT','purchase_rate'=>0,'sales_rate'=>0,'registration_number'=>'P051420000J']);
 
         // $manual_vat = $parent_owner->product_taxations()->create(['name'=>'KRA-Free','agent_name'=>'KRA','purchase_rate'=>0,'sales_rate'=>0,'description'=>'Capital Acquisitions - KRA-Free']);
         // $capital_goods = $parent_owner->product_taxations()->create(['name'=>'KRA','agent_name'=>'KRA','purchase_rate'=>16,'sales_rate'=>16,'description'=>'Capital Acquisitions - KRA']);
@@ -61,16 +80,18 @@ class AccountingTableSeeder extends Seeder
         AccountBankAccountType::create(['name'=>'Cheque']);
         AccountBankAccountType::create(['name'=>'Savings']);
         AccountBankAccountType::create(['name'=>'Trust']);
-        //Banks
+        //Banks(TO BE DELETED)
         $kcb = AccountMasterBank::create(['name'=>'KCB','description'=>'Kenya Commercial Bank(KCB)']);
         $coop = AccountMasterBank::create(['name'=>'Cooperative','description'=>'Cooperative Bank']);
         $barc = AccountMasterBank::create(['name'=>'Barclays','description'=>'Barclays Bank']);
-        //Branches
+        //Branches(TO BE DELETED)
         $kcb_moi = $kcb->branches()->create(['name'=>'Moi Avenue','code'=>'017']);
         $barc_kericho = $barc->branches()->create(['name'=>'KERICHO','code'=>'03007']);
         $barc_waiyaki = $barc->branches()->create(['name'=>'WAIYAKI WAY','code'=>'03020']);
         $coop_kenyata_ave = $coop->branches()->create(['name'=>'KENYATTA AVENUE','code'=>'11054']);
         $helper = new HelperFunctions();
+
+        //ACCOUNTING
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         $asset = AccountsNature::create(['name'=>'Assets']);
         $liability = AccountsNature::create(['name'=>'Liability']);
@@ -270,12 +291,12 @@ class AccountingTableSeeder extends Seeder
         //END==============================================================
 
 
+        //(TO BE DELETED)
         $accountingRepository = new AccountingRepository(new AccountsCoa());
         $coas = AccountsCoa::all();
         $facilities = Practice::all();
         $hospital = Hospital::find(1);
         foreach ($facilities as $facility) {
-
             foreach ($coas as $coa) {
                 //Create company's COA in AccountsCOA
                 $inputs['name'] = $coa->name;
@@ -300,13 +321,15 @@ class AccountingTableSeeder extends Seeder
                 //If account is Tax Payable configure Company Sales Tax Accounts
                 if( $coa->code == AccountsCoa::AC_SALES_SERVICE_TAX_PAYABLE_CODE ){
                     //Get taxation from main branch
-                    $taxations = ProductTaxation::all();
+                    //$taxations = PracticeTaxation::all();
+                    $taxations = $vat_system->vatTypes()->get();
                     foreach( $taxations as $taxation ){
                         //Attach to branch
-                        $practice_taxation = $taxation->practice_taxation()->create(['practice_id'=>$facility->id]);
+                        //$practice_taxation = $taxation->practice_taxation()->create(['practice_id'=>$facility->id]);
                         //Use Branch Taxation to create Tax Chart of Account
                         $sub_ac_inputs['name'] = $taxation->name;
-                        $tax_sub_accounts = $accountingRepository->create_sub_chart_of_account($facility,$debitable_creditable_ac,$sub_ac_inputs,$practice_taxation);
+                        $practice_vat_type = $taxation->practiceVatTypes()->create(['practice_id'=>$compana->id]);
+                        $tax_sub_accounts = $accountingRepository->create_sub_chart_of_account($facility,$debitable_creditable_ac,$sub_ac_inputs,$practice_vat_type);
                     }
                 }
             }

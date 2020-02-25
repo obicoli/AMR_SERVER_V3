@@ -3,6 +3,8 @@
 namespace App\Models\Product\Store;
 
 use App\Models\His\Rtc\HisRtcUserTrack;
+use App\Models\Module\Module;
+use App\Models\Practice\Practice;
 use App\Models\Product\Inventory\Inward\ProductStockInward;
 use App\Models\Product\Inventory\ProductRequistion;
 use App\Models\Product\Inventory\ProductStock;
@@ -17,16 +19,26 @@ use ByTestGear\Accountable\Traits\Accountable;
 class ProductStore extends Model
 {
     use SoftDeletes, Accountable,UuidTrait;
+    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
     protected $table = "product_stores";
     protected $fillable = [
         'name',
-        'type',
-        'code',
-        'status'
+        'email',
+        'mobile',
+        'status',
+        'is_default',
     ];
 
-    public function owner(){ return $this->morphTo();}
+    public function getUuid(){ return $this->uuid; }
+    public function getName(){ return $this->name; }
+    public function getEmail(){ return $this->email; }
+    public function getMobile(){ return $this->mobile; }
+    public function getStatus(){ return $this->status; }
+    public function getIsDefault(){ return $this->is_default; }
 
+    public function practices(){ return $this->belongsTo(Practice::class,'practice_id','id'); }
+
+    public function owner(){ return $this->morphTo();}
     public function store_locatable(){ return $this->morphTo();}
     public function his_rtc_tracks_store(){ return $this->hasMany(HisRtcUserTrack::class,'store_id'); }
     public function his_rtc_tracks_sub_store(){ return $this->hasMany(HisRtcUserTrack::class,'sub_store_id'); }

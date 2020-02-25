@@ -7,7 +7,7 @@
                 <div class="modal-header width-100-pc">
                     <h4 class="cl-grey width-100-pc text-left"><i class="fa fa-trash-o"></i> {{modal_title}}</h4>
                 </div>
-                <div  class="modal-body">
+                <div class="modal-body width-100-pc text-left">
                     <p>{{confirm_message}}</p>
                 </div>
                 <div class="modal-footer">
@@ -50,6 +50,7 @@
         },
         methods: {
             delete_stuff(){
+                //alert(this.item_url);
                 this.processing = true;
                 del(this.delete_api)
                 .then((res) => {

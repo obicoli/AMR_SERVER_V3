@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use ByTestGear\Accountable\Accountable;
+use \App\Models\Module\Module;
+
 
 class CreateProductStoresTable extends Migration
 {
@@ -14,18 +16,17 @@ class CreateProductStoresTable extends Migration
      */
     public function up()
     {
-        Schema::create('product_stores', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_stores');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->create('product_stores', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('code')->nullable();
+            $table->string('email')->nullable();
+            $table->string('mobile')->nullable();
+            $table->unsignedInteger('practice_id')->index();
             $table->boolean('status')->default(true);
-            $table->enum('type',['main','sub store'])->default('sub store');
-            $table->integer('min_capacity')->default(1000000);
-            $table->integer('max_capacity')->default(1000000);
-            $table->unsignedInteger('owner_id')->nullable();//This is Enterprice
-            $table->string('owner_type')->nullable();//This is Enterprice
-            $table->unsignedInteger('store_locatable_id')->nullable()->index(); //facility in Enterprise owning store
-            $table->string('store_locatable_type')->nullable()->index(); //facility in Enterprise owning store
+            $table->boolean('is_default')->default(true);
+            $table->float('min_capacity',16,2)->default(1000000);
+            $table->float('max_capacity',16,2)->default(1000000);
             $table->softDeletes();
             $table->string('uuid');
             Accountable::columns($table);
@@ -40,6 +41,6 @@ class CreateProductStoresTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_stores');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_stores');
     }
 }

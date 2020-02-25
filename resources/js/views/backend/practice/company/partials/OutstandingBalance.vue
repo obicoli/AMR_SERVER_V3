@@ -34,18 +34,21 @@
                             Deselect this option if you want ageing to work on the actual number of days
                         </div>
                         <div class="inlineBlock width-100-pc">
-                            <input type="checkbox"> Monthly
+                            <label class="check-container small element-inlined fs-12 role-label-fw-normal min-width-100 mg-right-10">Monthly
+                                <input type="checkbox">
+                                <span class="checkmark"></span>
+                            </label>
                         </div>
                     </div>
 
                     <div class="row fullName mg-bottom-2 mg-left-30 mg-top-20">
-                        <div class="inlineBlock width-100-pc">
+                        <div class="inlineBlock width-100-pc mg-bottom-10">
                             The ageing option can be determined based on either the Invoice Date or the Due Date.
                         </div>
-                        <div class="inlineBlock width-20-pc text-right mg-top-20">
-                            Run Ageing Based On:
+                        <div class="width-20-pc float-left text-right">
+                            Run Ageing Based On:&nbsp;&nbsp;
                         </div>
-                        <div class="inlineBlock width-20-pc">
+                        <div class="float-left width-20-pc">
                             <div class="dijitInline firstName dijitTextBox width-100-pc">
                                 <select class="width-100-pc report-filters-inputs">
                                     <option>Invoice Date</option>

@@ -11,7 +11,10 @@
                     </div>
                     <div class="row fullName mg-bottom-2 mg-left-30 mg-top-20">
                         <div class="inlineBlock width-100-pc width-100-pc fw-600 fs-12">
-                            <input v-model="form.accounting_zone" type="checkbox"> Enable your Accounting Customer Zone
+                            <label class="check-container small element-inlined fs-12 role-label-fw-normal min-width-100 mg-right-10">Enable your Accounting Customer Zone
+                                <input type="checkbox" v-model="form.accounting_zone">
+                                <span class="checkmark"></span>
+                            </label>
                         </div>
                         <div class="inlineBlock width-100-pc padding-left-15 padding-right-15">
                             <small class="fs-12 cl-9e">This will allow your customers to view invoices online by clicking a link in their email.</small>

@@ -126,7 +126,7 @@ class User extends Authenticatable
     }
 
     public function practiceUsers(){
-        return $this->hasMany(PracticeUser::class,'user_id','id');
+        return $this->hasOne(PracticeUser::class,'user_id','id');
     }
 
     public function medical_assets(){

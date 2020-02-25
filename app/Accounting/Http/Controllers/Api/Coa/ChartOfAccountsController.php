@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
-use App\Models\Product\ProductTaxation;
+//use App\Models\Product\ProductTaxation;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Repositories\Practice\PracticeRepository;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
@@ -40,7 +41,7 @@ class ChartOfAccountsController extends Controller
     protected $customers;
     protected $suppliers;
     protected $accountNatures;
-    protected $productTaxation;
+    protected $practiceTaxation;
 
     public function __construct(AccountChartAccount $accountChartAccount)
     {
@@ -51,10 +52,10 @@ class ChartOfAccountsController extends Controller
         $this->accountTypes = new AccountingRepository( new AccountsType() );
         $this->accountsCoa = new AccountingRepository( new AccountsCoa() );
         $this->accountingVouchers = new AccountingRepository( new AccountsVoucher() );
-        $this->customers = new CustomerRepository(new Customer());
+        $this->customers = new CustomerRepository(new Customer() );
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->accountNatures = new AccountingRepository( new AccountsNature() );
-        $this->productTaxation = new PracticeRepository( new ProductTaxation() );
+        $this->practiceTaxation = new PracticeRepository( new PracticeTaxation() );
     }
 
     public function delete($uuid){
@@ -81,11 +82,10 @@ class ChartOfAccountsController extends Controller
     }
 
     public function index(Request $request){
-        //Log::info($request);
         $http_resp = $this->http_response['200'];
         $results = array();
         $company = $this->practices->find($request->user()->company_id);
-        //Get Chart of Accounts under this company //
+        //Get Chart of Accounts under this company
         if($request->has('default_code')){
             $company_chart_of_accounts = $company->chart_of_accounts()
             ->where('default_code',$request->default_code)
@@ -129,6 +129,15 @@ class ChartOfAccountsController extends Controller
                 ->paginate(150);
         }elseif($request->has('account_type')){
             switch($request->account_type){
+                case "Sales And Purchase":
+                    $cos_code = AccountsCoa::AC_SALES_CODE;
+                    $purchase_code = AccountsCoa::AC_INVENTORY_CODE;
+                    $company_chart_of_accounts = $company->chart_of_accounts()
+                        ->where('default_code',$cos_code)
+                        ->orWhere('default_code',$purchase_code)
+                        ->orderBy('accounts_type_id')
+                        ->paginate(15);
+                    break;
                 case "Sales and Purchase Accounts":
                     $cos_code = AccountsCoa::AC_COST_OF_SALES_CODE;
                     $purchase_code = AccountsCoa::AC_INVENTORY_CODE;
@@ -144,16 +153,29 @@ class ChartOfAccountsController extends Controller
                     $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
                     break;
             }
-            // $open_balance_equity_code = AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE;
-            // $company_chart_of_accounts = $company->chart_of_accounts()
-            //     ->where('is_special',true)
-            //     ->where('is_sub_account',false)
-            //     ->where('default_code','!=',$open_balance_equity_code)
-            //     ->orderBy('accounts_type_id')
-            //     ->paginate(150);
+        }elseif($request->has('grouped')){
+
+            $company_chart_of_accounts = $company->chart_of_accounts()->get()->groupBy('accounts_type_id');
+            $results = array();
+            $default_filter = $this->helper->get_default_filter();
+            foreach ($company_chart_of_accounts as $index => $company_chart_of_account){
+                $account_type = $this->accountTypes->find($index);
+                $accounts = array();
+                $account_type_data = $this->accountTypes->transform_account_type($account_type);
+                foreach ($company_chart_of_account as $company_chart){
+                    array_push($accounts, $this->accountsCoa->transform_company_chart_of_account($company_chart));
+                }
+                $account_type_data['accounts'] = $accounts;
+                array_push($results, $account_type_data);
+            }
+            $http_resp['results'] = $results;
+            $http_resp['as_of'] = $default_filter['today'];
+            return response()->json($http_resp);
         }
         else{
-            $company_chart_of_accounts = $company->chart_of_accounts()->orderByDesc('accounts_type_id')->paginate(15);
+            $company_chart_of_accounts = $company->chart_of_accounts()
+                ->orderBy('accounts_type_id')
+                ->paginate(15);
         }
         $paged_data = $this->helper->paginator($company_chart_of_accounts);
         foreach ($company_chart_of_accounts as $company_chart_of_account) {

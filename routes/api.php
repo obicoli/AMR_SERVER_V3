@@ -215,7 +215,13 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         Route::get('/users/{uuid}', "Api\Doctor\AvailabilityController@get_by_user");
     });
 
-
+//    Route::group( ['prefix'=>'industries','middleware' => ['cors'] ], function (){
+//        Route::get('/', "Api\Industry\IndustryController@index");
+//        Route::get('/{uuid}', "Api\Industry\IndustryController@show");
+//        Route::post('/', "Api\Industry\IndustryController@create");
+//        Route::post('/{uuid}', "Api\Industry\IndustryController@post");
+//        Route::delete('/{uuid}', "Api\Industry\IndustryController@post");
+//    });
 
     Route::group( ['prefix'=>'practices','middleware' => ['cors'] ], function (){ //
 
@@ -224,6 +230,13 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/', "Api\Practice\DashboardController@create");
             Route::post('/{uuid}', "Api\Practice\DashboardController@update");
             Route::get('/reports', "Api\Practice\DashboardController@reports");
+        });
+
+        Route::group( ['prefix'=>'taxations'], function (){
+            Route::get('/', "Api\Practice\TaxationController@index");
+            Route::post('/', "Api\Practice\TaxationController@create");
+            Route::post('/{uuid}', "Api\Practice\TaxationController@update");
+            Route::delete('/{uuid}', "Api\Practice\TaxationController@destroy");
         });
 
         Route::group( ['prefix'=>'manufacturers' ], function (){
@@ -279,13 +292,11 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         // });
 
         //Route::get('/{facility_id}/facilities', "Api\Practice\PracticeController@facilities");
-        Route::get('/', "Api\Practice\PracticeController@index");//->middleware('permission:view.users');
-        Route::post('/', "Api\Practice\PracticeController@create");//->middleware('permission:create.practice');
-        Route::get('/{uuid}', "Api\Practice\PracticeController@show");//->middleware('permission:view.practice');
-        //Route::get('/practice/{practice_uuid}', "Api\Practice\PracticeController@practice");//->middleware('permission:view.practice');
-        //Route::get('/{practice_uuid}/{resource_type}', "Api\Practice\PracticeController@show_resource_based");//->middleware('permission:view.practice');
-        Route::post('/{uuid}', "Api\Practice\PracticeController@update");//->middleware('permission:edit.practice');
-        Route::delete('/{uuid}', "Api\Practice\PracticeController@delete");//->middleware('permission:delete.practice');
+        Route::get('/', "Api\Practice\PracticeController@index")->middleware('company_user_access:view.company');
+        Route::post('/', "Api\Practice\PracticeController@create")->middleware('company_user_access:create.company');
+        Route::get('/{uuid}', "Api\Practice\PracticeController@show")->middleware('company_user_access:view.company');
+        Route::post('/{uuid}', "Api\Practice\PracticeController@update")->middleware('company_user_access:edit.company');
+        Route::delete('/{uuid}', "Api\Practice\PracticeController@delete")->middleware('company_user_access:delete.company');
     });
 
     Route::group( ['prefix'=>'departments' ], function (){
@@ -839,14 +850,15 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
 
     });
 
-    //Products///COLLINS HERE
+    //Products
     Route::group( ['prefix'=>'products' ], function (){
 
         Route::group( ['prefix'=>'stores' ], function (){
             Route::post('/', "Api\Product\Stores\ProductStoreController@create");
             Route::post('/{uuid}', "Api\Product\Stores\ProductStoreController@update");
             Route::get('/', "Api\Product\Stores\ProductStoreController@index");
-            Route::get('/practice/{practice_id}/{store_type}', "Api\Product\Stores\ProductStoreController@index");
+            Route::get('/{uuid}', "Api\Product\Stores\ProductStoreController@show");
+            Route::delete('/{uuid}', "Api\Product\Stores\ProductStoreController@delete");
         });
 
         Route::group( ['prefix'=>'supply'], function (){
@@ -943,12 +955,12 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::post('/{uuid}', "Api\Product\ProductPaymentMethodController@update");
         });
 
-        Route::group( ['prefix'=>'taxations'], function (){
-            Route::get('/', "Api\Product\TaxationController@index");
-            Route::post('/', "Api\Product\TaxationController@create");
-            Route::post('/{uuid}', "Api\Product\TaxationController@update");
-            Route::delete('/{uuid}', "Api\Product\TaxationController@destroy");
-        });
+//        Route::group( ['prefix'=>'taxations'], function (){
+//            Route::get('/', "Api\Product\TaxationController@index");
+//            Route::post('/', "Api\Product\TaxationController@create");
+//            Route::post('/{uuid}', "Api\Product\TaxationController@update");
+//            Route::delete('/{uuid}', "Api\Product\TaxationController@destroy");
+//        });
 
         Route::group( ['prefix'=>'purchases' ], function (){
 

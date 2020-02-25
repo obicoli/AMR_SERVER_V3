@@ -27,8 +27,13 @@ use App\Models\Localization\Country;
 use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Inventory\PracticeAccountHolder;
 use App\Models\Practice\Settings\PracticeAddress;
+use App\Models\Practice\Settings\PracticeCustomerSetting;
 use App\Models\Practice\Settings\PracticeCustomerZone;
+use App\Models\Practice\Settings\PracticeFinancialSetting;
+use App\Models\Practice\Settings\PracticeGeneralSettings;
+use App\Models\Practice\Settings\PracticeInventorySetting;
 use App\Models\Practice\Settings\PracticeStatutory;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Models\Product\Accounts\ProductChartAccount;
 use App\Models\Product\Accounts\ProductVoucher;
 use App\Models\Product\Order\Order;
@@ -136,16 +141,22 @@ class Practice extends Model implements AccountableInterface
     ];
 
     //Columns Based functions
+    public function getUuid(){ return $this->uuid; }
     public function getFinancePeriodStartDate(){ return $this->finance_yr_start; }
     public function getFinancePeriodEndDate(){ return $this->finance_yr_end; }
     public function getCountryId(){ return $this->country_id; }
     public function getZipCode(){ return $this->zip_code; }
-
     //Settings Based
     public function statutories(){ return $this->hasMany(PracticeStatutory::class,'practice_id','id'); }
     public function countries(){ return $this->belongsTo(Country::class,'country_id','id'); }
     public function addresses(){ return $this->hasMany(PracticeAddress::class,'practice_id','id'); }
     public function customerZone(){ return $this->hasMany(PracticeCustomerZone::class,'practice_id'); }
+    public function financialSettings(){ return $this->hasMany(PracticeFinancialSetting::class,'practice_id','id'); }
+    public function generalSettings(){ return $this->hasMany(PracticeGeneralSettings::class,'practice_id','id'); }
+    public function customerSupplierSettings(){ return $this->hasOne(PracticeCustomerSetting::class,'practice_id','id'); }
+    public function inventorySettings(){ return $this->hasOne(PracticeInventorySetting::class,'practice_id','id'); }
+    public function practiceVatTypes(){ return $this->hasOne(PracticeTaxation::class,'practice_id','id'); }
+    public function transactionDocuments(){ return $this->hasOne(PracticeTransactionDocument::class,'practice_id','id'); }
     //Settings
     public function practice_finance_settings(){ return $this->hasMany(PracticeFinanceSetting::class,'practice_id'); }
     public function dashboard_widgets(){ return $this->belongsToMany(DashboardSetting::class,'company_widgets','practice_id','widget_id'); }
@@ -250,7 +261,8 @@ class Practice extends Model implements AccountableInterface
 
     //stores
     //public function stores(){ return $this->hasMany(PracticeStore::class, 'practice_id'); }
-    public function stores(){ return $this->morphMany(ProductStore::class,'store_locatable','store_locatable_type','store_locatable_id'); }
+    public function productStores(){ return $this->hasMany(ProductStore::class,'practice_id','id'); }
+    //public function stores(){ return $this->morphMany(ProductStore::class,'store_locatable','store_locatable_type','store_locatable_id'); }
     public function departments(){ return $this->belongsToMany(Department::class,'practice_departments','practice_id','department_id'); }
     //departments
     //public function department(){ return $this->belongsToMany(Department::class, 'practice_departments','department_id','practice_id'); }

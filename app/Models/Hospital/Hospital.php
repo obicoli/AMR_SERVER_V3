@@ -8,6 +8,7 @@ use App\Accounting\Models\Tax\AccountsTaxation;
 use App\Assets\Models\Machines\Vehicle\Vehicle;
 use App\Hrs\Models\Employee\HrsEmployee;
 use App\Models\Practice\PracticeProductItem;
+use App\Models\Practice\Taxation\PracticeTax;
 use App\Traits\AccountableTrait;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
@@ -90,6 +91,9 @@ class Hospital extends Model
         'registration_number',
     ];
 
+    public function getUuid(){ return $this->uuid; }
+    public function getName(){ return $this->name; }
+
     //Accountings
     public function accounts_taxations(){ return $this->morphMany(AccountsTaxation::class,'owner','owner_type','owner_id'); }
 
@@ -139,7 +143,9 @@ class Hospital extends Model
     public function product_route(){ return $this->morphMany(ProductAdministrationRoute::class,'owner','owner_type','owner_id'); }
     public function product_routes(){ return $this->morphMany(ProductRoutes::class, 'owner','owner_type','owner_id'); }
     public function sales_charge(){ return $this->morphMany(ProductSalesCharge::class,'owner','owner_type','owner_id'); }
-    public function product_taxations(){ return $this->morphMany(ProductTaxation::class,'owner','owner_type','owner_id'); }
+    public function taxation(){ return $this->morphMany(PracticeTax::class,'owner','owner_type','owner_id'); }
+    //public function practice_taxations(){ return $this->morphMany(PracticeTax::class,'owner','owner_type','owner_id'); }
+    //public function product_taxations(){ return $this->morphMany(ProductTaxation::class,'owner','owner_type','owner_id'); }
     //-----------------------------------------------------------
     
     

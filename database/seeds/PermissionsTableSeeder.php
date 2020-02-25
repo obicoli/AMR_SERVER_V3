@@ -17,28 +17,28 @@ class PermissionsTableSeeder extends Seeder
         // Permission::create([
         //     'name'        => 'Create',
         //     'slug'        => 'create.company',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Company',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Edit',
         //     'slug'        => 'edit.company',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Company',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'View',
         //     'slug'        => 'view.company',
-        //     'description' => 'Adminstration', //----------
+        //     'description' => 'Administration', //----------
         //     'descriptions' => 'Company',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Delete',
         //     'slug'        => 'delete.company',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Company',
         //     'model'       => 'Permission',
         // ]);
@@ -47,28 +47,28 @@ class PermissionsTableSeeder extends Seeder
         // Permission::create([
         //     'name'        => 'Create',
         //     'slug'        => 'create.finance',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Finance',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Edit',
         //     'slug'        => 'edit.finance',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Finance',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'View',
         //     'slug'        => 'view.finance',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Finance',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Delete',
         //     'slug'        => 'delete.finance',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Finance',
         //     'model'       => 'Permission',
         // ]);
@@ -76,28 +76,28 @@ class PermissionsTableSeeder extends Seeder
         // Permission::create([
         //     'name'        => 'Create',
         //     'slug'        => 'create.tax',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Tax',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Edit',
         //     'slug'        => 'edit.tax',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Tax',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'View',
         //     'slug'        => 'view.tax',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Tax',
         //     'model'       => 'Permission',
         // ]);
         // Permission::create([
         //     'name'        => 'Delete',
         //     'slug'        => 'delete.tax',
-        //     'description' => 'Adminstration',
+        //     'description' => 'Administration',
         //     'descriptions' => 'Tax',
         //     'model'       => 'Permission',
         // ]);
@@ -1045,383 +1045,440 @@ class PermissionsTableSeeder extends Seeder
             'model'       => 'Permission',
         ]);
 
-        //
+        //Inventory Permissions
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.vendor',
+            'slug'        => 'create.product.services',
             'description' => 'Inventory',
-            'descriptions' => 'Supplier',
+            'descriptions' => 'Product & Services',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
-            'slug'        => 'view.vendor',
+            'slug'        => 'view.product.services',
             'description' => 'Inventory',
-            'descriptions' => 'Supplier',
+            'descriptions' => 'Product & Services',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
-            'slug'        => 'edit.vendor',
+            'slug'        => 'edit.product.services',
             'description' => 'Inventory',
-            'descriptions' => 'Supplier',
+            'descriptions' => 'Product & Services',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
-            'slug'        => 'delete.vendor',
+            'slug'        => 'delete.product.services',
             'description' => 'Inventory',
-            'descriptions' => 'Supplier',
+            'descriptions' => 'Product & Services',
             'model'       => 'Permission',
         ]);
-        //Inventory Supply
+        //-------------------------------------
         Permission::create([
             'name'        => 'Create',
-            'slug'        => 'create.inv.supply',
+            'slug'        => 'create.warehouse',
             'description' => 'Inventory',
-            'descriptions' => 'Supply',
+            'descriptions' => 'Warehouse',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
-            'slug'        => 'view.inv.supply',
+            'slug'        => 'view.warehouse',
             'description' => 'Inventory',
-            'descriptions' => 'Supply',
+            'descriptions' => 'Warehouse',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
-            'slug'        => 'edit.inv.supply',
+            'slug'        => 'edit.warehouse',
             'description' => 'Inventory',
-            'descriptions' => 'Supply',
+            'descriptions' => 'Warehouse',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
-            'slug'        => 'delete.inv.supply',
+            'slug'        => 'delete.warehouse',
             'description' => 'Inventory',
-            'descriptions' => 'Supply',
+            'descriptions' => 'Warehouse',
             'model'       => 'Permission',
         ]);
-        Permission::create([
-            'name'        => 'Print',
-            'slug'        => 'print.inv.supply',
-            'description' => 'Inventory',
-            'descriptions' => 'Supply',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Pick',
-            'slug'        => 'pick.inv.supply',
-            'description' => 'Inventory',
-            'descriptions' => 'Supply',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Pack',
-            'slug'        => 'pack.inv.supply',
-            'description' => 'Inventory',
-            'descriptions' => 'Supply',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Ship',
-            'slug'        => 'ship.inv.supply',
-            'description' => 'Inventory',
-            'descriptions' => 'Supply',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Receive',
-            'slug'        => 'receive.inv.supply',
-            'description' => 'Inventory',
-            'descriptions' => 'Supply',
-            'model'       => 'Permission',
-        ]);
-        //
-
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.customer',
-            'description' => 'Inventory',
-            'descriptions' => 'Customer',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.customer',
-            'description' => 'Inventory',
-            'descriptions' => 'Customer',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.customer',
-            'description' => 'Inventory',
-            'descriptions' => 'Customer',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.customer',
-            'description' => 'Inventory',
-            'descriptions' => 'Customer',
-            'model'       => 'Permission',
-        ]);
-        //
-
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.sales',
-            'description' => 'Inventory',
-            'descriptions' => 'Sales',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.sales',
-            'description' => 'Inventory',
-            'descriptions' => 'Sales',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.sales',
-            'description' => 'Inventory',
-            'descriptions' => 'Sales',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.sales',
-            'description' => 'Inventory',
-            'descriptions' => 'Sales',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.product',
-            'description' => 'Inventory',
-            'descriptions' => 'Product',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.product',
-            'description' => 'Inventory',
-            'descriptions' => 'Product',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.product',
-            'description' => 'Inventory',
-            'descriptions' => 'Product',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.product',
-            'description' => 'Inventory',
-            'descriptions' => 'Product',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Approve',
-            'slug'        => 'approve.product',
-            'description' => 'Inventory',
-            'descriptions' => 'Product',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.stock',
-            'description' => 'Inventory',
-            'descriptions' => 'Stock',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.stock',
-            'description' => 'Inventory',
-            'descriptions' => 'Stock',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.stock',
-            'description' => 'Inventory',
-            'descriptions' => 'Stock',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.stock',
-            'description' => 'Inventory',
-            'descriptions' => 'Stock',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Approve',
-            'slug'        => 'approve.stock',
-            'description' => 'Inventory',
-            'descriptions' => 'Stock',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.inv.report',
-            'description' => 'Inventory',
-            'descriptions' => 'Report',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.inv.report',
-            'description' => 'Inventory',
-            'descriptions' => 'Report',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Print',
-            'slug'        => 'print.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Pick',
-            'slug'        => 'pick.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Pack',
-            'slug'        => 'pack.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Ship',
-            'slug'        => 'ship.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Receive',
-            'slug'        => 'receive.request',
-            'description' => 'Inventory',
-            'descriptions' => 'Requistion',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.store',
-            'description' => 'Inventory',
-            'descriptions' => 'Stores',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.store',
-            'description' => 'Inventory',
-            'descriptions' => 'Stores',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.store',
-            'description' => 'Inventory',
-            'descriptions' => 'Stores',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.store',
-            'description' => 'Inventory',
-            'descriptions' => 'Stores',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Approve',
-            'slug'        => 'approve.store',
-            'description' => 'Inventory',
-            'descriptions' => 'Stores',
-            'model'       => 'Permission',
-        ]);
-        //
-        Permission::create([
-            'name'        => 'Create',
-            'slug'        => 'create.purchase',
-            'description' => 'Inventory',
-            'descriptions' => 'Purchase',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Edit',
-            'slug'        => 'edit.purchase',
-            'description' => 'Inventory',
-            'descriptions' => 'Purchase',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'View',
-            'slug'        => 'view.purchase',
-            'description' => 'Inventory',
-            'descriptions' => 'Purchase',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Delete',
-            'slug'        => 'delete.purchase',
-            'description' => 'Inventory',
-            'descriptions' => 'Purchase',
-            'model'       => 'Permission',
-        ]);
-        Permission::create([
-            'name'        => 'Approve',
-            'slug'        => 'approve.purchase',
-            'description' => 'Inventory',
-            'descriptions' => 'Purchase',
-            'model'       => 'Permission',
-        ]);
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.vendor',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supplier',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.vendor',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supplier',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.vendor',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supplier',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.vendor',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supplier',
+//            'model'       => 'Permission',
+//        ]);
+//        //Inventory Supply
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Print',
+//            'slug'        => 'print.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Pick',
+//            'slug'        => 'pick.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Pack',
+//            'slug'        => 'pack.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Ship',
+//            'slug'        => 'ship.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Receive',
+//            'slug'        => 'receive.inv.supply',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Supply',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.customer',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Customer',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.customer',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Customer',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.customer',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Customer',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.customer',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Customer',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.sales',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Sales',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.sales',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Sales',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.sales',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Sales',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.sales',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Sales',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.product',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Product',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.product',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Product',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.product',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Product',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.product',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Product',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Approve',
+//            'slug'        => 'approve.product',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Product',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.stock',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stock',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.stock',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stock',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.stock',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stock',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.stock',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stock',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Approve',
+//            'slug'        => 'approve.stock',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stock',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.inv.report',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Report',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.inv.report',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Report',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Print',
+//            'slug'        => 'print.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Pick',
+//            'slug'        => 'pick.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Pack',
+//            'slug'        => 'pack.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Ship',
+//            'slug'        => 'ship.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Receive',
+//            'slug'        => 'receive.request',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Requistion',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.store',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stores',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.store',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stores',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.store',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stores',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.store',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stores',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Approve',
+//            'slug'        => 'approve.store',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Stores',
+//            'model'       => 'Permission',
+//        ]);
+//        //
+//        Permission::create([
+//            'name'        => 'Create',
+//            'slug'        => 'create.purchase',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Purchase',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Edit',
+//            'slug'        => 'edit.purchase',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Purchase',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'View',
+//            'slug'        => 'view.purchase',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Purchase',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Delete',
+//            'slug'        => 'delete.purchase',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Purchase',
+//            'model'       => 'Permission',
+//        ]);
+//        Permission::create([
+//            'name'        => 'Approve',
+//            'slug'        => 'approve.purchase',
+//            'description' => 'Inventory',
+//            'descriptions' => 'Purchase',
+//            'model'       => 'Permission',
+//        ]);
         //===============================================Inventory Ends Here==============
 
         Permission::create([
@@ -2304,90 +2361,208 @@ class PermissionsTableSeeder extends Seeder
             'model'       => 'Permission',
         ]);
 
-        //
+        //----------------------------------------------------------------------------
+         Permission::create([
+             'name'        => 'Create',
+             'slug'        => 'create.company',
+             'description' => 'Company',
+             'descriptions' => 'Company',
+             'model'       => 'Permission',
+         ]);
+         Permission::create([
+             'name'        => 'Edit',
+             'slug'        => 'edit.company',
+             'description' => 'Company',
+             'descriptions' => 'Company',
+             'model'       => 'Permission',
+         ]);
+         Permission::create([
+             'name'        => 'View',
+             'slug'        => 'view.company',
+             'description' => 'Company',
+             'descriptions' => 'Company',
+             'model'       => 'Permission',
+         ]);
+         Permission::create([
+             'name'        => 'Delete',
+             'slug'        => 'delete.company',
+             'description' => 'Company',
+             'descriptions' => 'Company',
+             'model'       => 'Permission',
+         ]);
+         //
+         Permission::create([
+            'name'        => 'Create',
+            'slug'        => 'create.company.notes.attachment',
+            'description' => 'Company',
+            'descriptions' => 'Notes & Attachments',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Edit',
+            'slug'        => 'edit.company.notes.attachment',
+            'description' => 'Company',
+            'descriptions' => 'Notes & Attachments',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'View',
+            'slug'        => 'view.company.notes.attachment',
+            'description' => 'Company',
+            'descriptions' => 'Notes & Attachments',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Delete',
+            'slug'        => 'delete.company.notes.attachment',
+            'description' => 'Company',
+            'descriptions' => 'Notes & Attachments',
+            'model'       => 'Permission',
+        ]);
+        //Import Data
+        Permission::create([
+            'name'        => 'Create',
+            'slug'        => 'create.company.import.data',
+            'description' => 'Company',
+            'descriptions' => 'Import Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Edit',
+            'slug'        => 'edit.company.import.data',
+            'description' => 'Company',
+            'descriptions' => 'Import Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'View',
+            'slug'        => 'view.company.import.data',
+            'description' => 'Company',
+            'descriptions' => 'Import Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Delete',
+            'slug'        => 'delete.company.import.data',
+            'description' => 'Company',
+            'descriptions' => 'Import Data',
+            'model'       => 'Permission',
+        ]);
+        //Export Data
+        Permission::create([
+            'name'        => 'Create',
+            'slug'        => 'create.company.export.data',
+            'description' => 'Company',
+            'descriptions' => 'Export Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Edit',
+            'slug'        => 'edit.company.export.data',
+            'description' => 'Company',
+            'descriptions' => 'Export Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'View',
+            'slug'        => 'view.company.export.data',
+            'description' => 'Company',
+            'descriptions' => 'Export Data',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Delete',
+            'slug'        => 'delete.company.export.data',
+            'description' => 'Company',
+            'descriptions' => 'Export Data',
+            'model'       => 'Permission',
+        ]);
+        //Opening Data
+        Permission::create([
+            'name'        => 'Create',
+            'slug'        => 'create.company.opening.balance',
+            'description' => 'Company',
+            'descriptions' => 'Opening Balances',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Edit',
+            'slug'        => 'edit.company.opening.balance',
+            'description' => 'Company',
+            'descriptions' => 'Opening Balances',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'View',
+            'slug'        => 'view.company.opening.balance',
+            'description' => 'Company',
+            'descriptions' => 'Opening Balances',
+            'model'       => 'Permission',
+        ]);
+        Permission::create([
+            'name'        => 'Delete',
+            'slug'        => 'delete.company.opening.balance',
+            'description' => 'Company',
+            'descriptions' => 'Opening Balances',
+            'model'       => 'Permission',
+        ]);
+        //----------------------------------------------------------------------------
+
+        //---------------------------------------------------------
         Permission::create([
             'name'        => 'Create',
             'slug'        => 'create.role',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
             'slug'        => 'edit.role',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
             'slug'        => 'view.role',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
             'slug'        => 'delete.role',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'Role',
             'model'       => 'Permission',
         ]);
-        //
-        // Permission::create([
-        //     'name'        => 'Create',
-        //     'slug'        => 'create.role',
-        //     'description' => 'Adminstration',
-        //     'descriptions' => 'Roles',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Edit',
-        //     'slug'        => 'edit.role',
-        //     'description' => 'Adminstration',
-        //     'descriptions' => 'Roles',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'View',
-        //     'slug'        => 'view.role',
-        //     'description' => 'Adminstration',
-        //     'descriptions' => 'Roles',
-        //     'model'       => 'Permission',
-        // ]);
-        // Permission::create([
-        //     'name'        => 'Delete',
-        //     'slug'        => 'delete.role',
-        //     'description' => 'Adminstration',
-        //     'descriptions' => 'Roles',
-        //     'model'       => 'Permission',
-        // ]);
-        //
+        //Adminstrative:  Users
         Permission::create([
             'name'        => 'Create',
             'slug'        => 'create.users',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Edit',
             'slug'        => 'edit.users',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'View',
             'slug'        => 'view.users',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'User',
             'model'       => 'Permission',
         ]);
         Permission::create([
             'name'        => 'Delete',
             'slug'        => 'delete.users',
-            'description' => 'Adminstration',
+            'description' => 'Administration',
             'descriptions' => 'User',
             'model'       => 'Permission',
         ]);

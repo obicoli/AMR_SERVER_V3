@@ -16,12 +16,12 @@ use App\Customer\Repositories\CustomerRepository;
 use App\Finance\Models\Banks\AccountBankAccountType;
 use App\Finance\Models\Banks\AccountMasterBank;
 use App\helpers\HelperFunctions;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
-use App\Models\Product\ProductTaxation;
 use App\Repositories\Practice\PracticeRepository;
 use App\Supplier\Models\Supplier;
 use App\Supplier\Repositories\SupplierRepository;
@@ -42,7 +42,7 @@ class OpeningBalanceController extends Controller
     protected $customers;
     protected $suppliers;
     protected $accountNatures;
-    protected $productTaxation;
+    protected $practiceTaxation;
 
     public function __construct(AccountsOpeningBalance $accountsOpeningBalance)
     {
@@ -57,7 +57,7 @@ class OpeningBalanceController extends Controller
         $this->customers = new CustomerRepository(new Customer());
         $this->suppliers = new SupplierRepository( new Supplier() );
         $this->accountNatures = new AccountingRepository( new AccountsNature() );
-        $this->productTaxation = new PracticeRepository( new ProductTaxation() );
+        $this->practiceTaxation = new PracticeRepository( new PracticeTaxation() );
     }
 
     public function create(Request $request){

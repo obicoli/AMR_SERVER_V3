@@ -45,14 +45,6 @@ class UserRepository implements UserRepositoryInterface
     public function storeRecord(array $arr)
     {
         // TODO: Implement storeRecord() method.
-        $user_mail = $this->findByEmailOrMobile($arr['email']);
-        if ($user_mail){
-            return $user_mail;
-        }
-        $user_mobile = $this->findByEmailOrMobile($arr['mobile']);
-        if ($user_mobile){
-            return $user_mobile;
-        }
         return $this->model->create($arr);
     }
 
@@ -69,23 +61,37 @@ class UserRepository implements UserRepositoryInterface
         return $this->model->find($id);
     }
 
+    public function find($id)
+    {
+        // TODO: Implement find() method.
+        return $this->model->find($id);
+    }
+
+
     public function getRecord()
     {
         // TODO: Implement getRecord() method.
         return $this->model->orderBy('created_at', 'desc')->paginate(25);
     }
 
-    public function setRecord(array $arr, $id)
-    {
-        // TODO: Implement setRecord() method.
-        return $this->model->where('id',$id)->update($arr);
-    }
+//    public function setRecord(array $arr, $id)
+//    {
+//        // TODO: Implement setRecord() method.
+//        return $this->model->where('id',$id)->update($arr);
+//    }
 
     public function findByEmail($email)
     {
         // TODO: Implement findByEmail() method.
         return $this->model->all()->where('email',$email)->first();
     }
+
+    public function getByEmail($email)
+    {
+        // TODO: Implement getByEmail() method.
+        return $this->model->all()->where('email',$email);
+    }
+
 
     public function findByEmailOrMobile($email_or_mobile)
     {
@@ -322,11 +328,11 @@ class UserRepository implements UserRepositoryInterface
         // TODO: Implement setReceptionist() method.
     }
 
-    public function deleteFromPracticeUsers(User $user)
-    {
-        // TODO: Implement deleteFromPracticeUsers() method.
-        return $user->practices()->delete();
-    }
+//    public function deleteFromPracticeUsers(User $user)
+//    {
+//        // TODO: Implement deleteFromPracticeUsers() method.
+//        return $user->practices()->delete();
+//    }
 
     public function setNewPatient(array $arr)
     {

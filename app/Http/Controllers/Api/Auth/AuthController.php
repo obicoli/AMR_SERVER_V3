@@ -210,16 +210,7 @@ class AuthController extends Controller
         }
         //--
         if ( $account_found ){
-            $http_resp = $this->response_type['200'];
-            $tokenResult = $user->createToken('Personal Access Token');
-            $token = $tokenResult->token;
-            if ($request->remember_me){
-                $token->expires_at = Carbon::now()->addWeeks(1);
-                $token->save();
-            }
-            $http_resp['access_token'] = $tokenResult->accessToken;
-            $http_resp['token_type'] = 'Bearer';
-            $http_resp['expires_at'] = Carbon::parse($tokenResult->token->expires_at)->toDateTimeString();
+            $http_resp = $this->createToken($request, $user,$http_resp);
             $http_resp['results'] = $accounts;
             return response()->json($http_resp);
         }else{
@@ -246,68 +237,96 @@ class AuthController extends Controller
 
         $accounts = array();
         $account_found = false;
-        $user = $this->user->findByEmailOrMobile($request->email);
-        if ( $user && Hash::check($request->password, $user->password) ){
-            $account_type = $this->user->getUserType($user);
-            $account_found = true;
-            for ( $k=0; $k < sizeof($account_type); $k++ ){
-                switch ($account_type[$k]){
-                    case Patient::USER_TYPE:
-                        $acca['account_type'] = Patient::USER_TYPE;
-                        $acca['data'] = $this->patient->transform_profile($this->patient->findPatientByUserId($user->id),'basic');
-                        array_push($accounts,$acca);
-                        break;
-                    case Pharmacy::USER_TYPE:
-                        //$pharmacyRepo = new PharmacyRepository(new Pharmacy());
-                        $pharmacy = $this->pharmacy->findByUserId($user->id);
-                        $acca['account_type'] = Pharmacy::USER_TYPE;
-                        $acca['data'] = $this->pharmacy->transform($pharmacy);
-                        array_push($accounts,$acca);
-                        break;
-                    case Doctor::USER_TYPE:
-                        //$doctorRepo = new DoctorRepository(new Doctor());
-                        $acca['account_type'] = Doctor::USER_TYPE;
-                        $acca['data'] = $this->doctor->transform_($this->doctor->findByUserId($user->id));
-                        array_push($accounts,$acca);
-                        break;
+        $users = $this->user->getByEmail($request->email);//Get all accounts owned by provided email
+        $total_accounts = $users->count();
+        //Log::info($total_accounts);
+        if( $total_accounts > 0 ){
+            if($total_accounts==1){
+                $user = $users->first();
+                if( $user && Hash::check($request->password, $user->password) ){
+                    $practiceUsers = $user->practiceUsers()->get()->first();
+                    array_push($accounts,$this->practiceUser->transformAuthentication($practiceUsers));
+                    $http_resp = $this->createToken($request, $user,$http_resp);
+                    $http_resp['results'] = $accounts;
+                    return response()->json($http_resp);
+                }else{
+                    $http_resp = $this->response_type['400'];
+                    return response()->json($http_resp, 400);
                 }
-            }
-        }
-
-        $companyUser = null;
-
-        if ($user){
-            $practiceUsers = $this->practiceUser->getByEmail($user->email);
-            $company = $this->practice->find($user->company_id);
-            foreach ($practiceUsers as $practiceUser){
-                if ( Hash::check($request->password, $practiceUser->password) ){
-                    $account_found = true;
-                    $acca['account_type'] = PracticeUser::USER_TYPE;
-                    $acca['data'] = $this->practice->transform_user($practiceUser,$source_type,$company);
-                    array_push($accounts,$acca);
-                    $companyUser = $practiceUser;
+            }else{
+                foreach ($users as $user){
+                    $practiceUsers = $user->practiceUsers()->get()->first();
+                    array_push($accounts,$this->practiceUser->transformAuthentication($practiceUsers));
                 }
+                $http_resp['results'] = $accounts;
+                return response()->json($http_resp);
             }
-        }
-
-        if ( $account_found ){
-            $http_resp = $this->response_type['200'];
-            $tokenResult = $user->createToken('Personal Access Token');
-            $token = $tokenResult->token;
-            if ($request->remember_me){
-                $token->expires_at = Carbon::now()->addWeeks(1);
-                $token->save();
-            }
-            $http_resp['access_token'] = $tokenResult->accessToken;
-            $http_resp['token_type'] = 'Bearer';
-            $http_resp['expires_at'] = Carbon::parse($tokenResult->token->expires_at)->toDateTimeString();
-            $http_resp['results'] = $accounts;
-            return response()->json($http_resp);
-
         }else{
             $http_resp = $this->response_type['400'];
             return response()->json($http_resp, 400);
         }
+//        $user = $this->user->findByEmailOrMobile($request->email);
+//        if ( $user && Hash::check($request->password, $user->password) ){
+//            $account_type = $this->user->getUserType($user);
+//            $account_found = true;
+//            for ( $k=0; $k < sizeof($account_type); $k++ ){
+//                switch ($account_type[$k]){
+//                    case Patient::USER_TYPE:
+//                        $acca['account_type'] = Patient::USER_TYPE;
+//                        $acca['data'] = $this->patient->transform_profile($this->patient->findPatientByUserId($user->id),'basic');
+//                        array_push($accounts,$acca);
+//                        break;
+//                    case Pharmacy::USER_TYPE:
+//                        //$pharmacyRepo = new PharmacyRepository(new Pharmacy());
+//                        $pharmacy = $this->pharmacy->findByUserId($user->id);
+//                        $acca['account_type'] = Pharmacy::USER_TYPE;
+//                        $acca['data'] = $this->pharmacy->transform($pharmacy);
+//                        array_push($accounts,$acca);
+//                        break;
+//                    case Doctor::USER_TYPE:
+//                        //$doctorRepo = new DoctorRepository(new Doctor());
+//                        $acca['account_type'] = Doctor::USER_TYPE;
+//                        $acca['data'] = $this->doctor->transform_($this->doctor->findByUserId($user->id));
+//                        array_push($accounts,$acca);
+//                        break;
+//                }
+//            }
+//        }
+
+//        $companyUser = null;
+//
+//        if ($user){
+//            $practiceUsers = $this->practiceUser->getByEmail($user->email);
+//            $company = $this->practice->find($user->company_id);
+//            foreach ($practiceUsers as $practiceUser){
+//                if ( Hash::check($request->password, $practiceUser->password) ){
+//                    $account_found = true;
+//                    //$acca['account_type'] = PracticeUser::USER_TYPE;
+//                    //$acca['data'] = $this->practice->transform_user($practiceUser,$source_type,$company);
+//                    $account = $this->practice->transformAuthentication($practiceUser);
+//                    array_push($accounts,$account);
+//                }
+//            }
+//        }
+//
+//        if ( $account_found ){
+//            $http_resp = $this->response_type['200'];
+//            $tokenResult = $user->createToken('Personal Access Token');
+//            $token = $tokenResult->token;
+//            if ($request->remember_me){
+//                $token->expires_at = Carbon::now()->addWeeks(1);
+//                $token->save();
+//            }
+//            $http_resp['access_token'] = $tokenResult->accessToken;
+//            $http_resp['token_type'] = 'Bearer';
+//            $http_resp['expires_at'] = Carbon::parse($tokenResult->token->expires_at)->toDateTimeString();
+//            $http_resp['results'] = $accounts;
+//            return response()->json($http_resp);
+//
+//        }else{
+//            $http_resp = $this->response_type['400'];
+//            return response()->json($http_resp, 400);
+//        }
 
     }
 
@@ -469,6 +488,19 @@ class AuthController extends Controller
     public function logout(Request $request){
         $request->user()->token()->revoke();
         return response()->json($this->response_type['200']);
+    }
+
+    public function createToken(Request $request, User $user, $http_resp){
+        $tokenResult = $user->createToken('Personal Access Token');
+        $token = $tokenResult->token;
+        if ($request->remember_me){
+            $token->expires_at = Carbon::now()->addWeeks(1);
+            $token->save();
+        }
+        $http_resp['access_token'] = $tokenResult->accessToken;
+        $http_resp['token_type'] = 'Bearer';
+        $http_resp['expires_at'] = Carbon::parse($tokenResult->token->expires_at)->toDateTimeString();
+        return $http_resp;
     }
 
 }
