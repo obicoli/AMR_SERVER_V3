@@ -167,6 +167,19 @@ class ProductReposity implements ProductReposityInterface
         return $this->model->paginate($paginate);
     }
 
+    public function isInventoryItemExist($inputs = [])
+    {
+        // TODO: Implement isInventoryItemExist() method.
+        $item = $this->model->all()
+            ->where('product_brand_id',$inputs['product_brand_id'])
+            ->where('product_brand_sector_id',$inputs['product_brand_sector_id'])
+            ->where('product_unit_id',$inputs['product_unit_id'])
+            ->where('single_unit_weight',$inputs['single_unit_weight'])
+            ->first();
+        return $item;
+    }
+
+
     public function transform_attribute(Model $model){
         return [
             'id' => $model->uuid,

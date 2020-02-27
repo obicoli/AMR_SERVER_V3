@@ -7,7 +7,8 @@ use App\Accounting\Models\COA\AccountsCoa;
 use App\Accounting\Models\Voucher\AccountsVoucher;
 use App\Accounting\Repositories\AccountingRepository;
 use App\helpers\HelperFunctions;
-use App\Models\Manufacturer\Manufacturer;
+use App\Manufacturer\Repository\ManufacturerRepository;
+//use App\Models\Manufacturer\Manufacturer;
 use App\Models\Practice\Practice;
 use App\Models\Practice\PracticeProductItem;
 // use App\Models\Practice\PracticeProductItemStock;
@@ -15,12 +16,13 @@ use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Models\Product\Product;
 use App\Models\Product\ProductAdministrationRoute;
 use App\Models\Product\ProductBrand;
+use App\Models\Product\ProductBrandSector;
 use App\Models\Product\ProductCategory;
 // use App\Models\Product\ProductCurrency;
 use App\Models\Product\ProductGeneric;
 use App\Models\Product\ProductType;
 use App\Models\Product\ProductUnit;
-use App\Repositories\Manufacturer\ManufacturerRepository;
+//use App\Repositories\Manufacturer\ManufacturerRepository;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Http\Request;
@@ -34,6 +36,7 @@ use App\Models\Module\Module;
 use App\Models\Product\Inventory\Inward\ProductStockInward;
 use App\Models\Product\ProductItem;
 use App\Models\Product\Sales\ProductPriceRecord;
+use \App\Manufacturer\Models\Manufacturer;
 
 class ProductItemController extends Controller
 {
@@ -42,19 +45,20 @@ class ProductItemController extends Controller
     protected $productItem;
     protected $product;
     protected $generic;
-    protected $manufacturer;
     protected $item_type;
     protected $brands;
+    protected $brandSectors;
     protected $item_category;
     protected $unit_measure;
     protected $practice;
     protected $product_routes;
-    protected $product_currency;
     protected $accountsChartAccounts;
     protected $accountsVouchers;
     protected $product_prices;
     protected $product_stock_inwards;
     protected $taxations;
+    protected $manufacturers;
+    protected $STOCK_SOURCE_OPENING_STOCK;
 
     public function __construct(ProductItem $productItem)
     {
@@ -63,19 +67,20 @@ class ProductItemController extends Controller
         $this->productItem = new ProductReposity($productItem);
         $this->product = new ProductReposity(new Product());
         $this->generic = new ProductReposity(new ProductGeneric());
-        $this->manufacturer = new ManufacturerRepository(new Manufacturer());
         $this->item_type = new ProductReposity(new ProductType());
         $this->brands = new ProductReposity(new ProductBrand());
+        $this->brandSectors = new ProductReposity( new ProductBrandSector() );
         $this->item_category = new ProductReposity(new ProductCategory());
         $this->unit_measure = new ProductReposity(new ProductUnit());
         $this->practice = new PracticeRepository(new Practice());
         $this->product_routes = new ProductReposity(new ProductAdministrationRoute());
-        //$this->product_currency = new ProductReposity(new ProductCurrency());
         $this->accountsChartAccounts = new AccountingRepository( new AccountChartAccount() );
         $this->accountsVouchers = new AccountingRepository( new AccountsVoucher() );
         $this->product_prices = new ProductReposity( new ProductPriceRecord() );
         $this->product_stock_inwards = new ProductReposity( new ProductStockInward() );
         $this->taxations = new ProductReposity( new PracticeTaxation() );
+        $this->manufacturers = new ManufacturerRepository( new Manufacturer() );
+        $this->STOCK_SOURCE_OPENING_STOCK = AccountsCoa::STOCK_SOURCE_OPENING_STOCK;
     }
 
     public function index(Request $request){
@@ -101,19 +106,157 @@ class ProductItemController extends Controller
         return response()->json($http_resp);
     }
 
-    // public function all_list(Request $request){
-    //     $http_resp = $this->response_type['200'];
-    //     $results = array();
-    //     $company = $this->practice->find($request->user()->company_id);
-    //     $practiceMain = $this->practice->findParent($company);
-    //     $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(15);
-    //     //$product_items = $practiceMain->product_items()->orderByDesc('created_at')->get();
-    //     foreach($product_items as $product_item){
-    //         array_push($results,$this->productItem->transform_product_item($product_item,$company));
-    //     }
-    //     $http_resp['results'] = $results;
-    //     return response()->json($http_resp);
-    // }
+    public function create(Request $request){
+
+        //Log::info($request);
+        $http_resp = $this->response_type['200'];
+        $company = $this->practice->find($request->user()->company_id);
+        $owner = $this->practice->findParent($company);
+
+        $validation = Validator::make($request->all(),[
+            'item_name' => 'required',
+            'item_code' => 'required',
+            'brand_id' => 'required',
+            'brand_sector_id' => 'required',
+            'manufacturer_id' => 'required',
+            'unit_cost' => 'required',
+            'unit_retail_price' => 'required',
+            'pack_retail_price' => 'required',
+            'pack_cost' => 'required',
+            'status' => 'required',
+            'uom_id' => 'required',
+            'single_unit_weight' => 'required',
+            'alert_indicator_level' => 'required',
+        ],$this->helper->messages());
+
+        if ($validation->fails()){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = $this->helper->getValidationErrors($validation->errors());
+            return response()->json($http_resp,422);
+        }
+
+        $brand = $this->brands->findByUuid($request->brand_id);
+        $brand_sector = $this->brandSectors->findByUuid($request->brand_sector_id);
+        $manufacturer = $this->manufacturers->findByUuid($request->manufacturer_id);
+        $uom = $this->unit_measure->findByUuid($request->uom_id);
+        $company_vat_type = $this->taxations->findByUuid($request->vat_type_id);
+
+        $inputs = $request->all();
+        $inputs['product_brand_id'] = $brand->id;
+        $inputs['product_brand_sector_id'] = $brand_sector->id;
+        $inputs['manufacturer_id'] = $manufacturer->id;
+        $inputs['product_manufacturer_id'] = $manufacturer->id;
+        $inputs['product_unit_id'] = $uom->id;
+        //Check if item exist
+        if( $this->productItem->isInventoryItemExist($inputs) ){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Inventory item already exist'];
+            return response()->json($http_resp,422);
+        }
+
+        if( $owner->product_items()->where('item_code',$request->item_code)->get()->first() ){
+            $http_resp = $this->response_type['422'];
+            $http_resp['errors'] = ['Item code already in use!'];
+            return response()->json($http_resp,422);
+        }
+
+        if ( $request->opening_qty > 0 ){
+            $validation = Validator::make($request->all(),[
+                'as_of' => 'required',
+                'purchase_account_id' => 'required',
+                'sales_account_id' => 'required',
+            ],$this->helper->messages());
+        }
+
+        DB::connection(Module::MYSQL_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
+        try {
+
+            $as_of = $this->helper->format_lunox_date($request->as_of);
+            //Create new Product Item
+            $new_product_item = $owner->product_items()->create($inputs);
+            //Link it to VAT
+            if ( $company_vat_type ){
+                $item_tax = $new_product_item->taxations()->save($company_vat_type);
+            }
+
+            //Link it to price list
+            $price['unit_cost'] = $request->unit_cost;
+            $price['unit_retail_price'] = $request->unit_retail_price;
+            $price['pack_cost'] = $request->pack_cost;
+            $price['pack_retail_price'] = $request->pack_retail_price;
+            $dbprice = $this->product_prices->createPrice($new_product_item->id,$company->id,$price['unit_cost'],$price['unit_retail_price'],
+                $price['pack_cost'],$price['pack_retail_price'],$request->user()->id);
+
+            //Accounting occur if opening balance is provided
+            if ( $request->opening_qty > 0 ){
+
+                $trans_name = $this->STOCK_SOURCE_OPENING_STOCK;
+                $purchase_ledger_ac = $this->accountsChartAccounts->findByUuid($request->purchase_account_id);
+                $ownerEquityAc = $this->accountsChartAccounts->getOwnerEquityAccount($company);
+                //Create Open Balance and Link it
+                $qty = $request->opening_qty;
+                $pack_cost = $request->pack_cost;
+                $amount = $qty * $pack_cost;
+                $open_balance_inputs['reason'] = $trans_name;
+                $open_balance_inputs['amount'] = $amount;
+                $open_balance_obj = $company->accountOpeningBalances()->create($open_balance_inputs);
+                $open_balance_obj = $new_product_item->openingBalances()->save($open_balance_obj);
+
+                //VAT Type Ledger Entry
+                if($company_vat_type){
+                    $company_vat_type_ledger_ac = $company_vat_type->ledger_accounts()->get()->first();
+                    $taxes = array();
+                    $converted_tax = $this->practice->transformPracticeTaxation($company_vat_type);
+                    array_push($taxes,$converted_tax);
+                    $prices_after_tax = $this->helper->taxation_calculation($price,$taxes);
+                    $taxed_amount = $qty * $prices_after_tax['pack_cost'];
+                    $vat_amount = $amount - $taxed_amount;
+                    //
+                    $debited_ac = $purchase_ledger_ac->code;
+                    $credited_ac = $company_vat_type_ledger_ac->code;
+                    $transaction_id = $this->helper->getToken(10,'INVAT');
+                    $supportDocument = $open_balance_obj->double_entry_support_document()->create(['trans_type'=>$this->STOCK_SOURCE_OPENING_STOCK]);
+                    $double_entry = $this->accountsVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$vat_amount,$as_of,$trans_name,$transaction_id);
+                    $double_entry->supports()->save($supportDocument);
+                    $amount = $taxed_amount;
+                }
+
+                //Inventory Ledger Entry
+                $debited_ac = $purchase_ledger_ac->code;
+                $credited_ac = $ownerEquityAc->code;
+                $transaction_id = $this->helper->getToken(10,'INV');
+                $supportDocument = $open_balance_obj->double_entry_support_document()->create(['trans_type'=>$this->STOCK_SOURCE_OPENING_STOCK]);
+                $double_entry = $this->accountsVouchers->accounts_double_entry($company,$debited_ac,$credited_ac,$amount,$as_of,$trans_name,$transaction_id);
+                $double_entry->supports()->save($supportDocument);
+
+                //Update Inventory
+                $inputs_stock['amount'] = $qty;
+                $inputs_stock['product_item_id'] = $new_product_item->id;
+                $inputs_stock['product_price_id'] = $dbprice->id;
+                $inputs_stock['source_type'] = $this->STOCK_SOURCE_OPENING_STOCK;
+                $product_stock = $company->product_stocks()->create($inputs_stock);
+                //If Inventory Tracking is Enabled Capture Barcode and Batches
+                $inputs_stock_inw = [];
+                $stock_inward = $product_stock->stock_inwards()->create($inputs_stock_inw);
+
+            }
+
+        }catch (\Exception $e){
+            $http_resp = $this->response_type['500'];
+            Log::info($e);
+            DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+            DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+            return response()->json($http_resp,500);
+        }
+        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+        return response()->json($http_resp);
+    }
+
 
     public function update(Request $request,$uuid){
 
@@ -137,6 +280,7 @@ class ProductItemController extends Controller
             $product_item = $this->productItem->findByUuid($uuid);
             $company = $this->practice->find($request->user()->company_id);
             if( $request->initial_stock > 0 ){
+
                 $rule = [ 'inventory'=>'required','as_of'=>'required' ];
                 $validation = Validator::make($request->all(),$rule,$this->helper->messages());
                 if ($validation->fails()){
@@ -165,7 +309,7 @@ class ProductItemController extends Controller
                 $inputs['product_price_id'] = $db_price->id;
                 $inputs['source_type'] = Product::STOCK_SOURCE_OPENING_STOCK;
                 $stock_inward = $company->product_stock_inward()->create($inputs);
-                //Accounting Transaction
+                //0. Accounting Transaction
                 //1. Selected Inventory Account will debited
                 //2. By default Owner's Equity account will be credited
                 $debited_ac = $inventory_account->code;
@@ -215,8 +359,6 @@ class ProductItemController extends Controller
 
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
-        //Transform the updated product Item and return it back
-        //$http_resp['results'] = $this->productItem->transform_product_item($this->productItem->findByUuid($uuid),$company);
         return response()->json($http_resp);
     }
 

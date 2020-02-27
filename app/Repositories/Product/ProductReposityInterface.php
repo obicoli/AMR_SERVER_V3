@@ -33,6 +33,7 @@ interface ProductReposityInterface
     public function getPrices($id,$type);
     public function update(array $arr, $id);
     public function paginated($paginate=15);
+    public function isInventoryItemExist($inputs=[]);
     //
     public function transform_unit(ProductUnit $productUnit);
     public function transform_attribute(Model $model);

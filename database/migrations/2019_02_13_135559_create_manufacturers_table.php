@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \App\Models\Module\Module;
 
 class CreateManufacturersTable extends Migration
 {
@@ -13,12 +14,13 @@ class CreateManufacturersTable extends Migration
      */
     public function up()
     {
-        Schema::create('manufacturers', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->dropIfExists('manufacturers');
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->create('manufacturers', function (Blueprint $table) {
             $table->increments('id');
-            $table->string("uuid")->unique();
             $table->string("name")->nullable();
-            $table->string("slug")->nullable();
-            $table->unsignedInteger("owner_id")->nullable();
+            $table->string("uuid")->unique();
+            $table->unsignedInteger("owner_id")->nullable()->index();
+            $table->string('owner_type')->nullable()->index();
             \ByTestGear\Accountable\Accountable::columns($table);
             $table->softDeletes();
             $table->timestamps();
@@ -32,6 +34,6 @@ class CreateManufacturersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('manufacturers');
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->dropIfExists('manufacturers');
     }
 }

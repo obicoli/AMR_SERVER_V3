@@ -39,6 +39,7 @@ class AccountingRepository implements AccountingRepositoryInterface
     protected $AC_RECEIVABLE_CODE;
     protected $AC_PAYABLE_CODE;
     protected $AC_PURCHASE;
+    //protected $AC_OPENING_BALANCE_EQUITY_CODE;
     //protected $customerRepository;
     //protected $supplierRepository;
 
@@ -50,6 +51,7 @@ class AccountingRepository implements AccountingRepositoryInterface
         $this->AC_PAYABLE_CODE = AccountsCoa::AC_PAYABLE_CODE;
         $this->AC_RECEIVABLE_CODE = AccountsCoa::AC_RECEIVABLE_CODE;
         $this->AC_PURCHASE = AccountsCoa::AC_INVENTORY_CODE;
+        //$this->AC_OPENING_BALANCE_EQUITY_CODE;
         // $this->customerRepository = new CustomerRepository(new Customer());
         // $this->supplierRepository = new SupplierRepository( new Supplier() );
     }
@@ -60,7 +62,6 @@ class AccountingRepository implements AccountingRepositoryInterface
         }else{
             return $this->model->all();
         }
-        //return $this->model->all()->sortBy('name');
     }
 
     public function find($id){
@@ -84,6 +85,13 @@ class AccountingRepository implements AccountingRepositoryInterface
     public function findByDefaultCode($code){
         return $this->model->all()->where('default_code',$code)->first();
     }
+
+    public function getOwnerEquityAccount(Practice $practice)
+    {
+        // TODO: Implement getOwnerEquityAccount() method.
+        return $practice->chart_of_accounts()->where('default_code',AccountsCoa::AC_OPENING_BALANCE_EQUITY_CODE)->get()->first();
+    }
+
 
     public function findCompanyMainCoaByDefaultCode(Practice $practice, $default_code)
     {

@@ -83,6 +83,7 @@ class AccountsCoa extends Model
     const TRANS_TYPE_TAX_INVOICE = "Tax Invoice";
     const TRANS_TYPE_SALES_RECEIPT = "Sales Receipt";
     const TRANS_TYPE_OPENING_BALANCE = "Opening Balance";
+    const STOCK_SOURCE_OPENING_STOCK = "Opening Stock";
     const TRANS_TYPE_SUPPLIER_OPENING_BALANCE = "Supplier Opening Balance";
     const TRANS_TYPE_CUSTOMER_OPENING_BALANCE = "Customer Opening Balance";
     const TRANS_TYPE_ACCOUNT_OPENING_BALANCE = "Account Opening Balance";

@@ -14,11 +14,11 @@ class ProductItemTaxation extends Migration
      */
     public function up()
     {
-        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_item_taxations');
-        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->create('product_item_taxations', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_DB_CONN)->dropIfExists('product_item_taxations');
+        Schema::connection(Module::MYSQL_DB_CONN)->create('product_item_taxations', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('product_item_id')->index();
-            $table->unsignedInteger('product_taxation_id')->index();
+            $table->unsignedInteger('practice_taxation_id')->index();
             $table->softDeletes();
             $table->timestamps();
         });

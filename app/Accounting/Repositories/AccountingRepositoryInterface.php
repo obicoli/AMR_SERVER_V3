@@ -28,6 +28,7 @@ interface AccountingRepositoryInterface
     public function findByVATPin($pin);
     public function findByName($name);
     public function findByDefaultCode($code);
+    public function getOwnerEquityAccount(Practice $practice);
     public function findCompanyMainCoaByDefaultCode(Practice $practice, $default_code);
     public function create($inputs = []);
     public function create_chart_of_account(Practice $company, AccountsCoa $accountsCoa, $inputs, Model $account_owner);

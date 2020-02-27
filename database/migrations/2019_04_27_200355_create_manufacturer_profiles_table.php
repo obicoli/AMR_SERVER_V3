@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \App\Models\Module\Module;
 
 class CreateManufacturerProfilesTable extends Migration
 {
@@ -13,11 +14,10 @@ class CreateManufacturerProfilesTable extends Migration
      */
     public function up()
     {
-        Schema::create('manufacturer_profiles', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->dropIfExists('manufacturer_profiles');
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->create('manufacturer_profiles', function (Blueprint $table) {
             $table->increments('id');
             $table->string("uuid")->unique();
-            $table->string("description")->nullable();
-            $table->string("logo")->nullable();
             $table->float("longitude")->default(1);
             $table->float("latitude")->default(38);
             $table->string("support_email")->nullable();
@@ -44,6 +44,6 @@ class CreateManufacturerProfilesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('manufacturer_profiles');
+        Schema::connection(Module::MYSQL_MANUFACTURER_DB_CONN)->dropIfExists('manufacturer_profiles');
     }
 }

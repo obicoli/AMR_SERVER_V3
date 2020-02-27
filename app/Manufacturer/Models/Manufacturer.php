@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models\Manufacturer;
+namespace App\Manufacturer\Models;
 
+use App\Models\Module\Module;
 use App\Models\Practice\Inventory\PracticeAccountHolder;
 use App\Models\Practice\Practice;
 use App\Models\Product\Product;
@@ -11,18 +12,16 @@ use ByTestGear\Accountable\Traits\Accountable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Account\Account;
-use App\Models\Supplier\Supplier;
 
 class Manufacturer extends Model
 {
     use SoftDeletes, UuidTrait, AccountableTrait, Accountable;
 
+    protected $connection = Module::MYSQL_MANUFACTURER_DB_CONN;
     protected $id_column = "id";
-
     protected $table = "manufacturers";
     protected $guarded = [];
     protected $account_type = Account::AC_MANUFACTURES;
-
     protected $fillable = [
         'name',
         'slug',

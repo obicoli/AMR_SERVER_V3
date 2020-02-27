@@ -196,8 +196,8 @@ class PracticeRepository implements PracticeRepositoryInterface
             'collected_on_sales'=>$vatTypeData->getCollectedOnSales(),
             'description'=>$vatTypeData->getDescription(),
             'status'=>$practiceTaxation->getStatus(),
-            'sales_display_as'=>$vatTypeData->getName().'('.$vatTypeData->getSalesRate().'%)',
-            'purchase_display_as'=>$vatTypeData->getName().'('.$vatTypeData->getPurchaseRate().'%)',
+            'sales_display_as'=>$vatTypeData->getName().' ('.number_format($vatTypeData->getSalesRate(),2).'%)',
+            'purchase_display_as'=>$vatTypeData->getName().' ('.number_format($vatTypeData->getPurchaseRate(),2).'%)',
         ];
     }
 

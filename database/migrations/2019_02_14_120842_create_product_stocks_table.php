@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \App\Models\Module\Module;
 
 class CreateProductStocksTable extends Migration
 {
@@ -13,23 +14,20 @@ class CreateProductStocksTable extends Migration
      */
     public function up()
     {
-        Schema::create('product_stocks', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_stocks');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->create('product_stocks', function (Blueprint $table) {
             $table->increments('id');
-            //$table->unsignedInteger('product_id');
             $table->unsignedInteger('product_item_id')->index();
             $table->unsignedInteger('product_item_price_id')->index();
             $table->float('amount')->default(0.00)->index();
             $table->string('source_type')->index()->nullable();
-            // $table->string('batch_number')->index()->nullable();
             $table->string('status')->index()->default('Pending');
-            // $table->date('mfg_date')->nullable()->index();
-            // $table->date('exp_date')->nullable()->index();
-            $table->string('owner_type')->index()->nullable(); //Enterprise
-            $table->unsignedInteger('owner_id')->index()->nullable(); //Enterprise
+//            $table->string('owner_type')->index()->nullable(); //Enterprise
+//            $table->unsignedInteger('owner_id')->index()->nullable(); //Enterprise
             $table->string('owning_type')->index()->nullable(); //Branch
             $table->unsignedInteger('owning_id')->index()->nullable(); //Branch
-            $table->string('sourceable_type')->index()->nullable(); //Source of stock: PO, Requistions, Purchases
-            $table->unsignedInteger('sourceable_id')->index()->nullable(); //Source of stock: PO, Requistions, Purchases
+            $table->string('sourceable_type')->index()->nullable(); //Source of stock: PO, Requistions, Purchases, Opening Balance
+            $table->unsignedInteger('sourceable_id')->index()->nullable(); //Source of stock: PO, Requistions, Purchases, Opening Balance
             $table->boolean('is_depleted')->default(false)->index();
             $table->unsignedInteger('department_id')->index()->nullable();
             $table->unsignedInteger('store_id')->index()->nullable();
@@ -48,6 +46,6 @@ class CreateProductStocksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_stocks');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_stocks');
     }
 }

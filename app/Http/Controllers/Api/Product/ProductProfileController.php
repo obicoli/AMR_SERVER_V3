@@ -26,7 +26,7 @@ class ProductProfileController extends Controller
     protected $helper;
     protected $practice;
     protected $products;
-    protected $company;
+    //protected $company;
 
     public function __construct(ProductProfile $productProfile)
     {
@@ -35,7 +35,7 @@ class ProductProfileController extends Controller
         $this->productProfile = new ProductReposity($productProfile);
         $this->practice = new PracticeRepository( new Practice() );
         $this->products = new ProductReposity(new Product());
-        $this->company = new ProductReposity(new Manufacturer());
+        //$this->company = new ProductReposity(new Manufacturer());
     }
 
     public function index(Request $request){

@@ -8,7 +8,6 @@ use App\Models\Product\ProductBrand;
 use App\Repositories\Product\ProductReposity;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Manufacturer\Manufacturer;
 use App\Models\Module\Module;
 use App\Models\Practice\Practice;
 use App\Repositories\Practice\PracticeRepository;
@@ -24,7 +23,7 @@ class ProductBrandController extends Controller
     protected $helper;
     protected $practice;
     protected $products;
-    protected $company;
+    //protected $company;
 
     public function __construct(ProductBrand $productBrand)
     {
@@ -33,7 +32,7 @@ class ProductBrandController extends Controller
         $this->productBrand = new ProductReposity($productBrand);
         $this->practice = new PracticeRepository( new Practice() );
         $this->products = new ProductReposity(new Product());
-        $this->company = new ProductReposity(new Manufacturer());
+        //$this->company = new ProductReposity(new Manufacturer());
     }
 
     public function index(Request $request){

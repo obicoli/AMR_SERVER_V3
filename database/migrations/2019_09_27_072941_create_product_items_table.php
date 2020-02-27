@@ -37,6 +37,7 @@ class CreateProductItemsTable extends Migration
             $table->unsignedInteger('product_manufacturer_id')->index()->nullable(); //-------------
             $table->boolean('status')->index()->default(true);
             $table->boolean('confirmed')->index()->default(true);
+            $table->enum('inventory_tracking',['None','Batch','Barcode','Serial'])->default('None');
             $table->string('item_code')->index();
             //$table->string('barcode',100)->index()->nullable();
             $table->string('item_note')->nullable();

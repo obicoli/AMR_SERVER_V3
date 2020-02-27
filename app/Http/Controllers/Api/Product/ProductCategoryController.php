@@ -48,17 +48,6 @@ class ProductCategoryController extends Controller
         return response()->json($http_resp);
     }
 
-    //practice
-    // public function practice($practice_uuid){
-    //     $http_resp = $this->http_response['200'];
-    //     $practice = $this->practice->findByUuid($practice_uuid);
-    //     $categories = $this->productCategory->getCategories($practice);
-    //     $paged_data = $this->helper->paginator($categories);
-    //     $paged_data['data'] = $this->productCategory->transform_collection($categories);
-    //     $http_resp['results'] = $paged_data;
-    //     return response()->json($http_resp);
-    // }
-
     public function create(Request $request){
 
         $http_resp = $this->http_response['200'];

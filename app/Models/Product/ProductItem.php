@@ -2,9 +2,11 @@
 
 namespace App\Models\Product;
 
+use App\Accounting\Models\COA\AccountsOpeningBalance;
 use App\Accounting\Models\Voucher\AccountsSupport;
 use App\Customer\Models\Quote\Estimate;
 use App\Models\Account\Vendors\AccountVendor;
+use App\Models\Practice\Taxation\PracticeTaxation;
 use App\Models\Product\ProductSalesCharge;
 use App\Models\Product\Purchase\ProductPurchaseItem;
 use App\Models\Product\Sales\ProductPriceRecord;
@@ -52,7 +54,7 @@ class ProductItem extends Model
         'product_profile_id',
         'product_manufacturer_id',
         'item_code',
-        'barcode',
+        //'barcode',
         'status',
         'confirmed',
         'item_note',
@@ -64,7 +66,8 @@ class ProductItem extends Model
     ];
 
     //Attributes based Relationship
-    public function taxations(){ return $this->belongsToMany(ProductTaxation::class,'product_item_taxations','product_item_id','product_taxation_id'); }
+    public function openingBalances(){ return $this->morphMany(AccountsOpeningBalance::class, 'accountable','accountable_type','accountable_id'); }
+    public function taxations(){ return $this->belongsToMany(PracticeTaxation::class,'product_item_taxations','product_item_id','practice_taxation_id'); }
     public function brands(){ return $this->belongsTo(ProductBrand::class,'product_brand_id'); }
     public function product_types(){ return $this->belongsTo(ProductType::class,'product_type_id'); }
     public function profiles(){ return $this->belongsTo(ProductProfile::class,'product_profile_id'); }
@@ -80,6 +83,7 @@ class ProductItem extends Model
     public function prefered_suppliers(){ return $this->belongsTo(SupplierCompany::class,'prefered_supplier_id'); }
     public function product_manufacturer(){ return $this->belongsTo(ProductManufacture::class,'product_manufacturer_id'); }
     //Customer Integrated
+
     public function estimates(){ return $this->hasMany(Estimate::class,'product_item_id'); }
     //Suppliers Module
     public function supplier_bill_items(){ return $this->hasMany(SupplierBillItem::class,'product_item_id'); }

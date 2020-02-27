@@ -938,8 +938,8 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'items' ], function (){
-            Route::post('/', "Api\Product\ProductController@store");
-            Route::post('/upload', "Api\Product\ProductController@upload");
+            Route::post('/', "Api\Product\ProductItemController@create");
+            //Route::post('/upload', "Api\Product\ProductController@upload");
             //Route::get('/all_items', "Api\Product\ProductItemController@all_list");
             Route::get('/', "Api\Product\ProductItemController@index");
             Route::post('/{uuid}', "Api\Product\ProductItemController@update");
@@ -1064,24 +1064,27 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
             Route::delete('/', "Api\Product\Vaccine\VaccineController@destroy");
         });
 
-        //Route::get('/', "Api\Product\ProductController@index");
-        //Route::get('/{id}', "Api\Product\ProductController@show");
-        Route::get('/attributes', "Api\Product\ProductController@attributes");
-        Route::post('/', "Api\Product\ProductController@store");
-        //Route::delete('/{id}', "Api\Product\ProductController@destroy");
-        //Route::post('/{id}', "Api\Product\ProductController@update");
         Route::post('/', "Api\Product\ProductController@create");
-        Route::post('/{uuid}', "Api\Product\ProductController@update");
-        Route::post('/upload', "Api\Product\ProductController@upload");
-        // Route::get('/practice/{practice_uuid}', "Api\Product\ProductController@practice");
-        Route::get('/practice/{practice_uuid}', "Api\Product\ProductController@practice");
-        Route::get('/facility/{facility_uuid}', "Api\Product\ProductController@facility");
-        Route::get('/{uuid}', "Api\Product\ProductController@show");
-        Route::get('/{uuid}/facility/{practice_uuid}', "Api\Product\ProductController@show");
         Route::get('/', "Api\Product\ProductController@index");
-        Route::get('/{facility_id}/{barcode}', "Api\Product\ProductController@barcode");
-        Route::get('/{uuid}/practice/{practice_uuid}', "Api\Product\ProductController@index");
-        Route::delete('/{id}', "Api\Product\ProductController@destroy");
+
+//        //Route::get('/', "Api\Product\ProductController@index");
+//        //Route::get('/{id}', "Api\Product\ProductController@show");
+//        Route::get('/attributes', "Api\Product\ProductController@attributes");
+//        Route::post('/', "Api\Product\ProductController@store");
+//        //Route::delete('/{id}', "Api\Product\ProductController@destroy");
+//        //Route::post('/{id}', "Api\Product\ProductController@update");
+//        Route::post('/', "Api\Product\ProductController@create");
+//        Route::post('/{uuid}', "Api\Product\ProductController@update");
+//        Route::post('/upload', "Api\Product\ProductController@upload");
+//        // Route::get('/practice/{practice_uuid}', "Api\Product\ProductController@practice");
+//        Route::get('/practice/{practice_uuid}', "Api\Product\ProductController@practice");
+//        Route::get('/facility/{facility_uuid}', "Api\Product\ProductController@facility");
+//        Route::get('/{uuid}', "Api\Product\ProductController@show");
+//        Route::get('/{uuid}/facility/{practice_uuid}', "Api\Product\ProductController@show");
+//        Route::get('/', "Api\Product\ProductController@index");
+//        Route::get('/{facility_id}/{barcode}', "Api\Product\ProductController@barcode");
+//        Route::get('/{uuid}/practice/{practice_uuid}', "Api\Product\ProductController@index");
+//        Route::delete('/{id}', "Api\Product\ProductController@destroy");
         
     });
 

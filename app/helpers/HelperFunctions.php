@@ -958,7 +958,6 @@ class HelperFunctions
             'facility_id.required' => 'Facility is required!',
             'staff_id.required' => 'Staff is required!',
             'payment_method_id.required' => 'Payment method is required!',
-            'account_type_id.required' => 'Account type required!',
             'detail_type_id.required' => 'Detail type required!',
             'customer_term_id.required' => 'Payment terms required!',
             'main_account_id.required' => 'Main account is required!',
@@ -970,7 +969,6 @@ class HelperFunctions
             'last_reconciliation_id.required'=>'Previous Bank Reconciliation required!',
             'bank_id.required'=>'Bank name required!',
             'bank_branch_id.required'=>'Bank Branch name is required!',
-            'account_type_id.required'=>'Account type required!',
             'account_number.required'=>'Bank Account number required!',
             'account_name.required'=>'Bank Account Holder required!',
             'bank_account.required'=>'Bank Account required!',
@@ -979,6 +977,13 @@ class HelperFunctions
             'vat_pin.required'=>'VAT number is required!',
             'vat_return_id.required'=>'VAT period is required!',
             'trans_date.required'=>'Date is required',
+            'brand_id.required'=>'Brand is required!',
+            'brand_sector_id.required'=>'Brand sector is required!',
+            'uom_id.required'=>'U.O.M is required!',
+            'alert_indicator_level.required'=>'Re-order level is required!',
+            'unit_retail_price.required'=>'Unit selling price required!',
+            'sales_account_id.required'=>'Sales account is required!',
+            'purchase_account_id.required'=>'Purchase account is required!',
             'file.max' => "Maximum file size to upload is 2MB (2000 KB). If you are uploading a photo, try to reduce its resolution to make it under 2MB"
         ];
     }

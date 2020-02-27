@@ -23,8 +23,8 @@ class CreateAccountsOpeningBalancesTable extends Migration
             $table->string('status')->nullable();
             $table->string('reason')->nullable();
             $table->string('uuid');
-            $table->unsignedInteger('accountable_id')->index()->nullable(); //E.g Customer,Supplier
-            $table->string('accountable_type')->index()->nullable(); //E.g Customer,Supplier
+            $table->unsignedInteger('accountable_id')->index()->nullable(); //E.g Customer,Supplier,Product Item
+            $table->string('accountable_type')->index()->nullable(); //E.g Customer,Supplier,Product Item
             $table->unsignedInteger('owning_id')->index(); //Company
             $table->string('owning_type')->index(); //Company
             $table->softDeletes();
