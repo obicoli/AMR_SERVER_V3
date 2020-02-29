@@ -938,9 +938,15 @@ Route::group( ['middleware' => ['auth:api','cors'] ], function (){
         });
 
         Route::group( ['prefix'=>'items' ], function (){
+
+            Route::group( ['prefix'=>'assets' ], function (){
+                Route::post('/', "Api\Product\ProductItemAssetsController@create");
+                Route::get('/', "Api\Product\ProductItemAssetsController@index");
+                Route::post('/{uuid}', "Api\Product\ProductItemAssetsController@update");
+                Route::get('/{uuid}', "Api\Product\ProductItemAssetsController@show");
+                Route::delete('/{uuid}', "Api\Product\ProductItemAssetsController@destroy");
+            });
             Route::post('/', "Api\Product\ProductItemController@create");
-            //Route::post('/upload', "Api\Product\ProductController@upload");
-            //Route::get('/all_items', "Api\Product\ProductItemController@all_list");
             Route::get('/', "Api\Product\ProductItemController@index");
             Route::post('/{uuid}', "Api\Product\ProductItemController@update");
             Route::get('/{uuid}', "Api\Product\ProductItemController@show");

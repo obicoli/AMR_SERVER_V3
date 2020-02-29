@@ -18,6 +18,5 @@ class ProductProfile extends Model
         'description',
         'status'
     ];
-
     public function owner(){ return $this->morphTo();}
 }

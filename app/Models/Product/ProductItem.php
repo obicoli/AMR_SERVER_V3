@@ -52,12 +52,14 @@ class ProductItem extends Model
         'product_formulation_id',
         'prefered_supplier_id',
         'product_profile_id',
+        'inventory_tracking',
         'product_manufacturer_id',
         'item_code',
+        'generic_id',
         //'barcode',
         'status',
         'confirmed',
-        'item_note',
+        'notes',
         'unit_storage_location',
         'single_unit_weight',
         'net_weight',
@@ -82,6 +84,9 @@ class ProductItem extends Model
     public function product_formulations(){ return $this->belongsTo(ProductFormulation::class,'product_formulation_id'); }
     public function prefered_suppliers(){ return $this->belongsTo(SupplierCompany::class,'prefered_supplier_id'); }
     public function product_manufacturer(){ return $this->belongsTo(ProductManufacture::class,'product_manufacturer_id'); }
+    public function assets(){
+        return $this->morphMany(ProductAsset::class, 'owner');
+    }
     //Customer Integrated
 
     public function estimates(){ return $this->hasMany(Estimate::class,'product_item_id'); }

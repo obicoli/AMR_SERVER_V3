@@ -288,16 +288,15 @@ class ProductReposity implements ProductReposityInterface
         $measure_unit_name = ['id'=>'','name'=>'','slug'=>''];
         $uom = $productItem->units_of_measure()->get()->first();
         if($uom){ $measure_unit_name['id']=$uom->uuid; $measure_unit_name['slug']=$uom->slug; $measure_unit_name['name']=$uom->name;}
+
         //Taxes
         $item_taxes = array();
-        //$taxes = $productItem->taxations()->get();
-        $taxis = DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->table('product_item_taxations')->where('product_item_id',$productItem->id)->get();
-        foreach( $taxis as $taxi ){
-            $taxy = ProductTaxation::find($taxi->product_taxation_id);
-            if($taxy){
-                array_push($item_taxes,$this->transform_taxation($taxy));
-            }
+        $practiceRepository = new PracticeRepository( new Practice() );
+        $taxes = $productItem->taxations()->get();
+        foreach ($taxes as $taxe){
+            array_push($item_taxes,$practiceRepository->transformPracticeTaxation($taxe));
         }
+
         //Category
         $category = ['id'=>'','name'=>''];
         $catego = $productItem->product_category()->get()->first();
@@ -323,11 +322,13 @@ class ProductReposity implements ProductReposityInterface
         
         //Stock
         $stock = 0;
+        $stock_packs = 0;
+        $stock_units = 0;
         //Opening Stock
         $opening_stock = 0;
         if($practice){
-            $stock = $practice->product_stock_inward()->where('product_item_id',$productItem->id)->sum('amount') - $practice->product_stock_inward()->where('product_item_id',$productItem->id)->sum('consumed_amount');
-            $opening_stock = $practice->product_stock_inward()->where('product_item_id',$productItem->id)->where('source_type',Product::STOCK_SOURCE_OPENING_STOCK)->sum('amount');
+            //$stock = $practice->product_stock_inward()->where('product_item_id',$productItem->id)->sum('amount') - $practice->product_stock_inward()->where('product_item_id',$productItem->id)->sum('consumed_amount');
+            //$opening_stock = $practice->product_stock_inward()->where('product_item_id',$productItem->id)->where('source_type',Product::STOCK_SOURCE_OPENING_STOCK)->sum('amount');
         }
         //Price
         $pricez = $productItem->price_record()->get()->first();
@@ -362,6 +363,7 @@ class ProductReposity implements ProductReposityInterface
         if($order_categora){
             $order_category = ['id'=>$order_categora->uuid,'name'=>$order_categora->name];
         }
+
         //Sub Category
         $sub_categora = $productItem->product_sub_category()->get()->first();
         $sub_category = ['id'=>'','name'=>''];
@@ -420,7 +422,7 @@ class ProductReposity implements ProductReposityInterface
             'note'=>$productItem->item_note,
             'store_location'=>$productItem->unit_storage_location,
             'price'=>$price,
-            'price_after_tax'=>$price,
+            'price_after_tax'=>$this->helper->taxation_calculation($price,$item_taxes),
             'qty' => 1,//from here are transactional
             //'batch_number' => '',
             //'exp_month' => '',
@@ -436,6 +438,8 @@ class ProductReposity implements ProductReposityInterface
             //'batched_stock' => [],
             //'default_batched_stock'=>[],
             'stock'=>$stock,
+            'stock_units'=>$stock_units,
+            'stock_packs'=>$stock_packs,
             'opening_stock'=>$opening_stock,
             'applied_tax_rates'=>[],
         ];

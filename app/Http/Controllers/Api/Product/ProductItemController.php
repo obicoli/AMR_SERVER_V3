@@ -19,12 +19,18 @@ use App\Models\Product\ProductBrand;
 use App\Models\Product\ProductBrandSector;
 use App\Models\Product\ProductCategory;
 // use App\Models\Product\ProductCurrency;
+use App\Models\Product\ProductFormulation;
 use App\Models\Product\ProductGeneric;
+use App\Models\Product\ProductOrderCategory;
+use App\Models\Product\ProductSubCategory;
 use App\Models\Product\ProductType;
 use App\Models\Product\ProductUnit;
 //use App\Repositories\Manufacturer\ManufacturerRepository;
+use App\Models\Product\Profile\ProductProfile;
 use App\Repositories\Practice\PracticeRepository;
 use App\Repositories\Product\ProductReposity;
+use App\Supplier\Models\Supplier;
+use App\Supplier\Repositories\SupplierRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Config;
@@ -49,8 +55,13 @@ class ProductItemController extends Controller
     protected $brands;
     protected $brandSectors;
     protected $item_category;
+    protected $order_category;
+    protected $subCategory;
     protected $unit_measure;
+    protected $productProfiles;
     protected $practice;
+    protected $formulations;
+    protected $suppliers;
     protected $product_routes;
     protected $accountsChartAccounts;
     protected $accountsVouchers;
@@ -71,6 +82,8 @@ class ProductItemController extends Controller
         $this->brands = new ProductReposity(new ProductBrand());
         $this->brandSectors = new ProductReposity( new ProductBrandSector() );
         $this->item_category = new ProductReposity(new ProductCategory());
+        $this->order_category = new ProductReposity(new ProductOrderCategory() );
+        $this->subCategory = new ProductReposity(new ProductSubCategory() );
         $this->unit_measure = new ProductReposity(new ProductUnit());
         $this->practice = new PracticeRepository(new Practice());
         $this->product_routes = new ProductReposity(new ProductAdministrationRoute());
@@ -81,14 +94,18 @@ class ProductItemController extends Controller
         $this->taxations = new ProductReposity( new PracticeTaxation() );
         $this->manufacturers = new ManufacturerRepository( new Manufacturer() );
         $this->STOCK_SOURCE_OPENING_STOCK = AccountsCoa::STOCK_SOURCE_OPENING_STOCK;
+        $this->productProfiles = new ProductReposity( new ProductProfile() );
+        $this->formulations = new ProductReposity( new ProductFormulation() );
+        $this->suppliers = new SupplierRepository( new Supplier() );
     }
 
     public function index(Request $request){
+
         $http_resp = $this->response_type['200'];
         $results = array();
         $company = $this->practice->find($request->user()->company_id);
         $practiceMain = $this->practice->findParent($company);
-        $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(10);
+        $product_items = $practiceMain->product_items()->orderByDesc('created_at')->paginate(16);
         $paged_data = $this->helper->paginator($product_items);
         foreach($product_items as $product_item){
             array_push($results,$this->productItem->transform_product_item($product_item,$company));
@@ -108,13 +125,12 @@ class ProductItemController extends Controller
 
     public function create(Request $request){
 
-        //Log::info($request);
+        Log::info($request);
         $http_resp = $this->response_type['200'];
         $company = $this->practice->find($request->user()->company_id);
         $owner = $this->practice->findParent($company);
-
         $validation = Validator::make($request->all(),[
-            'item_name' => 'required',
+            'name' => 'required',
             'item_code' => 'required',
             'brand_id' => 'required',
             'brand_sector_id' => 'required',
@@ -135,11 +151,22 @@ class ProductItemController extends Controller
             return response()->json($http_resp,422);
         }
 
+
         $brand = $this->brands->findByUuid($request->brand_id);
         $brand_sector = $this->brandSectors->findByUuid($request->brand_sector_id);
         $manufacturer = $this->manufacturers->findByUuid($request->manufacturer_id);
         $uom = $this->unit_measure->findByUuid($request->uom_id);
         $company_vat_type = $this->taxations->findByUuid($request->vat_type_id);
+        //Grouping Here
+        $generic = $this->generic->findByUuid($request->generic_id);
+        $profile = $this->productProfiles->findByUuid($request->profile_id);
+        $itemType = $this->item_type->findByUuid($request->item_type_id);
+        $category = $this->item_category->findByUuid($request->category_id);
+        $order_category = $this->order_category->findByUuid($request->order_category_id);
+        $sub_category = $this->subCategory->findByUuid($request->sub_category_id);
+        $product_route = $this->product_routes->findByUuid($request->product_route_id);
+        $formulation = $this->formulations->findByUuid($request->formulation_id);
+        $supplier = $this->suppliers->findByUuid($request->supplier_id);
 
         $inputs = $request->all();
         $inputs['product_brand_id'] = $brand->id;
@@ -147,6 +174,17 @@ class ProductItemController extends Controller
         $inputs['manufacturer_id'] = $manufacturer->id;
         $inputs['product_manufacturer_id'] = $manufacturer->id;
         $inputs['product_unit_id'] = $uom->id;
+        //Grouping
+        if($generic){ $inputs['generic_id'] = $generic->id; }
+        if($profile){ $inputs['product_profile_id'] = $profile->id; }
+        if($itemType){ $inputs['product_type_id'] = $itemType->id; }
+        if($category){ $inputs['product_category_id'] = $category->id; }
+        if($order_category){ $inputs['product_order_category_id'] = $order_category->id; }
+        if($sub_category){ $inputs['product_sub_category_id'] = $sub_category->id; }
+        if($product_route){ $inputs['product_route_id'] = $product_route->id; }
+        if($formulation){ $inputs['product_formulation_id'] = $formulation->id; }
+        if($supplier){ $inputs['prefered_supplier_id'] = $supplier->id; }
+
         //Check if item exist
         if( $this->productItem->isInventoryItemExist($inputs) ){
             $http_resp = $this->response_type['422'];
@@ -172,6 +210,12 @@ class ProductItemController extends Controller
         DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->beginTransaction();
         DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->beginTransaction();
         try {
+
+            $product = $owner->products()->where('name',$request->name)->get()->first();
+            if(!$product){
+                $product = $owner->products()->create($inputs);
+            }
+            $inputs['product_id'] = $product->id;
 
             $as_of = $this->helper->format_lunox_date($request->as_of);
             //Create new Product Item
@@ -238,10 +282,13 @@ class ProductItemController extends Controller
                 $inputs_stock['source_type'] = $this->STOCK_SOURCE_OPENING_STOCK;
                 $product_stock = $company->product_stocks()->create($inputs_stock);
                 //If Inventory Tracking is Enabled Capture Barcode and Batches
-                $inputs_stock_inw = [];
-                $stock_inward = $product_stock->stock_inwards()->create($inputs_stock_inw);
-
+                $batched_stock = $request->batched_form;
+                for ( $i=0; $i<sizeof($batched_stock); $i++ ){
+                    $batch = $batched_stock[$i];
+                    $stock_inward = $product_stock->stock_inwards()->create($batch);
+                }
             }
+            $http_resp['results'] = $this->productItem->transform_product_item($new_product_item);
 
         }catch (\Exception $e){
             $http_resp = $this->response_type['500'];
@@ -251,9 +298,9 @@ class ProductItemController extends Controller
             DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
             return response()->json($http_resp,500);
         }
-        DB::connection(Module::MYSQL_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->rollBack();
-        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->rollBack();
+        DB::connection(Module::MYSQL_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_PRODUCT_DB_CONN)->commit();
+        DB::connection(Module::MYSQL_ACCOUNTING_DB_CONN)->commit();
         return response()->json($http_resp);
     }
 

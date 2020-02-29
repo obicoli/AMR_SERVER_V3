@@ -2,6 +2,7 @@
 
 namespace App\Models\Product;
 
+use App\Models\Module\Module;
 use App\Models\Practice\Practice;
 use App\Traits\UuidTrait;
 use ByTestGear\Accountable\Traits\Accountable;
@@ -12,9 +13,8 @@ use App\Models\Practice\PracticeProductItem;
 class ProductOrderCategory extends Model
 {
     use SoftDeletes, UuidTrait, Accountable;
-
+    protected $connection = Module::MYSQL_PRODUCT_DB_CONN;
     protected $table = 'product_order_categories';
-
     protected $fillable = [
         'name',
         'description',

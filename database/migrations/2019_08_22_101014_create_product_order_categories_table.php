@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \App\Models\Module\Module;
 
 class CreateProductOrderCategoriesTable extends Migration
 {
@@ -13,7 +14,8 @@ class CreateProductOrderCategoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('product_order_categories', function (Blueprint $table) {
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_order_categories');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->create('product_order_categories', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->nullable()->index();
             $table->string('description')->nullable();
@@ -34,6 +36,6 @@ class CreateProductOrderCategoriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_order_categories');
+        Schema::connection(Module::MYSQL_PRODUCT_DB_CONN)->dropIfExists('product_order_categories');
     }
 }

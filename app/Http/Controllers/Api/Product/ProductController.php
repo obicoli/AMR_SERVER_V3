@@ -135,7 +135,17 @@ class ProductController extends Controller
             }
 
             $results['product_routes'] = [];
+            $product_routes = $headQuarter->product_routes()->get();
+            foreach ($product_routes as $product_route){
+                array_push($results['product_routes'],$this->product->transform_attribute($product_route));
+            }
+
             $results['formulations'] = [];
+            $formulations = $headQuarter->product_formulations()->get();
+            foreach ($formulations as $formulation){
+                array_push($results['formulations'],$this->product->transform_attribute($formulation));
+            }
+
             $results['suppliers'] = [];
 
         }

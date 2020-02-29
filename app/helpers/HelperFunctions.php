@@ -1553,6 +1553,9 @@ class HelperFunctions
             case Product::DOC_PURCHASE_RETURN:
                 $file_public = "/assets/company/".$company_id."/preturn/".$document_id;
                 break;
+            case "Product Item":
+                $file_public = "/assets/company/".$company_id."/product_item/".$document_id;
+                break;
             default:
                 $file_public = "/assets/company/".$company_id."/logos";
                 break;

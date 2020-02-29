@@ -39,11 +39,9 @@ class CreateProductItemsTable extends Migration
             $table->boolean('confirmed')->index()->default(true);
             $table->enum('inventory_tracking',['None','Batch','Barcode','Serial'])->default('None');
             $table->string('item_code')->index();
-            //$table->string('barcode',100)->index()->nullable();
-            $table->string('item_note')->nullable();
+            $table->string('notes')->nullable();
             $table->string('unit_storage_location')->nullable();
             $table->string('single_unit_weight')->index()->nullable();
-            //$table->integer('net_weight')->index();
             $table->string('alert_indicator_level')->index()->nullable();
             $table->string('units_per_pack')->index()->nullable();
             $table->string('uuid')->index();
